@@ -1,0 +1,36 @@
+{
+  "name": "sprint-engine/sprint-engine",
+  "description": "Standalone WordPress Sprint Engine plugin.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require-dev": {
+    "wp-coding-standards/wpcs": "^3.0",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "scripts": {
+    "check": "phpcs",
+    "test": [
+      "php tests/release.php",
+      "php tests/integration/assets.php",
+      "php tests/integration/foundation.php",
+      "php tests/integration/authoring.php",
+      "php tests/integration/structure.php",
+      "php tests/integration/progress.php",
+      "php tests/integration/migration.php",
+      "php tests/integration/attempts.php",
+      "php tests/integration/runner.php",
+      "php tests/integration/dashboard.php",
+      "php tests/integration/runner-admin.php",
+      "php tests/integration/rest.php",
+      "php tests/integration/branding.php",
+      "php tests/integration/polish.php",
+      "php tests/integration/validation.php",
+      "php tests/integration/prefixing.php"
+    ]
+  }
+}

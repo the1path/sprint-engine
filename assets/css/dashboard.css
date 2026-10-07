@@ -1,0 +1,39 @@
+/* Standalone member Dashboard; branding variables come from RunnerBranding. */
+body.se-dashboard { margin: 0; background: var(--se-background); color: var(--se-text); font: 1rem/1.7 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body.se-dashboard *, body.se-dashboard *::before, body.se-dashboard *::after { box-sizing: border-box; }
+body.se-dashboard .se-dashboard__shell { width: min(100% - 3rem, 72rem); margin: 2rem auto 4rem; }
+body.se-dashboard .se-dashboard__header { max-width: 42rem; margin-bottom: 3rem; }
+body.se-dashboard .se-runner__logo { display: block; max-width: 12rem; max-height: 4rem; width: auto; height: auto; object-fit: contain; margin-bottom: 2rem; }
+body.se-dashboard h1, body.se-dashboard h2, body.se-dashboard h3 { font-family: inherit; color: inherit; line-height: 1.25; overflow-wrap: anywhere; }
+body.se-dashboard h1 { margin: 0 0 1rem; font-size: clamp(2rem, 5vw, 2.75rem); letter-spacing: -.035em; }
+body.se-dashboard h2 { margin: 0 0 1.25rem; font-size: 1.5rem; }
+body.se-dashboard h3 { margin: 0 0 1rem; font-size: 1.35rem; }
+body.se-dashboard p { margin: 0 0 1rem; overflow-wrap: anywhere; }
+body.se-dashboard .se-dashboard__header p, body.se-dashboard .se-dashboard__muted { color: var(--se-muted); }
+body.se-dashboard .se-dashboard__section { margin-bottom: 3rem; }
+body.se-dashboard .se-dashboard__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); align-items: start; gap: 1.5rem; }
+body.se-dashboard .se-dashboard__card { min-width: 0; border: 1px solid var(--se-border); border-radius: var(--se-radius); background: var(--se-surface); }
+body.se-dashboard .se-dashboard__image { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--se-radius) var(--se-radius) 0 0; }
+body.se-dashboard .se-dashboard__card-content { padding: 1.5rem; }
+body.se-dashboard .se-dashboard__label { color: var(--se-label); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+body.se-dashboard .se-dashboard__muted { font-size: .875rem; }
+body.se-dashboard .se-dashboard__actions { display: flex; align-items: flex-start; flex-direction: column; gap: .75rem; margin-top: 1.5rem; }
+body.se-dashboard .se-dashboard__actions p { margin: 0; font-size: .875rem; }
+body.se-dashboard .se-dashboard__actions [role="status"]:empty { display: none; }
+body.se-dashboard a { color: var(--se-link); text-underline-offset: .2em; }
+body.se-dashboard .se-dashboard__button { appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 48px; max-width: 100%; padding: .75rem 1.25rem; border: 1px solid transparent; border-radius: var(--se-control-radius); font: inherit; font-weight: 650; line-height: 1.4; text-align: center; text-decoration: none; white-space: normal; overflow-wrap: anywhere; color: var(--se-on-primary); background: var(--se-primary); cursor: pointer; }
+body.se-dashboard .se-dashboard__button:hover { background: var(--se-hover); }
+body.se-dashboard .se-dashboard__button:disabled { opacity: .65; cursor: wait; border-style: dashed; border-color: currentColor; }
+body.se-dashboard :focus-visible { outline: 3px solid #245dd1; outline-offset: 4px; }
+body.se-dashboard progress { display: block; width: 100%; height: .5rem; border: 0; border-radius: var(--se-radius); overflow: hidden; background: var(--se-track); accent-color: var(--se-accent); }
+body.se-dashboard progress::-webkit-progress-bar { background: var(--se-track); }
+body.se-dashboard progress::-webkit-progress-value { background: var(--se-accent); }
+body.se-dashboard progress::-moz-progress-bar { background: var(--se-accent); }
+body.se-dashboard .se-dashboard__empty { padding: 2rem; background: var(--se-surface); border: 1px solid var(--se-border); border-radius: var(--se-radius); }
+body.se-dashboard .se-dashboard__skip { position: absolute; left: -10000px; }
+body.se-dashboard .se-dashboard__skip:focus { left: 1rem; top: 1rem; padding: .75rem; background: var(--se-surface); z-index: 100; }
+@media (max-width: 480px) {
+	body.se-dashboard .se-dashboard__shell { width: calc(100% - 2rem); margin-top: 1.5rem; }
+	body.se-dashboard .se-dashboard__card-content { padding: 1.25rem; }
+	body.se-dashboard .se-dashboard__button { width: 100%; }
+}

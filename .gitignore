@@ -1,0 +1,8 @@
+/vendor/
+/dist/
+/.tools/
+/.phpunit.cache/
+/.phpunit.result.cache
+*.zip
+.env
+wp-config.php

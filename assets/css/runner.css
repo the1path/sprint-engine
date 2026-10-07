@@ -1,0 +1,111 @@
+/* Standalone Runner; all rules stay within the application body. */
+body.se-runner {
+	--se-background: #f3f6f5;
+	--se-text: #203630;
+	--se-surface: #ffffff;
+	--se-primary: #205b48;
+	--se-muted: #50645d;
+	--se-border: #d5e0db;
+	--se-link: #165b4b;
+	--se-label: #386453;
+	--se-accent: #276a55;
+	--se-task: #f0f6f3;
+	--se-track: #dce6e0;
+	--se-hover: #164333;
+	--se-secondary-text: #245440;
+	--se-secondary: #eef4f0;
+	--se-control-border: #c7d8ce;
+	--se-secondary-hover: #dceae1;
+	--se-notice-border: #aabcb2;
+	--se-quote: #83a593;
+	--se-on-primary: #ffffff;
+	--se-radius: 1rem;
+	--se-control-radius: .5rem;
+
+	margin: 0;
+	padding: 0;
+	background: var(--se-background);
+	color: var(--se-text);
+	font: 1rem/1.7 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.se-runner *, .se-runner *::before, .se-runner *::after { box-sizing: border-box; }
+.se-runner .se-runner__shell { width: min(100% - 2rem, 50rem); margin: 1rem auto 4rem; }
+.se-runner .se-runner__utility { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.se-runner .se-runner__header { padding: 0 clamp(0rem, 2vw, 1rem) 2rem; }
+.se-runner .se-runner__main { padding: clamp(1.25rem, 5vw, 3rem); background: var(--se-surface); border: 1px solid var(--se-border); border-radius: var(--se-radius); }
+.se-runner .se-runner__featured-image { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 7; object-fit: cover; border-radius: var(--se-radius); margin-bottom: 1.5rem; }
+.se-runner h1, .se-runner h2, .se-runner h3, .se-runner h4 { color: inherit; font-family: inherit; line-height: 1.25; overflow-wrap: anywhere; }
+.se-runner h1 { margin: 0 0 .5rem; font-size: clamp(1.4rem, 4vw, 1.85rem); font-weight: 650; }
+.se-runner h2 { margin: 0 0 1.5rem; font-size: clamp(1.65rem, 5vw, 2.25rem); letter-spacing: -.025em; }
+.se-runner p, .se-runner figure { margin: 0 0 1.25rem; }
+.se-runner a { color: var(--se-link); text-decoration: underline; text-underline-offset: .2em; }
+.se-runner a:hover { text-decoration-thickness: 2px; }
+.se-runner :focus-visible { outline: 3px solid #245dd1; outline-offset: 4px; }
+.se-runner .se-runner__intro, .se-runner .se-runner__save-note { color: var(--se-muted); }
+.se-runner .se-runner__label { margin: 0 0 .5rem; color: var(--se-label); font-size: .8rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.se-runner .se-runner__metadata { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-bottom: 1.5rem; color: var(--se-muted); font-size: .875rem; }
+.se-runner .se-runner__task { padding: .75rem 1rem; border-left: 3px solid var(--se-accent); background: var(--se-task); }
+.se-runner .se-runner__progress { margin-top: 1.25rem; }
+.se-runner .se-runner__progress p { margin-bottom: .65rem; color: var(--se-muted); font-size: .875rem; }
+.se-runner progress { display: block; width: 100%; height: .5rem; border: 0; border-radius: var(--se-radius); overflow: hidden; background: var(--se-track); accent-color: var(--se-accent); }
+.se-runner progress::-webkit-progress-bar { background: var(--se-track); }
+.se-runner progress::-webkit-progress-value { background: var(--se-accent); border-radius: var(--se-radius); }
+.se-runner progress::-moz-progress-bar { background: var(--se-accent); border-radius: var(--se-radius); }
+.se-runner .se-runner__actions { border-top: 1px solid var(--se-border); margin-top: 2.5rem; padding-top: 1.75rem; }
+.se-runner .se-runner__save-note { font-size: .875rem; }
+.se-runner .se-runner__button, .se-runner .wp-block-file__button, .se-runner .wp-block-button__link {
+	display: inline-flex; align-items: center; justify-content: center; min-height: 48px; max-width: 100%; padding: .75rem 1.25rem;
+	border: 1px solid transparent; border-radius: var(--se-control-radius); font: inherit; font-weight: 650; line-height: 1.4; text-align: center;
+	white-space: normal; overflow-wrap: anywhere; text-decoration: none; cursor: pointer;
+}
+.se-runner .se-runner__button--primary { color: var(--se-on-primary); background: var(--se-primary); }
+.se-runner button.se-runner__button { appearance: none; }
+.se-runner .se-runner__button--primary:hover { background: var(--se-hover); }
+.se-runner .wp-block-button__link:not(.has-text-color) { color: var(--se-on-primary); }
+.se-runner .wp-block-button__link:not(.has-background) { background: var(--se-primary); }
+.se-runner .is-style-outline .wp-block-button__link:not(.has-text-color) { color: var(--se-primary); }
+.se-runner .is-style-outline .wp-block-button__link:not(.has-background) { background: transparent; border-color: currentColor; }
+.se-runner .se-runner__button--secondary, .se-runner .wp-block-file__button { color: var(--se-secondary-text); background: var(--se-secondary); border-color: var(--se-control-border); }
+.se-runner .se-runner__button--secondary:hover, .se-runner .wp-block-file__button:hover { background: var(--se-secondary-hover); }
+.se-runner .se-runner__button:disabled { color: #fff; background: #61746b; cursor: wait; border-style: dashed; border-color: var(--se-on-primary); }
+.se-runner .se-runner__button[aria-busy="true"] { outline: 2px solid #61746b; outline-offset: 2px; }
+.se-runner #se-runner-status { margin: 1rem 0 0; }
+.se-runner #se-runner-status:not(:empty), .se-runner .se-runner__error { padding: 1rem; border: 1px solid var(--se-notice-border); border-radius: var(--se-control-radius); background: var(--se-background); overflow-wrap: anywhere; }
+.se-runner .se-runner__completion { padding-block: 1rem; }
+.se-runner .se-runner__content { overflow-wrap: anywhere; display: flow-root; }
+.se-runner .se-runner__content > :first-child { margin-top: 0; }
+.se-runner .se-runner__content h2, .se-runner .se-runner__content h3 { margin-top: 2rem; margin-bottom: 1rem; }
+.se-runner .se-runner__content h2 { font-size: 1.5rem; }
+.se-runner .se-runner__content ul, .se-runner .se-runner__content ol { padding-inline-start: 1.5rem; }
+.se-runner .se-runner__content li + li { margin-top: .5rem; }
+.se-runner .se-runner__content blockquote { margin: 1.5rem 0; padding: .5rem 1.25rem; border-inline-start: 3px solid var(--se-quote); color: var(--se-muted); }
+.se-runner .se-runner__content img, .se-runner .se-runner__content video, .se-runner .se-runner__content iframe,
+.se-runner .se-runner__content audio, .se-runner .se-runner__content object, .se-runner .se-runner__content embed { max-width: 100%; }
+.se-runner .se-runner__content img, .se-runner .se-runner__content video { height: auto; }
+.se-runner .se-runner__content audio { width: 100%; min-width: 0; }
+.se-runner .se-runner__content figure { max-width: 100%; }
+.se-runner .se-runner__content .wp-block-embed__wrapper { position: relative; }
+/* Respect WordPress's ratio classes; do not force PDF or arbitrary iframe ratios. */
+.se-runner .se-runner__content .wp-has-aspect-ratio iframe { width: 100%; height: 100%; position: absolute; inset: 0; }
+.se-runner .se-runner__content .wp-embed-aspect-16-9 .wp-block-embed__wrapper { aspect-ratio: 16 / 9; }
+.se-runner .se-runner__content .wp-embed-aspect-4-3 .wp-block-embed__wrapper { aspect-ratio: 4 / 3; }
+.se-runner .se-runner__content .wp-block-file__embed { width: 100%; max-height: 70vh; }
+.se-runner .se-runner__content pre, .se-runner .se-runner__content .wp-block-table { max-width: 100%; overflow-x: auto; }
+.se-runner .se-runner__content pre { padding: 1rem; background: var(--se-background); }
+.se-runner .se-runner__content table { border-collapse: collapse; }
+.se-runner .se-runner__content th, .se-runner .se-runner__content td { padding: .65rem; border: 1px solid var(--se-control-border); }
+.se-runner .se-runner__content .alignwide, .se-runner .se-runner__content .alignfull { width: 100%; max-width: 100%; margin-inline: 0; }
+.se-runner .se-runner__skip { position: absolute; top: -10rem; left: 1rem; z-index: 10000; padding: .75rem 1rem; background: var(--se-surface); }
+.se-runner .se-runner__skip:focus { top: 1rem; }
+@media (max-width: 480px) {
+	.se-runner .se-runner__featured-image { aspect-ratio: 16 / 10; }
+	.se-runner .se-runner__shell { width: calc(100% - 1.25rem); margin-top: .5rem; }
+	.se-runner .se-runner__utility { margin-bottom: 1rem; }
+	.se-runner .se-runner__button--primary { width: 100%; }
+	.se-runner .se-runner__content .wp-block-file__embed { max-height: 55vh; }
+}
+
+.se-runner .se-runner__logo { max-width: min(180px, 100%); max-height: 64px; width: auto; height: auto; object-fit: contain; margin-right: auto; }
+.se-runner #se-preview-logo { margin-right: auto; }
+/* Two-tone focus stays visible on both light and dark brand surfaces. */
+.se-runner :focus-visible { box-shadow: 0 0 0 3px #fff, 0 0 0 7px #000; }
