@@ -1,6 +1,6 @@
 # Sprint Engine development guide
 
-This guide documents Core **0.2.0**, schema **2**. Start with the
+This guide documents Core **0.2.1**, schema **2**. Start with the
 [documentation index](README.md) for architecture and validation records.
 The [contribution guide](../CONTRIBUTING.md) covers focused issues and pull requests.
 
@@ -134,6 +134,47 @@ for API behaviour, recovery limits, concurrency and event-delivery assumptions.
 
 ## Attempts and restart (SE-012)
 
+### Read-only attempt history (SE-010, Core 0.2.1)
+
+`ProgressService::get_attempt_history( $user, $sprint = null )` returns an array
+of canonical persisted Core attempts, or a safe `WP_Error`. It accepts an existing
+positive integer user ID (or decimal string); an optional Sprint filter must be
+a positive ID whose current post has type `sprint_engine_sprint`. Draft, private,
+trashed and unlaunchable Sprints are accepted. A deleted or wrong-type post cannot
+be identified as a supplied Sprint filter and returns `sprint_engine_progress_sprint`.
+Invalid/missing users return `sprint_engine_progress_user`. Incomplete schema or
+database failures return `sprint_engine_progress_persistence` without SQL details.
+An existing user with no positive-number attempts receives an empty array.
+
+**MEMBER-FACING CALLERS MUST APPLY THEIR OWN AUTHORIZATION POLICY.** Bind the user
+ID to the authenticated member and authorize any member-facing use through the
+existing AccessManager boundary as appropriate to your policy. This trusted PHP
+API checks user existence/data identity, not commercial access or entitlements;
+it does not call AccessManager and is not a REST endpoint.
+
+Each record contains exactly `attempt_id`, `sprint_id`, `attempt_number`, `status`,
+`current_step_id`, `started_at`, `last_activity_at`, `completed_at`, `created_at`,
+and `updated_at`. Numeric IDs/attempt numbers are integers; a null current pointer
+remains null. Stored status, pointers (including stale pointers), and UTC datetime
+strings/null timestamps are preserved without repair. No `user_id`, Step content,
+completion counts, SQL or repository internals are exposed.
+
+With a Sprint filter, ordering is `attempt_number DESC`, then `attempt_id DESC`.
+Global ordering is `sprint_id ASC`, then the same descending attempt order.
+Only positive attempt numbers are included. The global call retains persisted
+Sprint IDs whose posts have been deleted or trashed; consumers must safely handle
+missing current content. Present Step order/content, missing blocks, launchability,
+broken chains or stale pointers do not affect history reads. This is attempt
+metadata, not historical content snapshots or per-Step reconstruction.
+
+Each call uses one prepared enrolment SELECT with user and optional Sprint filters
+at SQL level. It never joins current posts, queries Step progress, invokes the
+lifecycle transaction/clock/actions, creates enrolments, repairs state, or writes
+INSERT/UPDATE/DELETE. No persistent cache, transients, options or migration are added.
+See [the SE-010 API validation record](validation/se-010.md#se-010--read-only-attempt-history-api-and-dashboard-extension-seam).
+
+### Existing attempt lifecycle
+
 Each enrolment row is a stable attempt ID. The highest positive attempt_number
 for a user/Sprint is the canonical runtime attempt; every Step query is scoped to
 that attempt. Schema 2 adds attempt_number with DEFAULT 1 to both tables and
@@ -206,13 +247,23 @@ and authorized context (state/status/sections, or generic error). Paths use the 
 Runner safety checks: readable local PHP under plugin/mu-plugin/theme code, with
 realpath containment and no wrappers/uploads/null bytes. No other Pro API is added.
 
+The `sprint_engine/dashboard_header_actions` action (Core 0.2.1) fires once in the
+built-in Dashboard header, immediately after the introductory paragraph and before
+Sprint sections. It receives the already-authorized `$sprint_engine_context` array:
+`state`, `status`, and `sections` for success, or `state`, `status`, and a generic
+`message` on a read error. Login requests redirect before rendering; unrelated
+pages do not fire it. Trusted callbacks may echo links/actions and must escape
+their own output by context and authorize any destination independently. With no
+listener, the Dashboard display and behaviour are unchanged. Template overrides
+are responsible for their own hook placement. No history UI is included in Core.
+
 Responses set DONOTCACHEPAGE, private/no-store/no-cache and noindex/nofollow headers
 and robots metadata. Configure upstream caches to bypass the Dashboard route.
 Upgrading a corrected pre-release 0.1.0 installation to 0.2.0 registers both member
 routes and softly refreshes rewrite rules once after successful installation.
 No Permalinks save or reactivation is required. Failed installation leaves rewrites
 unchanged; ordinary requests do
-not flush them. Version remains 0.2.0/schema 2.
+not flush them. Core 0.2.1 retains schema 2 and adds no storage migration.
 See [SE-013 validation](validation/se-013.md) for evidence and limitations.
 
 ## Sprint Runner
@@ -280,7 +331,7 @@ remaining target host deployment checks.
 - Administrators author content using existing `manage_options` capabilities.
   Custom author roles/capabilities are deferred until explicitly specified.
 - Activate per site. Network-wide activation is rejected with an actionable
-  message; automatic multisite provisioning is not included in Core 0.2.0.
+  message; automatic multisite provisioning is not included in Core 0.2.1.
 - Runner requires pretty permalinks and a published, launchable, valid Sprint.
 - Structure writes require transactional WordPress `posts` and `postmeta` tables
   (InnoDB on MySQL/MariaDB). Unsupported storage engines are rejected before writes;
@@ -329,6 +380,7 @@ SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/structure.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/progress.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/attempts.php
+SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/attempt-history.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/migration.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/runner.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/dashboard.php

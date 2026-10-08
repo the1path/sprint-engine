@@ -1,6 +1,6 @@
 # Sprint Engine developer documentation
 
-Core **0.2.0** is the stable open-source release. The root
+Core **0.2.1** is the current source version; **0.2.0** is the published stable release. The root
 [README](../README.md) introduces the product and installation; this directory
 preserves technical guidance and validation evidence.
 
@@ -32,6 +32,7 @@ have been generalised without changing the recorded test outcomes.
 | Authoring and validation | [SE-010](validation/se-010.md), [SE-010.1](validation/se-010-1.md), [SE-010.2](validation/se-010-2.md) |
 | Directory review and identifiers | [SE-011](validation/se-011.md), [review](validation/wporg-review-001.md), [inventory](validation/wporg-review-001-inventory.md) |
 | Attempts and restart | [SE-012](validation/se-012.md) |
+| Read-only attempt history and Dashboard header hook | [SE-010 API](validation/se-010.md#se-010--read-only-attempt-history-api-and-dashboard-extension-seam) |
 | Member Dashboard | [SE-013](validation/se-013.md) |
 | Step publication and onboarding | [SE-014](validation/se-014.md) |
 | Initial public release preparation | [SE-015](validation/se-015.md) |

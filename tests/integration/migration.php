@@ -94,7 +94,7 @@ try {
 		migration_check( $before[$table] === $rows, 'Partial migration preserves every ID/status/pointer/timestamp in ' . $table );
 	}
 	( new Plugin() )->maybe_upgrade();
-	migration_check( ! get_option( 'sprint_engine_installation_failed' ) && '2' === get_option( 'sprint_engine_schema_version' ) && '0.2.0' === get_option( 'sprint_engine_version' ), 'Actual maybe_upgrade retry completes safely and records 0.2.0/schema 2 only after verification.' );
+	migration_check( ! get_option( 'sprint_engine_installation_failed' ) && '2' === get_option( 'sprint_engine_schema_version' ) && '0.2.1' === get_option( 'sprint_engine_version' ), 'Actual maybe_upgrade retry completes safely and records 0.2.1/schema 2 only after verification.' );
 	migration_check( array( false ) === $rewrite_spy->sprint_engine_flushes && 1 === $generations, 'Successful version upgrade invokes exactly one soft flush and regenerates rewrites once.' );
 	$new_rules = get_option( 'rewrite_rules' );
 	migration_check( isset( $new_rules[RunnerRoutes::RULE], $new_rules[DashboardRoutes::RULE] ), 'Version upgrade preserves Runner and installs Dashboard rewrites without activation.' );
@@ -148,7 +148,7 @@ try {
 	$old_rules = get_option( 'rewrite_rules' );
 	migration_check( isset( $old_rules[RunnerRoutes::RULE] ) && ! isset( $old_rules[DashboardRoutes::RULE] ), 'Pristine v1 content/progress schema and Runner-only rewrites are established.' );
 	( new Plugin() )->maybe_upgrade();
-	migration_check( '0.2.0' === get_option( 'sprint_engine_version' ) && '2' === get_option( 'sprint_engine_schema_version' ) && ! get_option( 'sprint_engine_installation_failed' ), 'Ordinary pristine 0.1.0 to 0.2.0 upgrade succeeds through maybe_upgrade without activation.' );
+	migration_check( '0.2.1' === get_option( 'sprint_engine_version' ) && '2' === get_option( 'sprint_engine_schema_version' ) && ! get_option( 'sprint_engine_installation_failed' ), 'Ordinary pristine 0.1.0 to 0.2.1 upgrade succeeds through maybe_upgrade without activation.' );
 	migration_check( array( false ) === $rewrite_spy->sprint_engine_flushes && 1 === $generations, 'Pristine version upgrade performs exactly one soft flush and real regeneration.' );
 	$wp->matched_rule = ''; $wp->matched_query = ''; $wp->parse_request();
 	$dashboard = ( new ThePath\SprintEngine\Dashboard\Dashboard() )->resolve();

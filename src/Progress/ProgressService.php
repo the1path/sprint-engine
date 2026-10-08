@@ -93,6 +93,55 @@ final class ProgressService {
 	}
 
 	/**
+	 * Read canonical attempts without creating, repairing or validating structure.
+	 * Member-facing callers MUST apply their own authorization policy and bind the
+	 * user ID to the authenticated member. This method does not check AccessManager.
+	 * Global reads retain Sprint IDs even when their current posts no longer exist.
+	 *
+	 * @param int      $user Existing user ID (decimal strings also accepted).
+	 * @param int|null $sprint Optional existing Sprint ID, including trashed Sprints.
+	 * @return array[]|\WP_Error Sprint ID ascending, attempt number then ID descending.
+	 */
+	public function get_attempt_history( $user, $sprint = null ) {
+		global $wpdb;
+		if ( ! $this->valid_id( $user ) || ! get_userdata( (int) $user ) ) {
+			return new \WP_Error( 'sprint_engine_progress_user', __( 'The user does not exist.', 'sprint-engine' ) );
+		}
+		if ( null !== $sprint ) {
+			if ( ! $this->valid_id( $sprint ) || 'sprint_engine_sprint' !== get_post_type( (int) $sprint ) ) {
+				return new \WP_Error( 'sprint_engine_progress_sprint', __( 'The Sprint is unavailable.', 'sprint-engine' ) );
+			}
+			$sprint = (int) $sprint;
+		}
+		if ( SPRINT_ENGINE_SCHEMA_VERSION !== get_option( 'sprint_engine_schema_version' ) || get_option( 'sprint_engine_installation_failed' ) ) {
+			return new \WP_Error( 'sprint_engine_progress_persistence', __( 'Attempt history could not be read safely. Try again, or contact the site administrator.', 'sprint-engine' ) );
+		}
+		$previous = $wpdb->suppress_errors( true );
+		try {
+			$history = array();
+			foreach ( $this->enrolments->list_attempts( (int) $user, $sprint ) as $row ) {
+				$history[] = array(
+					'attempt_id'       => $row['id'],
+					'sprint_id'        => $row['sprint_id'],
+					'attempt_number'   => $row['attempt_number'],
+					'status'           => $row['status'],
+					'current_step_id'  => $row['current_step_id'],
+					'started_at'       => $row['started_at'],
+					'last_activity_at' => $row['last_activity_at'],
+					'completed_at'     => $row['completed_at'],
+					'created_at'       => $row['created_at'],
+					'updated_at'       => $row['updated_at'],
+				);
+			}
+			return $history;
+		} catch ( \Throwable $exception ) {
+			return new \WP_Error( 'sprint_engine_progress_persistence', __( 'Attempt history could not be read safely. Try again, or contact the site administrator.', 'sprint-engine' ) );
+		} finally {
+			$wpdb->suppress_errors( $previous );
+		}
+	}
+
+	/**
 	 * Complete only the current Step; completed-Step retries return current state.
 	 *
 	 * @param int $user User ID.
