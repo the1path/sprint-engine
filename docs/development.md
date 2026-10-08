@@ -134,7 +134,7 @@ for API behaviour, recovery limits, concurrency and event-delivery assumptions.
 
 ## Attempts and restart (SE-012)
 
-### Read-only attempt history (SE-010, Core 0.2.1)
+### Read-only attempt history (SE-016, Core 0.2.1)
 
 `ProgressService::get_attempt_history( $user, $sprint = null )` returns an array
 of canonical persisted Core attempts, or a safe `WP_Error`. It accepts an existing
@@ -171,7 +171,7 @@ Each call uses one prepared enrolment SELECT with user and optional Sprint filte
 at SQL level. It never joins current posts, queries Step progress, invokes the
 lifecycle transaction/clock/actions, creates enrolments, repairs state, or writes
 INSERT/UPDATE/DELETE. No persistent cache, transients, options or migration are added.
-See [the SE-010 API validation record](validation/se-010.md#se-010--read-only-attempt-history-api-and-dashboard-extension-seam).
+See [the SE-016 API validation record](validation/se-016.md).
 
 ### Existing attempt lifecycle
 

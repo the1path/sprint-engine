@@ -1,5 +1,5 @@
 <?php
-/** SE-010 canonical read-only attempt history on disposable WordPress only. */
+/** SE-016 canonical read-only attempt history on disposable WordPress only. */
 use ThePath\SprintEngine\Content\Meta;
 use ThePath\SprintEngine\Content\StructureManager;
 use ThePath\SprintEngine\Progress\ProgressService;
@@ -147,4 +147,4 @@ foreach ( $users as $id ) {
 	$wpdb->delete( $wpdb->prefix . 'sprint_engine_enrolments', array( 'user_id' => $id ) ); wp_delete_user( $id );
 }
 foreach ( array_merge( $steps[$sprints[0]], $steps[$sprints[1]], $sprints ) as $id ) { wp_delete_post( $id, true ); }
-echo "SE-010 attempt history completed: $checks assertions.\n";
+echo "SE-016 attempt history completed: $checks assertions.\n";
