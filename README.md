@@ -2,33 +2,27 @@
 
 **Turn WordPress into a guided action platform.**
 
-Sprint Engine is an open-source WordPress plugin for building guided, step-by-step
-experiences that move people from start to outcome. Create a Sprint, arrange its
-Steps, and give participants a focused place to work through them with saved progress.
+Sprint Engine is an open-source WordPress plugin for building structured, step-by-step journeys that move people from start to outcome. Create onboarding journeys, member journeys, training programmes, implementation processes, coaching experiences and more — all using familiar WordPress content and tools.
 
 [Install from WordPress.org](https://wordpress.org/plugins/sprint-engine/) ·
 [Developer documentation](docs/README.md) · [Contribute](CONTRIBUTING.md)
 
 ## What is Sprint Engine?
 
-A Sprint is a structured journey towards a defined outcome. Site owners author
-content and tasks in the WordPress block editor; participants work through the
-ordered Steps one at a time in the Sprint Runner. They can leave and return to
-their saved position, then complete the journey when the work is done.
+A Sprint is a structured journey towards a defined outcome. It combines content, guidance and action into an ordered sequence of Steps that participants work through one at a time.
 
 The focus is action and implementation: helping people put guidance into practice.
 
 ## What can you build?
 
-- Onboarding flows and customer success journeys.
-- Implementation guides and programmes.
-- Assessments and guided reviews using authored prompts and tasks.
-- Action plans and coaching journeys.
-- Training experiences and structured programmes.
-- Internal processes and step-by-step workflows.
-
-Core provides a linear journey with explicit Step completion. Assessments can guide
-self-review; Core does not collect workbook responses or score quizzes.
+- Guided onboarding and customer success journeys
+- Member journeys and engagement pathways
+- Content journeys that turn information into action
+- Implementation guides and programmes
+- Coaching and development journeys
+- Training experiences
+- Assessments and guided reviews
+- Internal processes and workflows
 
 ## Core features
 
