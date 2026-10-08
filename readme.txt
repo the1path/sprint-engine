@@ -3,7 +3,7 @@ Contributors: thepath
 Tags: workflow, onboarding, training, learning, progress
 Requires at least: 6.0
 Tested up to: 7.1
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -69,7 +69,7 @@ Steps are organised using the Sprint Structure Manager. The Runner then presents
 
 Sprint Engine deliberately keeps the core experience lightweight.
 
-Version 0.2.0 does not include:
+Version 0.2.1 does not include:
 
 * Quizzes or exams
 * Certificates
@@ -190,13 +190,13 @@ This can be used to direct users to another Sprint, a feedback form, a booking p
 
 = Can I create branching or conditional Sprints? =
 
-Not in version 0.2.0.
+Not in version 0.2.1.
 
 The current release intentionally supports a single linear Step sequence.
 
 = Who can create and manage Sprints? =
 
-In version 0.2.0, Sprint authoring is intended for WordPress administrators.
+In version 0.2.1, Sprint authoring is intended for WordPress administrators.
 
 Custom authoring roles and capabilities are not currently included.
 
@@ -208,7 +208,7 @@ Reactivating the plugin allows that data to be used again.
 
 = What happens if I uninstall Sprint Engine? =
 
-Version 0.2.0 intentionally retains Sprint content, progress data and plugin settings when the plugin is uninstalled.
+Version 0.2.1 intentionally retains Sprint content, progress data and plugin settings when the plugin is uninstalled.
 
 If you need to permanently remove stored Sprint Engine data, make an appropriate database backup and remove the data manually.
 
@@ -265,11 +265,17 @@ Sprint Engine also stores Sprint and Step configuration as WordPress content and
 
 The core plugin does not require a third-party service to provide Sprint authoring, Runner or progress functionality.
 
-Sprint Engine retains its content, settings and progress data when deactivated and when uninstalled in version 0.2.0.
+Sprint Engine retains its content, settings and progress data when deactivated and when uninstalled in version 0.2.1.
 
 Site owners are responsible for determining how their use of Sprint Engine relates to their own privacy policy, data-retention obligations and applicable laws.
 
 == Changelog ==
+
+= 0.2.1 =
+
+* Add a read-only canonical attempt-history PHP API for extensions.
+* Add a generic Dashboard header action hook.
+* Keep storage schema 2 unchanged; no database migration.
 
 = 0.2.0 =
 

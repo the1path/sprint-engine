@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Sprint Engine
  * Description: Create guided, step-by-step Sprints with saved progress and a distraction-free Runner.
- * Version: 0.2.0
+ * Version: 0.2.1
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * Author: ThePath
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SPRINT_ENGINE_VERSION', '0.2.0' );
+define( 'SPRINT_ENGINE_VERSION', '0.2.1' );
 define( 'SPRINT_ENGINE_SCHEMA_VERSION', '2' );
 define( 'SPRINT_ENGINE_MIN_PHP', '8.0' );
 define( 'SPRINT_ENGINE_MIN_WP', '6.0' );

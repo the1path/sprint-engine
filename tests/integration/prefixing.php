@@ -34,7 +34,7 @@ foreach ( array( 'enrolments', 'step_progress' ) as $suffix ) {
 	$table = $wpdb->prefix . 'sprint_engine_' . $suffix;
 	sprint_engine_prefix_check( $table === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ), 'Canonical operational table exists: ' . $suffix );
 }
-sprint_engine_prefix_check( '0.2.0' === SPRINT_ENGINE_VERSION && '2' === SPRINT_ENGINE_SCHEMA_VERSION, 'Unreleased attempt version and schema are correct.' );
+sprint_engine_prefix_check( '0.2.1' === SPRINT_ENGINE_VERSION && '2' === SPRINT_ENGINE_SCHEMA_VERSION, 'Core source version and schema are correct.' );
 sprint_engine_prefix_check( has_action( 'wp_ajax_sprint_engine_structure' ) && ! has_action( 'wp_ajax_se_structure' ), 'Only canonical structure AJAX action is registered.' );
 sprint_engine_prefix_check( has_action( 'admin_post_sprint_engine_reset_branding' ) && ! has_action( 'admin_post_se_reset_branding' ), 'Only canonical branding action is registered.' );
 do_action( 'rest_api_init' );

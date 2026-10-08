@@ -33,6 +33,10 @@ function sprint_engine_dashboard_html($context) {
     set_query_var('sprint_engine_dashboard_context', $context);
     ob_start(); include dirname(__DIR__, 2) . '/templates/dashboard.php'; return ob_get_clean();
 }
+function sprint_engine_dashboard_shell($html) {
+    preg_match('/<div class="se-dashboard__shell">.*?<\/main>\s*<\/div>/s', $html, $match);
+    return $match[0] ?? '';
+}
 function sprint_engine_dashboard_request($path) {
     global $wp;
     $_SERVER['REQUEST_URI'] = $path; $_SERVER['PHP_SELF'] = '/index.php'; $_SERVER['PATH_INFO'] = '';
@@ -109,6 +113,26 @@ $filter = static function ($items,$member) use (&$received) { $received=array($i
 add_filter('sprint_engine/dashboard_items',$filter,10,2);
 $context = $dashboard->resolve(); $html = sprint_engine_dashboard_html($context);
 remove_filter('sprint_engine/dashboard_items',$filter);
+$header_calls = array();
+$header_listener = static function ($authorized) use (&$header_calls) {
+    $header_calls[] = $authorized;
+    echo '<a class="history-test-action" href="' . esc_url(home_url('/extension/')) . '">' . esc_html('<Safe extension action>') . '</a>';
+};
+add_action('sprint_engine/dashboard_header_actions',$header_listener);
+$extended_html = sprint_engine_dashboard_html($context);
+sprint_engine_dashboard_check(array($context) === $header_calls, 'Header action fires exactly once with the authorized Dashboard context.');
+$intro_position = strpos($extended_html,'Choose a Sprint to start,');
+$action_position = strpos($extended_html,'<a class="history-test-action"');
+sprint_engine_dashboard_check(false !== $action_position && $intro_position < $action_position && $action_position < strpos($extended_html,'</header>') && $action_position < strpos($extended_html,'<section'), 'Extension output appears after intro and before Sprint sections inside header.');
+sprint_engine_dashboard_check(str_contains($extended_html,'&lt;Safe extension action&gt;') && !str_contains($extended_html,'<Safe extension action>'), 'Trusted callback owns contextual output escaping.');
+sprint_engine_dashboard_check('' !== sprint_engine_dashboard_shell($html) && sprint_engine_dashboard_shell($html) === sprint_engine_dashboard_shell(preg_replace('/<a class="history-test-action".*?<\/a>/', '', $extended_html)), 'Listener adds only its output; remaining Dashboard shell is unchanged.');
+$header_calls = array();
+sprint_engine_dashboard_request('/ordinary-page/');
+$dashboard->prepare();
+sprint_engine_dashboard_check('/normal.php' === $dashboard->template('/normal.php') && array() === $header_calls, 'Unrelated page does not render Dashboard or fire header hook.');
+sprint_engine_dashboard_request('/sprint-engine/dashboard/');
+remove_action('sprint_engine/dashboard_header_actions',$header_listener);
+sprint_engine_dashboard_check(sprint_engine_dashboard_shell($html) === sprint_engine_dashboard_shell(sprint_engine_dashboard_html($context)), 'No listener preserves exact Dashboard shell output.');
 sprint_engine_dashboard_check($before === sprint_engine_dashboard_rows(), 'Exact enrolment and Step progress rows/timestamps unchanged by resolve and render.');
 sprint_engine_dashboard_check(200 === $context['status'] && array('in_progress','not_started','completed') === array_keys($context['sections']), 'Sections use locked display order.');
 foreach (array(0,3,6) as $index) {
