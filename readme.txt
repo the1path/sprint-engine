@@ -1,6 +1,6 @@
 === Sprint Engine ===
 Contributors: thepath
-Tags: workflow, onboarding, training, learning, progress
+Tags: training, learning, journeys, workflows, onboarding
 Requires at least: 6.0
 Tested up to: 7.1
 Stable tag: 0.2.2
@@ -8,27 +8,26 @@ Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Turn WordPress into a guided implementation platform with focused Sprints, saved progress and a distraction-free step-by-step Runner.
+Turn WordPress into a guided action platform for onboarding, member journeys, training, implementation and more.
 
 == Description ==
 
-Sprint Engine helps you create focused, step-by-step experiences that guide users towards a specific outcome.
+Sprint Engine helps you build guided, step-by-step journeys in WordPress that move people from start to outcome. Create focused Sprints for onboarding, member journeys, training programmes, implementation processes, coaching, guided reviews, internal workflows and more.
 
-Instead of simply publishing information, you can build a Sprint: a structured journey made up of ordered Steps that users work through one at a time.
+A Sprint is a structured journey made up of ordered Steps that users work through one at a time. Content can explain, teach or prompt action, while saved progress and a distraction-free Runner help users stay focused on what comes next.
 
-A Sprint might be used to guide someone through:
+What you can build with Sprint Engine:
 
-* An onboarding process
-* A training or development programme
-* A business improvement exercise
-* A planning or implementation process
-* A guided workshop
-* A repeatable internal process
-* Any outcome that benefits from structured, sequential action
+* Guided onboarding and customer success journeys
+* Member journeys and engagement pathways
+* Content journeys that turn information into action
+* Implementation guides and programmes
+* Coaching and development journeys
+* Training experiences
+* Assessments and guided reviews
+* Internal processes and workflows
 
-Sprint Engine is not intended to be a traditional Learning Management System. There are no quizzes, certificates, grades or course hierarchies in the core plugin.
-
-The focus is simpler: help someone move through a practical process and make progress towards an outcome.
+Unlike a traditional LMS, Sprint Engine isn’t built around courses, grades, quizzes or certificates. The focus is action: guiding someone through a practical process towards a clear outcome.
 
 = How Sprint Engine works =
 
@@ -64,23 +63,6 @@ Steps are organised using the Sprint Structure Manager. The Runner then presents
 * Administrator validation to help prevent invalid Sprint configuration
 * Responsive frontend layout
 * No external LMS required
-
-= Designed to stay focused =
-
-Sprint Engine deliberately keeps the core experience lightweight.
-
-Version 0.2.2 does not include:
-
-* Quizzes or exams
-* Certificates
-* Gamification
-* Payments or subscriptions
-* Built-in email automation
-* Cohort management
-* Branching or conditional paths
-* User-submitted workbook responses
-
-These may be better handled by other WordPress tools or future extensions rather than being built into every Sprint.
 
 = My Sprints member Dashboard =
 
@@ -284,6 +266,7 @@ Site owners are responsible for determining how their use of Sprint Engine relat
 * Add a read-only canonical attempt-history PHP API for extensions.
 * Add a generic Dashboard header action hook.
 * Keep storage schema 2 unchanged; no database migration.
+* Update plugin directory description and positioning around guided journeys.
 
 = 0.2.0 =
 
