@@ -94,6 +94,21 @@ if ( ! isset( $sprint_engine_context['state'] ) ) {
 					<p><a class="se-runner__button se-runner__button--primary" href="<?php echo esc_url( $sprint_engine_completion['url'] ); ?>"><?php echo esc_html( $sprint_engine_completion['label'] ); ?></a></p>
 				<?php endif; ?>
 				<?php if ( is_user_logged_in() ) : ?>
+					<?php
+					/**
+					 * Render additional actions for the authorized member's completed attempt.
+					 *
+					 * @param array $completed Sprint ID, canonical attempt_id and attempt_number.
+					 */
+					do_action(
+						'sprint_engine/runner_completed_actions', // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Trusted callbacks escape their own output.
+						array(
+							'sprint_id'      => $sprint_engine_context['sprint_id'],
+							'attempt_id'     => $sprint_engine_context['progress']['attempt_id'],
+							'attempt_number' => $sprint_engine_context['progress']['attempt_number'],
+						)
+					);
+					?>
 					<p><button class="se-runner__button se-runner__button--secondary" type="button" id="se-runner-action" aria-describedby="se-runner-status"><?php esc_html_e( 'Restart Sprint', 'sprint-engine' ); ?></button></p>
 					<p id="se-runner-status" role="status" aria-live="polite" aria-atomic="true"></p>
 					<noscript><p><?php esc_html_e( 'JavaScript is required to restart this Sprint.', 'sprint-engine' ); ?></p></noscript>
@@ -102,6 +117,19 @@ if ( ! isset( $sprint_engine_context['state'] ) ) {
 			</div>
 		<?php else : ?>
 			<p class="se-runner__error" role="alert"><?php echo esc_html( $sprint_engine_context['message'] ); ?></p>
+			<?php if ( 'error' === $sprint_engine_context['state'] && 403 === $sprint_engine_context['status'] && isset( $sprint_engine_context['access_denied_sprint_id'] ) ) : ?>
+				<?php if ( isset( $sprint_engine_context['login_url'] ) ) : ?>
+					<p><a class="se-runner__button se-runner__button--secondary" href="<?php echo esc_url( $sprint_engine_context['login_url'] ); ?>"><?php esc_html_e( 'Login', 'sprint-engine' ); ?></a></p>
+				<?php endif; ?>
+				<?php
+				/**
+				 * Render optional actions without changing Core's denial.
+				 *
+				 * @param int $sprint_id Core-resolved published, passwordless, ready Sprint ID.
+				 */
+				do_action( 'sprint_engine/runner_access_denied_actions', $sprint_engine_context['access_denied_sprint_id'] ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Trusted callbacks escape their own output.
+				?>
+			<?php endif; ?>
 		<?php endif; ?>
 		<?php if ( is_user_logged_in() && in_array( $sprint_engine_context['state'], array( 'not_started', 'in_progress' ), true ) ) : ?>
 			<div class="se-runner__actions">

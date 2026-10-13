@@ -72,15 +72,29 @@ final class Runner {
 			return $this->unavailable();
 		}
 		if ( ! is_user_logged_in() ) {
+			$login_url = wp_login_url( Routes::url( $sprint->post_name ) );
+			/**
+			 * Opt into a generic public denial screen only after Core content readiness.
+			 * This presentation decision grants no access and reads no member progress.
+			 *
+			 * @param bool $show_gate Default false; only exact true enables the screen.
+			 * @param int  $sprint_id Resolved published, passwordless, ready Sprint ID.
+			 */
+			$show_gate = apply_filters( 'sprint_engine/runner_show_public_access_gate', false, $sprint->ID ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Intentional public presentation seam.
+			if ( true === $show_gate ) {
+				$context              = $this->access_denied( $sprint->ID );
+				$context['login_url'] = $login_url;
+				return $context;
+			}
 			return array(
 				'state'     => 'login',
 				'status'    => 302,
-				'login_url' => wp_login_url( Routes::url( $sprint->post_name ) ),
+				'login_url' => $login_url,
 			);
 		}
 		$user = get_current_user_id();
 		if ( ! $this->access->can_access( $user, $sprint->ID ) ) {
-			return $this->unavailable( 403 );
+			return $this->access_denied( $sprint->ID );
 		}
 		$state = $this->progress->get_state( $user, $sprint->ID );
 		if ( ! is_wp_error( $state ) && 'in_progress' === $state['status'] ) {
@@ -280,6 +294,19 @@ final class Runner {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Mark only a ready Sprint's denial, independently of generic error text.
+	 * No Sprint content, metadata or member state is supplied to the template.
+	 *
+	 * @param int $sprint_id Core-resolved ready Sprint ID.
+	 * @return array
+	 */
+	private function access_denied( $sprint_id ) {
+		$context                            = $this->unavailable( 403 );
+		$context['access_denied_sprint_id'] = $sprint_id;
+		return $context;
 	}
 
 	/**

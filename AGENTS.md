@@ -110,6 +110,16 @@ Where implemented by the current ticket/specification, preserve the documented p
 - `sprint_engine/sprint_completed`
 - `sprint_engine/user_can_access_sprint`
 - `sprint_engine/runner_template`
+- `sprint_engine/runner_completed_actions`
+- `sprint_engine/dashboard_completed_card_actions`
+- `sprint_engine/runner_access_denied_actions`
+- `sprint_engine/runner_show_public_access_gate`
+
+The SE-017 hooks are presentation-only. Keep the public gateway default false,
+accept only exact boolean true, and run its filter/denial action only after Core
+Availability confirms published, passwordless, Launchable, structurally ready
+content. Never treat a generic error as access denial or expose private content
+in a denial screen. See `docs/validation/se-017.md` for the contracts.
 
 Do not invent a large public API speculatively. Add public extension points only when required and document them.
 

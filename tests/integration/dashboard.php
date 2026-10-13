@@ -133,12 +133,31 @@ sprint_engine_dashboard_check('/normal.php' === $dashboard->template('/normal.ph
 sprint_engine_dashboard_request('/sprint-engine/dashboard/');
 remove_action('sprint_engine/dashboard_header_actions',$header_listener);
 sprint_engine_dashboard_check(sprint_engine_dashboard_shell($html) === sprint_engine_dashboard_shell(sprint_engine_dashboard_html($context)), 'No listener preserves exact Dashboard shell output.');
+$card_calls = array();
+$card_listener = static function (...$args) use (&$card_calls) {
+    $card_calls[] = $args;
+    echo '<p class="completed-card-test">' . esc_html('Card extension & action') . '</p>';
+};
+add_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+$card_html = sprint_engine_dashboard_html($context);
+sprint_engine_dashboard_check(array_map(static function ($item) { return array($item); }, $context['sections']['completed']) === $card_calls, 'Completed-card action fires once per authorized completed item in existing sort order, with exactly that safe item.');
+preg_match_all('/<article.*?<\/article>/s', $card_html, $card_matches);
+foreach ($card_matches[0] as $card) {
+    $is_completed = str_contains($card, '>View Completed Sprint</a>');
+    sprint_engine_dashboard_check($is_completed === str_contains($card, 'class="completed-card-test"') && (!$is_completed || strpos($card, '>View Completed Sprint</a>') < strpos($card, 'class="completed-card-test"')), 'Card action appears after existing actions only in a completed card.');
+}
+sprint_engine_dashboard_check(preg_replace('/>\s+</', '><', sprint_engine_dashboard_shell($html)) === preg_replace('/>\s+</', '><', sprint_engine_dashboard_shell(preg_replace('/<p class="completed-card-test">.*?<\/p>/', '', $card_html))), 'Completed-card listener adds only its output and leaves card layout, ordering and controls intact.');
+remove_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+sprint_engine_dashboard_check(sprint_engine_dashboard_shell($html) === sprint_engine_dashboard_shell(sprint_engine_dashboard_html($context)), 'Without a completed-card listener the Dashboard shell is unchanged.');
 sprint_engine_dashboard_check($before === sprint_engine_dashboard_rows(), 'Exact enrolment and Step progress rows/timestamps unchanged by resolve and render.');
 sprint_engine_dashboard_check(200 === $context['status'] && array('in_progress','not_started','completed') === array_keys($context['sections']), 'Sections use locked display order.');
 foreach (array(0,3,6) as $index) {
     $id=$sprints[$index]; $snapshot=sprint_engine_dashboard_rows();
     wp_update_post(array('ID'=>$steps[$id][0],'post_status'=>'draft'));
     $blocked=$dashboard->resolve(); $blocked_html=sprint_engine_dashboard_html($blocked);
+    $card_calls = array(); add_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+    sprint_engine_dashboard_html($blocked); remove_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+    sprint_engine_dashboard_check(!in_array($id, array_map(static function ($args) { return $args[0]['sprint_id']; }, $card_calls), true), 'Unavailable card never reaches completed-card action: ' . $index);
     sprint_engine_dashboard_check(!str_contains($blocked_html,get_post_field('post_title',$id)) && !str_contains($blocked_html,RunnerRoutes::url(get_post_field('post_name',$id))) && $snapshot===sprint_engine_dashboard_rows(), 'Unpublished Step excludes Available, In Progress or Completed card without changing progress: ' . $index);
     wp_update_post(array('ID'=>$steps[$id][0],'post_status'=>'publish'));
     $restored=sprint_engine_dashboard_html($dashboard->resolve());
@@ -165,10 +184,16 @@ sprint_engine_dashboard_check(str_contains($escaped_html,'&lt;script&gt;alert(1)
 // A second user's canonical state is independent, regardless of request selectors.
 wp_set_current_user($other); $_REQUEST = array('user_id'=>$user,'attempt_number'=>99);
 $second = $dashboard->resolve();
+$card_calls = array(); add_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+sprint_engine_dashboard_html($second); remove_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+sprint_engine_dashboard_check(array() === $card_calls, 'Second member with no completions never receives first member completed-card context despite submitted selectors.');
 sprint_engine_dashboard_check(9 === count($second['sections']['not_started']) && !$second['sections']['completed'] && !$second['sections']['in_progress'], 'Second user sees own Available states, never the first member attempts.');
 wp_set_current_user($user);
 $history_before = sprint_engine_dashboard_rows(); $restart = $service->restart_sprint($user,$sprints[6]);
 $latest = $dashboard->resolve();
+$card_calls = array(); add_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+sprint_engine_dashboard_html($latest); remove_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+sprint_engine_dashboard_check(array_column($latest['sections']['completed'], 'sprint_id') === array_map(static function ($args) { return $args[0]['sprint_id']; }, $card_calls) && !in_array($sprints[6], array_map(static function ($args) { return $args[0]['sprint_id']; }, $card_calls), true), 'Restarted current attempt loses completed-card action; historical completion is never advertised.');
 sprint_engine_dashboard_check(2 === $restart['attempt_number'] && in_array($sprints[6],array_column($latest['sections']['in_progress'],'sprint_id'),true) && !in_array($sprints[6],array_column($latest['sections']['completed'],'sprint_id'),true), 'Latest restarted attempt alone determines classification; no history duplicate.');
 $history_after=sprint_engine_dashboard_rows();
 foreach ($history_before as $table=>$rows) {

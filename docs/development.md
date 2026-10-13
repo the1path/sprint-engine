@@ -270,7 +270,8 @@ See [SE-013 validation](validation/se-013.md) for evidence and limitations.
 
 Publish a valid, launchable Sprint and visit `/sprint/{sprint-slug}/` using
 WordPress pretty permalinks. Logged-out visitors go to WordPress login with this
-URL as their return destination. Logged-in users see Ready to start, their one
+URL as their return destination by default; the SE-017 presentation filter below
+can opt into a generic access screen. Logged-in users see Ready to start, their one
 canonical current Step, or Sprint complete. Viewing Ready to start creates no
 progress. Returning in progress invokes the existing service's resume/recovery
 operation. Start Sprint and Complete & Continue use authenticated POST requests;
@@ -304,6 +305,51 @@ Access integrations can supply an `AccessProvider` to `AccessManager` or use
 `sprint_engine/runner_template` receives the default path and authorized context;
 replacements must be readable PHP files under installed plugin/theme directories.
 See [se-004 validation](validation/se-004.md) for the context/API contract and remaining checks.
+
+### Presentation hooks (SE-017, Core 0.2.1)
+
+These extension points run in the built-in templates and never change entitlement
+or progress. No listeners produce no visible change. Trusted PHP callbacks must
+escape their output and authorize any linked destination independently. Template
+overrides own their placement of these actions.
+
+- `do_action( 'sprint_engine/runner_completed_actions', $completed )` runs once
+  per authenticated, authorized completed Runner render, after the creator's
+  completion message/CTA and before Restart Sprint. `$completed` contains exactly
+  integer `sprint_id`, `attempt_id`, `attempt_number`, derived from the resolved
+  Sprint and the current member's canonical completed attempt. Rendering again
+  fires again; this is a presentation action, not a lifecycle event.
+- `do_action( 'sprint_engine/dashboard_completed_card_actions', $item )` runs
+  after each completed card's existing actions, inside its content container.
+  `$item` is the existing authorized normalized Dashboard item documented above,
+  after the trusted `dashboard_items` filter and existing grouping/sorting.
+  No extra member identifier or unrelated records are supplied. The authenticated
+  member is available through `get_current_user_id()`; active, available and
+  excluded Sprints never receive this action.
+- `do_action( 'sprint_engine/runner_access_denied_actions', $sprint_id )` receives
+  only the integer Sprint ID. Core resolves the route and checks publication,
+  passwordlessness, Launchable status, linear structure and Step readiness before
+  recognizing a denial. Authenticated denials still come from AccessManager.
+  The template uses an explicit internal `access_denied_sprint_id` marker on its
+  generic `error`/403 context, never error-message matching. Ordinary 404/503 and
+  content-readiness failures have no marker or denial hook. No title, excerpt,
+  Step, progress, response, Workbook or arbitrary metadata is supplied.
+- `apply_filters( 'sprint_engine/runner_show_public_access_gate', false, $sprint_id )`
+  runs only for anonymous visitors after the same Core readiness checks. Each
+  invocation starts with false; only exact boolean `true` enables a generic 403
+  access screen with a normal Login link returning to the canonical Runner URL
+  and the denial action above. Missing callbacks and every other return value
+  preserve the login redirect. Core does not check anonymous purchase entitlement.
+
+Both denial flows retain generic copy, HTTP 403, private/no-store/no-cache,
+DONOTCACHEPAGE and noindex/nofollow. Neither reaches ProgressService, content
+rendering or mutation JavaScript. The public filter changes presentation only;
+it cannot authorize Sprint/Step content or member REST access. Callback returns
+from actions are ignored. Extensions are trusted installed PHP code: Core cannot
+sandbox a callback that deliberately writes, changes headers or leaks data.
+Callbacks must preserve these boundaries and advertise only content appropriate
+to their independent policy. Core supplies no recommendations or commerce logic.
+See [SE-017 validation and callback examples](validation/se-017.md).
 
 ## Runner Branding
 

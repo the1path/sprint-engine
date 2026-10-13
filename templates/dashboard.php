@@ -78,6 +78,16 @@ $sprint_engine_sections = array(
 											<a class="se-dashboard__button" href="<?php echo esc_url( $sprint_engine_item['runner_url'] ); ?>"><?php echo esc_html( 'in_progress' === $sprint_engine_state ? __( 'Continue Sprint', 'sprint-engine' ) : __( 'Start Sprint', 'sprint-engine' ) ); ?></a>
 										<?php endif; ?>
 									</div>
+									<?php if ( 'completed' === $sprint_engine_state && is_user_logged_in() ) : ?>
+										<?php
+										/**
+										 * Render actions after the authorized completed card's existing controls.
+										 *
+										 * @param array $item Existing safe Dashboard item for the current member.
+										 */
+										do_action( 'sprint_engine/dashboard_completed_card_actions', $sprint_engine_item ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Trusted callbacks escape their own output.
+										?>
+									<?php endif; ?>
 								</div>
 							</article>
 						<?php endforeach; ?>
