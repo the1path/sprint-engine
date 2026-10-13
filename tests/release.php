@@ -28,9 +28,10 @@ preg_match( '/^ \* Version: (.+)$/m', $plugin, $header_version );
 preg_match( "/define\( 'SPRINT_ENGINE_VERSION', '([^']+)' \);/", $plugin, $constant_version );
 preg_match( '/^Stable tag: (.+)$/m', $readme, $stable_version );
 release_check( trim( $header_version[1] ) === $constant_version[1] && $constant_version[1] === trim( $stable_version[1] ), 'Plugin header, runtime version and readme stable tag align.' );
-release_check( array_map( 'trim', explode( ',', $tags[1] ) ) === array( 'workflow', 'onboarding', 'training', 'learning', 'progress' ), 'Five approved tags.' );
+release_check( array_map( 'trim', explode( ',', $tags[1] ) ) === array( 'training', 'learning', 'journeys', 'workflows', 'onboarding' ), 'Five approved tags.' );
 $paragraphs = explode( "\n\n", $readme );
 release_check( strlen( $paragraphs[1] ) <= 150, 'Short description fits 150 characters.' );
+release_check( $paragraphs[1] === 'Turn WordPress into a guided action platform for onboarding, member journeys, training, implementation and more.', 'Approved guided action platform short description is preserved exactly.' );
 foreach ( array( 'Description', 'Installation', 'Frequently Asked Questions', 'Screenshots', 'Privacy and Data', 'Changelog' ) as $section ) {
     release_check( str_contains( $readme, '== ' . $section . ' ==' ), 'Readme section: ' . $section );
 }

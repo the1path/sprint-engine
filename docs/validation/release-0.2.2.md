@@ -1,6 +1,8 @@
 # SE-REL-0.2.2 — Sprint Engine Core release preparation
 
 Prepared and validated 13 October 2026. **Not published or deployed.**
+The readme synchronization correction below supersedes the initial ZIP evidence;
+the Verified ZIP section identifies the current artifact for future publication.
 
 ## Baseline and scope
 
@@ -23,8 +25,9 @@ executable runtime files. `src/`, `templates/`, `assets/`, `uninstall.php` and
 `LICENSE` are unchanged from the base, preserving all SE-017 hooks, services,
 authentication/access, REST, admin UI, styling and storage behavior. The readme
 has the new version/changelog plus updated current-version explanatory text.
-Its five approved tags and short description are unchanged; the 0.2.0 and 0.2.1
-changelog sections are preserved. Historical validation records were not edited.
+The initial preparation kept its then-current five tags and short description;
+the supplied reconciliation below supersedes that copy and restores a 0.2.1
+description-update note. Historical validation records were not edited.
 
 This release adds no schema migration, table, option or route. The existing
 version-upgrade path still verifies the installed schema and performs its existing
@@ -36,7 +39,10 @@ The public changelog describes optional extension hooks and a Login access
 screen, with unchanged defaults. It advertises no built-in recommendations,
 payments/subscriptions, purchasing, Journeys or commercial-extension features.
 
-## Executed validation
+## Initial release-preparation validation
+
+This section records the initial build's execution evidence. The later readme
+correction's rerun results and replacement archive identity are recorded below.
 
 PHP **8.3.35**, WordPress **7.1.2**, official SQLite Database Integration, and
 headless Chrome/Playwright. The ZIP-extracted candidate activated as **0.2.2**,
@@ -98,7 +104,7 @@ values granting no access; no private content/progress writes; unavailable and
 malformed content exclusion; completed Runner/card actions; canonical attempts,
 historical retention and normal restart/idempotency.
 
-Browser checks actually executed against this 0.2.2 package:
+Browser checks executed against the initial 0.2.2 package:
 
 - Existing Dashboard `read` at 1440/390px: PASS; authentication, denied-content
   isolation, eligible sections/cards, focus, image/progress/layout and Available
@@ -124,17 +130,78 @@ candidate, **0 errors / 13 existing warnings**, none skipped. Warnings remain
 five prefixing conventions and eight database interpolation findings in unchanged
 runtime code; no suppression was added. This is not WordPress.org approval.
 
+## Readme synchronization correction — current release evidence
+
+Confirmed clean `main` at the expected correction base
+`53db26520cce84c483a8469f526eba5a0cc1a376` and created
+`codex/release-0.2.2-readme-correction`. The user supplied
+`sprint-engine-readme-0.2.2.txt` to reconcile marketing copy previously maintained
+in WordPress.org SVN. The SVN repository was not accessed to obtain or validate
+that copy; the provided local file is the source for this correction.
+
+Copied the supplied file into `readme.txt` **byte-for-byte**, without rewriting
+the marketing wording, punctuation, use cases or section structure. It restores
+guided action platform positioning and the broader journey/workflow examples.
+The approved tags, in order, are **training, learning, journeys, workflows,
+onboarding**. The exact short description is:
+
+> Turn WordPress into a guided action platform for onboarding, member journeys, training, implementation and more.
+
+The complete 0.2.2 and 0.2.0 changelogs are unchanged from the correction base;
+0.2.1 retains its existing entries and restores the supplied description-update
+note. Version/Stable tag remain **0.2.2**, schema remains **2**, and all executable
+runtime files, SE-017 hooks, CSS and JavaScript are unchanged. Only these three
+files changed in the correction: `readme.txt`, `tests/release.php` and this record.
+
+The release test now requires the exact five tags and exact approved short
+description, while retaining the 150-character limit, version alignment,
+historical/current changelog, privacy, screenshot and publication checks. No
+existing assertion was removed or weakened. The supplied file, repository
+readme and ZIP entry each contain **11,554 identical bytes**, UTF-8 without BOM
+and with LF line endings. Their common readme SHA-256 is
+`192d5d97a469f35e9ce62bf5d0899d32865b20bc6c726dd706a9dfc271c36207`.
+
+Correction checks actually executed with the same PHP 8.3.35 / WordPress 7.1.2 /
+official SQLite tooling and fresh disposable database snapshots per suite:
+
+| Check | Correction result |
+| --- | --- |
+| Release metadata/copy tests | PASS: 45 checks, including exact short description |
+| Complete PHP regression | PASS: all 17 Composer-manifest commands plus package test; counts match the initial table except release now 45 |
+| PHP syntax | PASS: all 55 files |
+| PHPCS repository ruleset | PASS: no findings |
+| JavaScript unit tests | PASS: all 35 tests |
+| Package build and exact archive/source verification | PASS: all 44 files |
+| Supplied/repository/ZIP readme byte comparison | PASS: exact equality |
+| Installed ZIP candidate/source comparison | PASS: all 44 files |
+| Plugin Check 2.1.0 static checks | PASS: all 29 checks; 0 errors / 13 existing warnings |
+| SVN manifest/archive path and base-manifest comparison | PASS: 44 paths; existing SVN instructions unchanged |
+| Final diff and runtime protection review | PASS: only the three intended files changed |
+
+The full rerun includes Runner **208**, Dashboard **92**, REST **163**, Progress
+**145**, Attempts **51** and History **81** checks; all access/progress/SE-017
+assertions remain intact. Evidence is ignored `.tools/readme022-*` logs/manifests.
+Browser suites were not rerun for this copy-only correction; the earlier browser
+results above remain historical evidence for unchanged executable code and UI.
+No production or SVN operation, deployment, publication or Git tag was performed.
+
+The current ZIP below **supersedes** the initial **93,006-byte** ZIP with SHA-256
+`3a2e08d8a208b479beb6ae099b40b681c56fb268e16e19dfcfd199ce23c61893`.
+Do not use that earlier archive for publication; it predates the reconciled copy.
+
 ## Verified ZIP
 
 - Output: ignored `dist/sprint-engine.zip`, not committed.
 - Top-level directory: `sprint-engine/`.
-- Size: **93,006 bytes**.
+- Size: **92,941 bytes**.
 - Entry count: **44 file entries**, no unexpected/missing runtime file.
-- SHA-256: `3a2e08d8a208b479beb6ae099b40b681c56fb268e16e19dfcfd199ce23c61893`.
+- SHA-256: `b9e72761d398a6345d819c5c21db4b6d6cf9cf0649d243239992644e78798392`.
 - Packaged main header/runtime constant: **0.2.2**; schema constant: **2**.
 - Packaged readme Stable tag: **0.2.2**; minimum WordPress/PHP: **6.0 / 8.0**.
 - Exact archive-to-source byte comparison passed. Archive checks also verify all
   four SE-017 hook names are present and no old 0.2.1 runtime header exists.
+- `sprint-engine/readme.txt` exactly matches the user-supplied reconciled file;
+  its byte count/hash and correction validation are recorded above.
 - Existing allowlist/guards reject extra paths, duplicate entries, symlinks,
   missing runtime files, development fixtures, credentials and local user paths.
   Tools, tests, docs, dependencies and database backups are absent.
@@ -238,7 +305,7 @@ Future authorized publisher checklist:
 
 Whether `/tags/0.2.2/` already exists remains deliberately unverified here.
 
-## Files changed and remaining limitations
+## Initial release-preparation files and remaining limitations
 
 - Metadata: `sprint-engine.php`, `readme.txt`.
 - Current documentation: `AGENTS.md`, `README.md`, `docs/README.md`,
