@@ -1,6 +1,6 @@
 # Sprint Engine developer documentation
 
-Core **0.2.1** is the current source version; **0.2.0** is the published stable release. The root
+Core **0.2.2** is prepared for release; **0.2.0** remains the published stable release. The root
 [README](../README.md) introduces the product and installation; this directory
 preserves technical guidance and validation evidence.
 
@@ -36,3 +36,5 @@ have been generalised without changing the recorded test outcomes.
 | Member Dashboard | [SE-013](validation/se-013.md) |
 | Step publication and onboarding | [SE-014](validation/se-014.md) |
 | Initial public release preparation | [SE-015](validation/se-015.md) |
+| Core presentation extension points | [SE-017](validation/se-017.md) |
+| Core 0.2.2 release preparation | [Release 0.2.2](validation/release-0.2.2.md) |

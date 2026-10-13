@@ -177,8 +177,9 @@ Deploy to a development or staging WordPress site first and verify the relevant 
 
 ## 15. Current development target
 
-Published stable Core is **0.2.0**; current source is **0.2.1**, schema **2**. Work from the current ticket/issue rather
-than a historical implementation sequence. Keep changes tightly scoped and use
+Published stable Core is **0.2.0**; current source is **0.2.2**, schema **2**,
+prepared for release but not yet published. Work from the current ticket/issue
+rather than a historical implementation sequence. Keep changes tightly scoped and use
 the existing implementation and relevant documentation to determine what is
 already supported. Version, schema and release changes require explicit ticket
 authorisation; documentation-only changes must not alter runtime behaviour.
