@@ -1,8 +1,12 @@
 # Sprint Engine development guide
 
-This guide documents Core **0.2.1**, schema **2**. Start with the
+This guide documents Core **0.2.2**, schema **2**, prepared for release and not yet
+published. Published stable remains **0.2.0**. Start with the
 [documentation index](README.md) for architecture and validation records.
 The [contribution guide](../CONTRIBUTING.md) covers focused issues and pull requests.
+See [0.2.2 release validation](validation/release-0.2.2.md) for package evidence
+and the future WordPress.org SVN manifest. This release updates metadata only;
+the existing SE-017 presentation hooks and all runtime behavior are unchanged.
 
 ## Author a linear Sprint
 
@@ -263,7 +267,7 @@ Upgrading a corrected pre-release 0.1.0 installation to 0.2.0 registers both mem
 routes and softly refreshes rewrite rules once after successful installation.
 No Permalinks save or reactivation is required. Failed installation leaves rewrites
 unchanged; ordinary requests do
-not flush them. Core 0.2.1 retains schema 2 and adds no storage migration.
+not flush them. Core 0.2.2 retains schema 2 and adds no storage migration.
 See [SE-013 validation](validation/se-013.md) for evidence and limitations.
 
 ## Sprint Runner
@@ -377,7 +381,7 @@ remaining target host deployment checks.
 - Administrators author content using existing `manage_options` capabilities.
   Custom author roles/capabilities are deferred until explicitly specified.
 - Activate per site. Network-wide activation is rejected with an actionable
-  message; automatic multisite provisioning is not included in Core 0.2.1.
+  message; automatic multisite provisioning is not included in Core 0.2.2.
 - Runner requires pretty permalinks and a published, launchable, valid Sprint.
 - Structure writes require transactional WordPress `posts` and `postmeta` tables
   (InnoDB on MySQL/MariaDB). Unsupported storage engines are rejected before writes;

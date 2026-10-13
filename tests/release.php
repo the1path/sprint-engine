@@ -8,7 +8,7 @@ function release_check( $condition, $message ) {
     echo 'PASS: ' . $message . PHP_EOL;
 }
 $headers = array(
-    'Plugin Name' => 'Sprint Engine', 'Version' => '0.2.1',
+    'Plugin Name' => 'Sprint Engine', 'Version' => '0.2.2',
     'Requires at least' => '6.0', 'Requires PHP' => '8.0', 'Author' => 'ThePath',
     'License' => 'GPLv2 or later', 'License URI' => 'https://www.gnu.org/licenses/gpl-2.0.html',
     'Text Domain' => 'sprint-engine',
@@ -16,14 +16,18 @@ $headers = array(
 foreach ( $headers as $key => $value ) {
     release_check( preg_match( '/^ \* ' . preg_quote( $key, '/' ) . ': (.+)$/m', $plugin, $match ) && trim( $match[1] ) === $value, 'Plugin header: ' . $key );
 }
-foreach ( array( 'VERSION' => '0.2.1', 'SCHEMA_VERSION' => '2', 'MIN_PHP' => '8.0', 'MIN_WP' => '6.0' ) as $key => $value ) {
+foreach ( array( 'VERSION' => '0.2.2', 'SCHEMA_VERSION' => '2', 'MIN_PHP' => '8.0', 'MIN_WP' => '6.0' ) as $key => $value ) {
     release_check( str_contains( $plugin, "define( 'SPRINT_ENGINE_" . $key . "', '" . $value . "' );" ), 'Runtime constant: ' . $key );
 }
 release_check( str_starts_with( $readme, "=== Sprint Engine ===\n" ), 'Directory readme title.' );
-foreach ( array( 'Contributors' => 'thepath', 'Stable tag' => '0.2.1', 'Tested up to' => '7.1', 'Requires at least' => '6.0', 'Requires PHP' => '8.0', 'License' => $headers['License'], 'License URI' => $headers['License URI'] ) as $key => $value ) {
+foreach ( array( 'Contributors' => 'thepath', 'Stable tag' => '0.2.2', 'Tested up to' => '7.1', 'Requires at least' => '6.0', 'Requires PHP' => '8.0', 'License' => $headers['License'], 'License URI' => $headers['License URI'] ) as $key => $value ) {
     release_check( preg_match( '/^' . preg_quote( $key, '/' ) . ': (.+)$/m', $readme, $match ) && trim( $match[1] ) === $value, 'Readme metadata: ' . $key );
 }
 preg_match( '/^Tags: (.+)$/m', $readme, $tags );
+preg_match( '/^ \* Version: (.+)$/m', $plugin, $header_version );
+preg_match( "/define\( 'SPRINT_ENGINE_VERSION', '([^']+)' \);/", $plugin, $constant_version );
+preg_match( '/^Stable tag: (.+)$/m', $readme, $stable_version );
+release_check( trim( $header_version[1] ) === $constant_version[1] && $constant_version[1] === trim( $stable_version[1] ), 'Plugin header, runtime version and readme stable tag align.' );
 release_check( array_map( 'trim', explode( ',', $tags[1] ) ) === array( 'workflow', 'onboarding', 'training', 'learning', 'progress' ), 'Five approved tags.' );
 $paragraphs = explode( "\n\n", $readme );
 release_check( strlen( $paragraphs[1] ) <= 150, 'Short description fits 150 characters.' );
@@ -37,6 +41,9 @@ release_check( preg_match( '/^= 0\.2\.0 =\s*\n(.*?)(?=^= [^=]+ =|\z)/ms', $readm
 release_check( preg_match( '/\binitial public release\b/i', $changelog[1] ), '0.2.0 is the initial public release.' );
 release_check( preg_match( '/^= 0\.2\.1 =\s*\n(.*?)(?=^= [^=]+ =|\z)/ms', $readme, $patch_changelog ), '0.2.1 release changelog.' );
 release_check( str_contains( $patch_changelog[1], 'attempt-history' ) && str_contains( $patch_changelog[1], 'Dashboard header' ) && str_contains( $patch_changelog[1], 'no database migration' ), '0.2.1 documents the API, hook and unchanged storage.' );
+release_check( preg_match( '/^= 0\.2\.2 =\s*\n(.*?)(?=^= [^=]+ =|\z)/ms', $readme, $release_changelog ), '0.2.2 release changelog.' );
+release_check( str_contains( $release_changelog[1], 'completed Sprint actions' ) && str_contains( $release_changelog[1], 'completed Dashboard cards' ) && str_contains( $release_changelog[1], 'access-denied Runner' ) && str_contains( $release_changelog[1], 'extensions to opt into a public access screen' ) && str_contains( $release_changelog[1], 'by default' ) && str_contains( $release_changelog[1], 'No database changes or migrations' ), '0.2.2 documents optional presentation hooks, preserved defaults and unchanged storage.' );
+release_check( strpos( $readme, '= 0.2.2 =' ) < strpos( $readme, '= 0.2.1 =' ) && strpos( $readme, '= 0.2.1 =' ) < strpos( $readme, '= 0.2.0 =' ), 'Changelog orders 0.2.2 before preserved 0.2.1 and 0.2.0 history.' );
 release_check( false === stripos( $readme, 'unreleased' ), 'Public readme has no unreleased framing.' );
 release_check( ! preg_match( '/^= 0\.1\.0 =\s*$/m', $readme ), 'Private 0.1.0 changelog is absent from public readme.' );
 release_check( ! str_contains( $readme, '0.1.0' ), 'Public readme has no previous-public-release or private-upgrade implication.' );
