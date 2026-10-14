@@ -95,6 +95,11 @@ if ( ! isset( $sprint_engine_context['state'] ) ) {
 				<?php endif; ?>
 				<?php if ( is_user_logged_in() ) : ?>
 					<?php
+					$sprint_engine_completed = array(
+						'sprint_id'      => $sprint_engine_context['sprint_id'],
+						'attempt_id'     => $sprint_engine_context['progress']['attempt_id'],
+						'attempt_number' => $sprint_engine_context['progress']['attempt_number'],
+					);
 					/**
 					 * Render additional actions for the authorized member's completed attempt.
 					 *
@@ -102,11 +107,7 @@ if ( ! isset( $sprint_engine_context['state'] ) ) {
 					 */
 					do_action(
 						'sprint_engine/runner_completed_actions', // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Trusted callbacks escape their own output.
-						array(
-							'sprint_id'      => $sprint_engine_context['sprint_id'],
-							'attempt_id'     => $sprint_engine_context['progress']['attempt_id'],
-							'attempt_number' => $sprint_engine_context['progress']['attempt_number'],
-						)
+						$sprint_engine_completed
 					);
 					?>
 					<p><button class="se-runner__button se-runner__button--secondary" type="button" id="se-runner-action" aria-describedby="se-runner-status"><?php esc_html_e( 'Restart Sprint', 'sprint-engine' ); ?></button></p>
@@ -114,6 +115,16 @@ if ( ! isset( $sprint_engine_context['state'] ) ) {
 					<noscript><p><?php esc_html_e( 'JavaScript is required to restart this Sprint.', 'sprint-engine' ); ?></p></noscript>
 				<?php endif; ?>
 				<a class="se-runner__button se-runner__button--secondary" href="<?php echo esc_url( \ThePath\SprintEngine\Dashboard\Routes::url() ); ?>"><?php esc_html_e( 'Back to My Sprints', 'sprint-engine' ); ?></a>
+				<?php if ( is_user_logged_in() ) : ?>
+					<?php
+					/**
+					 * Render follow-up actions after the completed Runner's Core controls.
+					 *
+					 * @param array $completed Sprint ID, canonical attempt_id and attempt_number.
+					 */
+					do_action( 'sprint_engine/runner_completed_followup_actions', $sprint_engine_completed ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Trusted callbacks escape their own output.
+					?>
+				<?php endif; ?>
 			</div>
 		<?php else : ?>
 			<p class="se-runner__error" role="alert"><?php echo esc_html( $sprint_engine_context['message'] ); ?></p>

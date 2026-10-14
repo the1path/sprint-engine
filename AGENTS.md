@@ -5,7 +5,7 @@ This file contains standing engineering instructions for Codex and any other cod
 ## 1. Project identity
 
 - Product name: **Sprint Engine**.
-- Sprint Engine Core is the **open-source WordPress plugin**; the current stable version is **0.2.0**.
+- Sprint Engine Core is the **open-source WordPress plugin**; the published stable version is **0.2.2**.
 - Sprint Engine is a standalone WordPress plugin and must not contain customer-specific business logic, branding, copy, URLs, payment logic, or assumptions unless a ticket explicitly requires an integration layer.
 - Core is independently packageable. Keep customer-specific integrations and commercial extension logic separate from Core unless the current ticket explicitly defines an integration boundary.
 
@@ -111,6 +111,7 @@ Where implemented by the current ticket/specification, preserve the documented p
 - `sprint_engine/user_can_access_sprint`
 - `sprint_engine/runner_template`
 - `sprint_engine/runner_completed_actions`
+- `sprint_engine/runner_completed_followup_actions`
 - `sprint_engine/dashboard_completed_card_actions`
 - `sprint_engine/runner_access_denied_actions`
 - `sprint_engine/runner_show_public_access_gate`
@@ -177,8 +178,11 @@ Deploy to a development or staging WordPress site first and verify the relevant 
 
 ## 15. Current development target
 
-Published stable Core is **0.2.0**; current source is **0.2.2**, schema **2**,
-prepared for release but not yet published. Work from the current ticket/issue
+Published Core is **0.2.2**, successfully published to WordPress.org and updated
+on an existing installation. Development source retains version metadata
+**0.2.2**, schema **2**, with unreleased SE-018 functionality that is not included
+in the published WordPress.org 0.2.2 package. The next planned public release is
+**0.2.3**, not yet prepared or published. Work from the current ticket/issue
 rather than a historical implementation sequence. Keep changes tightly scoped and use
 the existing implementation and relevant documentation to determine what is
 already supported. Version, schema and release changes require explicit ticket
