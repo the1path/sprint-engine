@@ -1,13 +1,16 @@
 # Sprint Engine development guide
 
-This guide documents Core **0.2.2**, schema **2**, prepared for release and not yet
-published. Published stable remains **0.2.0**. Start with the
+Published Core is **0.2.2**, successfully published to WordPress.org and updated
+on an existing installation. This guide documents development source with version
+metadata **0.2.2**, schema **2**, including unreleased SE-018 functionality.
+SE-018 is not included in the published WordPress.org 0.2.2 package. The next
+planned public release is **0.2.3**, not yet prepared or published. Start with the
 [documentation index](README.md) for architecture and validation records.
 The [contribution guide](../CONTRIBUTING.md) covers focused issues and pull requests.
-See [0.2.2 release validation](validation/release-0.2.2.md) for package evidence
-and the future WordPress.org SVN manifest. That release preparation updated
-metadata only. The subsequent SE-018 feature documented below awaits separate
-Core 0.2.3 release preparation.
+See [0.2.2 release validation](validation/release-0.2.2.md) for historical package
+evidence and the WordPress.org SVN manifest recorded during preparation. That
+preparation updated metadata only. The subsequent SE-018 feature documented below
+awaits separate Core 0.2.3 release preparation.
 
 ## Author a linear Sprint
 
@@ -377,9 +380,11 @@ progress writes, and no recommendation logic. Trusted callbacks must escape thei
 output and authorize linked destinations independently, and can access the member
 through `get_current_user_id()`. Action return values are ignored. Template
 overrides own their hook placement. Dashboard and access-denied hooks are unchanged.
-See [SE-018 validation](validation/se-018.md). Source metadata remains 0.2.2/schema 2;
-a separate release preparation ticket must set Core 0.2.3 before publishing this
-feature. The historical 0.2.2 package evidence above predates SE-018.
+See [SE-018 validation](validation/se-018.md). Development source metadata remains
+0.2.2/schema 2 with this unreleased feature; published Core 0.2.2 excludes SE-018.
+A separate release preparation ticket must set Core 0.2.3 before publishing this
+feature. Core 0.2.3 is not yet prepared or published. The historical 0.2.2 package
+evidence above predates SE-018 and remains unchanged.
 
 ## Runner Branding
 
