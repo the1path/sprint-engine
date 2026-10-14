@@ -2,7 +2,7 @@
 
 Published Core is **0.2.2**, successfully published to WordPress.org and updated
 on an existing installation. This guide documents development source with version
-metadata **0.2.2**, schema **2**, including unreleased SE-018 functionality.
+metadata **0.2.3**, schema **2**, including unreleased SE-018 functionality.
 SE-018 is not included in the published WordPress.org 0.2.2 package. The next
 planned public release is **0.2.3**, not yet prepared or published. Start with the
 [documentation index](README.md) for architecture and validation records.
@@ -10,7 +10,12 @@ The [contribution guide](../CONTRIBUTING.md) covers focused issues and pull requ
 See [0.2.2 release validation](validation/release-0.2.2.md) for historical package
 evidence and the WordPress.org SVN manifest recorded during preparation. That
 preparation updated metadata only. The subsequent SE-018 feature documented below
-awaits separate Core 0.2.3 release preparation.
+awaits separate Core 0.2.3 release preparation. The development version bump
+in [SE-018.1](validation/se-018-1.md) is not release approval: Core 0.2.3 remains
+under active development and may receive additional changes. The GitHub readme
+Stable Tag is 0.2.3 for development source only; WordPress.org stays at 0.2.2.
+Final changelog, release verification and SVN publication will be handled
+separately when ready.
 
 ## Author a linear Sprint
 
@@ -271,7 +276,7 @@ Upgrading a corrected pre-release 0.1.0 installation to 0.2.0 registers both mem
 routes and softly refreshes rewrite rules once after successful installation.
 No Permalinks save or reactivation is required. Failed installation leaves rewrites
 unchanged; ordinary requests do
-not flush them. Core 0.2.2 retains schema 2 and adds no storage migration.
+not flush them. Core 0.2.3 development retains schema 2 and adds no storage migration.
 See [SE-013 validation](validation/se-013.md) for evidence and limitations.
 
 ## Sprint Runner
@@ -359,7 +364,7 @@ Callbacks must preserve these boundaries and advertise only content appropriate
 to their independent policy. Core supplies no recommendations or commerce logic.
 See [SE-017 validation and callback examples](validation/se-017.md).
 
-### Post-completion follow-up hook (SE-018, future Core 0.2.3)
+### Post-completion follow-up hook (SE-018, unreleased Core 0.2.3)
 
 `do_action( 'sprint_engine/runner_completed_followup_actions', $completed )` runs
 once per authenticated, authorized completed Runner render, immediately after
@@ -381,10 +386,11 @@ output and authorize linked destinations independently, and can access the membe
 through `get_current_user_id()`. Action return values are ignored. Template
 overrides own their hook placement. Dashboard and access-denied hooks are unchanged.
 See [SE-018 validation](validation/se-018.md). Development source metadata remains
-0.2.2/schema 2 with this unreleased feature; published Core 0.2.2 excludes SE-018.
-A separate release preparation ticket must set Core 0.2.3 before publishing this
-feature. Core 0.2.3 is not yet prepared or published. The historical 0.2.2 package
-evidence above predates SE-018 and remains unchanged.
+0.2.3/schema 2 with this unreleased feature; published Core 0.2.2 excludes SE-018.
+The development version allows version-based integrations to select this hook.
+Core 0.2.3 is not yet prepared or published; a separate release preparation ticket
+will handle the final changelog and release verification. The historical 0.2.2
+package evidence above predates SE-018 and remains unchanged.
 
 ## Runner Branding
 
@@ -412,7 +418,7 @@ remaining target host deployment checks.
 - Administrators author content using existing `manage_options` capabilities.
   Custom author roles/capabilities are deferred until explicitly specified.
 - Activate per site. Network-wide activation is rejected with an actionable
-  message; automatic multisite provisioning is not included in Core 0.2.2.
+  message; automatic multisite provisioning is not included in Core 0.2.3 development.
 - Runner requires pretty permalinks and a published, launchable, valid Sprint.
 - Structure writes require transactional WordPress `posts` and `postmeta` tables
   (InnoDB on MySQL/MariaDB). Unsupported storage engines are rejected before writes;

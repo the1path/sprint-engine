@@ -8,7 +8,7 @@ function release_check( $condition, $message ) {
     echo 'PASS: ' . $message . PHP_EOL;
 }
 $headers = array(
-    'Plugin Name' => 'Sprint Engine', 'Version' => '0.2.2',
+    'Plugin Name' => 'Sprint Engine', 'Version' => '0.2.3',
     'Requires at least' => '6.0', 'Requires PHP' => '8.0', 'Author' => 'ThePath',
     'License' => 'GPLv2 or later', 'License URI' => 'https://www.gnu.org/licenses/gpl-2.0.html',
     'Text Domain' => 'sprint-engine',
@@ -16,11 +16,11 @@ $headers = array(
 foreach ( $headers as $key => $value ) {
     release_check( preg_match( '/^ \* ' . preg_quote( $key, '/' ) . ': (.+)$/m', $plugin, $match ) && trim( $match[1] ) === $value, 'Plugin header: ' . $key );
 }
-foreach ( array( 'VERSION' => '0.2.2', 'SCHEMA_VERSION' => '2', 'MIN_PHP' => '8.0', 'MIN_WP' => '6.0' ) as $key => $value ) {
+foreach ( array( 'VERSION' => '0.2.3', 'SCHEMA_VERSION' => '2', 'MIN_PHP' => '8.0', 'MIN_WP' => '6.0' ) as $key => $value ) {
     release_check( str_contains( $plugin, "define( 'SPRINT_ENGINE_" . $key . "', '" . $value . "' );" ), 'Runtime constant: ' . $key );
 }
 release_check( str_starts_with( $readme, "=== Sprint Engine ===\n" ), 'Directory readme title.' );
-foreach ( array( 'Contributors' => 'thepath', 'Stable tag' => '0.2.2', 'Tested up to' => '7.1', 'Requires at least' => '6.0', 'Requires PHP' => '8.0', 'License' => $headers['License'], 'License URI' => $headers['License URI'] ) as $key => $value ) {
+foreach ( array( 'Contributors' => 'thepath', 'Stable tag' => '0.2.3', 'Tested up to' => '7.1', 'Requires at least' => '6.0', 'Requires PHP' => '8.0', 'License' => $headers['License'], 'License URI' => $headers['License URI'] ) as $key => $value ) {
     release_check( preg_match( '/^' . preg_quote( $key, '/' ) . ': (.+)$/m', $readme, $match ) && trim( $match[1] ) === $value, 'Readme metadata: ' . $key );
 }
 preg_match( '/^Tags: (.+)$/m', $readme, $tags );
