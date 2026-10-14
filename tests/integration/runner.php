@@ -134,17 +134,19 @@ sprint_engine_runner_check( array( array(), array() ) === sprint_engine_runner_r
 remove_filter( 'sprint_engine/user_can_access_sprint', $deny );
 
 // SE-017: only a Core-resolved ready Sprint may enter the presentation gateway.
-$denied_calls = array(); $completed_calls = array(); $gate_calls = array();
+$denied_calls = array(); $completed_calls = array(); $followup_calls = array(); $gate_calls = array();
 $denied_listener = static function ( ...$args ) use ( &$denied_calls ) { $denied_calls[] = $args; echo '<p>DENIAL ACTION</p>'; return true; };
 $completed_listener = static function ( $completed ) use ( &$completed_calls ) { $completed_calls[] = $completed; echo '<p>COMPLETED ACTION</p>'; };
+$followup_listener = static function ( ...$args ) use ( &$followup_calls ) { $followup_calls[] = $args; echo '<p><a href="#se-runner-main">FOLLOWUP ACTION</a></p>'; };
 $gate_value = false;
 $gate_filter = static function ( $default, $id ) use ( &$gate_calls, &$gate_value ) { $gate_calls[] = array( $default, $id ); return $gate_value; };
 add_action( 'sprint_engine/runner_access_denied_actions', $denied_listener );
 add_action( 'sprint_engine/runner_completed_actions', $completed_listener );
+add_action( 'sprint_engine/runner_completed_followup_actions', $followup_listener );
 add_filter( 'sprint_engine/runner_show_public_access_gate', $gate_filter, 10, 2 );
 add_filter( 'sprint_engine/user_can_access_sprint', $deny );
 $denied = $runner->resolve( $slug ); $denied_html = sprint_engine_runner_html( $denied );
-sprint_engine_runner_check( array( array( $sprint ) ) === $denied_calls && array() === $gate_calls && array() === $completed_calls, 'Authenticated denial action receives only the resolved ready Sprint ID; anonymous filter and completion action do not run.' );
+sprint_engine_runner_check( array( array( $sprint ) ) === $denied_calls && array() === $gate_calls && array() === $completed_calls && array() === $followup_calls, 'Authenticated denial action receives only the resolved ready Sprint ID; anonymous filter and completion action do not run.' );
 sprint_engine_runner_check( array( 'state', 'status', 'message', 'access_denied_sprint_id' ) === array_keys( $denied ) && 'error' === $denied['state'] && 403 === $denied['status'] && ! str_contains( $denied_html, 'SECRET' ) && ! str_contains( $denied_html, 'AUTHORIZED OVERVIEW' ) && ! str_contains( $denied_html, 'se-runner-action' ), 'Denial keeps generic error semantics with no content, member progress or write controls even when its callback returns true.' );
 remove_action( 'sprint_engine/runner_access_denied_actions', $denied_listener );
 sprint_engine_runner_check( sprint_engine_runner_shell( str_replace( '<p>DENIAL ACTION</p>', '', $denied_html ) ) === sprint_engine_runner_shell( sprint_engine_runner_html( $denied ) ), 'Without a denial listener the existing error shell is unchanged.' );
@@ -159,17 +161,18 @@ $gate_value = true; $gate_calls = array(); $denied_calls = array();
 $_REQUEST = array( 'sprint_id' => $other, 'attempt_id' => 999, 'attempt_number' => 99, 'user_id' => $outsider );
 $gateway = $runner->resolve( $slug ); $gateway_html = sprint_engine_runner_html( $gateway );
 parse_str( wp_parse_url( $gateway['login_url'], PHP_URL_QUERY ), $gateway_query );
-sprint_engine_runner_check( 403 === $gateway['status'] && 'error' === $gateway['state'] && array( array( false, $sprint ) ) === $gate_calls && array( array( $sprint ) ) === $denied_calls && array() === $completed_calls, 'Anonymous opt-in uses the same recognised denial and only the path-resolved Sprint, ignoring supplied identities.' );
+sprint_engine_runner_check( 403 === $gateway['status'] && 'error' === $gateway['state'] && array( array( false, $sprint ) ) === $gate_calls && array( array( $sprint ) ) === $denied_calls && array() === $completed_calls && array() === $followup_calls, 'Anonymous opt-in uses the same recognised denial and only the path-resolved Sprint, ignoring supplied identities.' );
 sprint_engine_runner_check( $denied['message'] === $gateway['message'] && Routes::url( $slug ) === $gateway_query['redirect_to'] && str_contains( $gateway_html, '>Login</a>' ) && str_contains( $gateway_html, '<meta name="robots" content="noindex, nofollow">' ) && ! str_contains( $gateway_html, 'SECRET' ) && ! str_contains( $gateway_html, 'AUTHORIZED OVERVIEW' ) && ! isset( $gateway['progress'], $gateway['title'], $gateway['step'] ), 'Opted-in screen remains generic/noindex and offers login back to canonical Runner without private context.' );
 sprint_engine_runner_check( array( array(), array() ) === sprint_engine_runner_rows( $user, $sprint ) && array( array(), array() ) === sprint_engine_runner_rows( $outsider, $sprint ), 'Both denial presentations create no member progress.' );
 $_REQUEST = array(); wp_set_current_user( $user );
 
 // Every unavailable case is exercised under both denial and anonymous opt-in.
-$assert_unavailable = static function ( $invalid ) use ( $runner, $user, &$gate_calls, &$denied_calls ) {
+$assert_unavailable = static function ( $invalid ) use ( $runner, $user, &$gate_calls, &$denied_calls, &$completed_calls, &$followup_calls ) {
 	$previous_user = get_current_user_id();
 	foreach ( array( $user, 0 ) as $member ) {
 		wp_set_current_user( $member ); $gate_calls = array(); $denied_calls = array();
 		$blocked = $runner->resolve( $invalid ); $blocked_html = sprint_engine_runner_html( $blocked );
+		sprint_engine_runner_check( array() === $completed_calls && array() === $followup_calls, 'Neither completion action fires for missing, malformed or unavailable Runner context.' );
 		sprint_engine_runner_check( 404 === $blocked['status'] && ! isset( $blocked['access_denied_sprint_id'] ) && array() === $gate_calls && array() === $denied_calls && ! str_contains( $blocked_html, 'SECRET' ) && ! str_contains( $blocked_html, '>Login</a>' ), 'Unavailable content never reaches the public filter or denial action for member ' . $member );
 	}
 	wp_set_current_user( $previous_user );
@@ -221,7 +224,7 @@ sprint_engine_runner_check( ! str_contains( $html, 'STEP SECRET' ) && ! str_cont
 sprint_engine_runner_check( array( array(), array() ) === sprint_engine_runner_rows( $user, $sprint ), 'Viewing Start does not create enrolment or Step progress.' );
 sprint_engine_runner_check( str_contains( $html, 'se-runner__button--primary' ) && str_contains( $html, '>Start Sprint</button>' ), 'Start uses a reusable primary control.' );
 sprint_engine_runner_check( str_contains( $html, 'href="' . esc_url( \ThePath\SprintEngine\Dashboard\Routes::url() ) . '">Back to My Sprints</a>' ), 'Runner Start returns to the canonical Dashboard.' );
-sprint_engine_runner_check( array() === $completed_calls && array() === $denied_calls, 'Presentation actions do not fire before Start.' );
+sprint_engine_runner_check( array() === $completed_calls && array() === $followup_calls && array() === $denied_calls, 'Presentation actions do not fire before Start.' );
 
 // Path, not request IDs or arbitrary query vars, selects the Sprint.
 foreach ( array( '/sprint/' . $slug, '/sprint/' . $slug . '/' ) as $path ) {
@@ -248,7 +251,7 @@ sprint_engine_runner_check( str_contains( $html, '>Complete &amp; Continue</butt
 $exit_before = sprint_engine_runner_rows( $user, $sprint );
 sprint_engine_runner_check( str_contains( sprint_engine_runner_html( $context ), 'href="' . esc_url( \ThePath\SprintEngine\Dashboard\Routes::url() ) . '">Save &amp; Exit</a>' ) && $exit_before === sprint_engine_runner_rows( $user, $sprint ), 'Save & Exit is a canonical Dashboard link and rendering performs no write.' );
 sprint_engine_runner_check( str_contains( $html, 'aria-labelledby="se-progress-label"' ) && str_contains( $html, 'role="status" aria-live="polite"' ) && str_contains( $html, 'href="#se-runner-main"' ), 'Semantic progress, live feedback and skip link remain accessible.' );
-sprint_engine_runner_check( array() === $completed_calls && array() === $denied_calls, 'Presentation actions do not fire during progress.' );
+sprint_engine_runner_check( array() === $completed_calls && array() === $followup_calls && array() === $denied_calls, 'Presentation actions do not fire during progress.' );
 $display = $runner->resolve( $slug );
 $display['progress']['percentage'] = 33.33;
 $display_html = sprint_engine_runner_html( $display );
@@ -288,7 +291,7 @@ $error_context = $runner->resolve( $slug );
 remove_filter( 'query', $failure );
 sprint_engine_runner_check( 503 === $error_context['status'] && ! str_contains( wp_json_encode( $error_context ), 'SECRET' ) && ! isset( $error_context['progress'] ), 'ProgressService failure becomes safe recoverable 503 context.' );
 $error_html = sprint_engine_runner_html( $error_context );
-sprint_engine_runner_check( array() === $completed_calls && array() === $denied_calls && ! isset( $error_context['access_denied_sprint_id'] ), 'Persistence 503 is never treated as access denial.' );
+sprint_engine_runner_check( array() === $completed_calls && array() === $followup_calls && array() === $denied_calls && ! isset( $error_context['access_denied_sprint_id'] ), 'Persistence 503 is never treated as access denial.' );
 sprint_engine_runner_check( str_contains( $error_html, 'Try again' ) && str_contains( $error_html, 'Back to My Sprints' ) && ! str_contains( $error_html, 'STEP SECRET' ) && ! str_contains( $error_html, 'se-runner-action' ), 'Persistence error renders useful recovery and exit without content or a write control.' );
 remove_filter( 'the_content', $content_filter, 99 );
 
@@ -369,6 +372,7 @@ wp_set_current_user( $user );
 $before = sprint_engine_runner_rows( $user, $sprint );
 $context = $runner->resolve( $slug ); $html = sprint_engine_runner_html( $context );
 sprint_engine_runner_check( array( array( 'sprint_id' => $sprint, 'attempt_id' => $context['progress']['attempt_id'], 'attempt_number' => 1 ) ) === $completed_calls, 'Completion action fires once with the current member canonical completed-attempt identity.' );
+sprint_engine_runner_check( array( array( $completed_calls[0] ) ) === $followup_calls, 'Follow-up receives exactly one array argument identical to the existing canonical completion payload.' );
 sprint_engine_runner_check( 'completed' === $context['state'] && ! isset( $context['step'] ) && 100.0 === $context['progress']['percentage'], 'Completed context contains 100% progress and no reopened Step.' );
 sprint_engine_runner_check( str_contains( $html, '100%' ) && str_contains( $html, 'Restart Sprint' ) && str_contains( $html, '>Back to My Sprints</a>' ), 'Completion shows whole 100%, safe exit and restart button.' );
 sprint_engine_runner_check( str_contains( $html, 'href="' . esc_url( \ThePath\SprintEngine\Dashboard\Routes::url() ) . '">Back to My Sprints</a>' ), 'Runner completion returns to the canonical Dashboard separately from the authored CTA.' );
@@ -380,14 +384,33 @@ update_post_meta( $sprint, '_sprint_engine_completion_cta_label', 'Feedback & ne
 update_post_meta( $sprint, '_sprint_engine_completion_cta_url', 'https://example.org/feedback?a=1&b=2' );
 $html = sprint_engine_runner_html( $runner->resolve( $slug ) );
 sprint_engine_runner_check( strpos( $html, 'Feedback &amp; next</a>' ) < strpos( $html, '<p>COMPLETED ACTION</p>' ) && strpos( $html, '<p>COMPLETED ACTION</p>' ) < strpos( $html, '>Restart Sprint</button>' ), 'Completion action follows creator message/CTA and precedes intact restart and Dashboard controls.' );
+sprint_engine_runner_check( strpos( $html, '>Restart Sprint</button>' ) < strrpos( $html, '>Back to My Sprints</a>' ) && preg_match( '~>Back to My Sprints</a>\s*<p><a href="#se-runner-main">FOLLOWUP ACTION</a></p>\s*</div>~', $html ), 'Follow-up fires immediately after the completion Dashboard link, after restart and inside the completion container.' );
 remove_action( 'sprint_engine/runner_completed_actions', $completed_listener );
-sprint_engine_runner_check( sprint_engine_runner_shell( str_replace( '<p>COMPLETED ACTION</p>', '', $html ) ) === sprint_engine_runner_shell( sprint_engine_runner_html( $runner->resolve( $slug ) ) ), 'No completion listener preserves the existing completed shell.' );
-$completed_calls = array(); add_action( 'sprint_engine/runner_completed_actions', $completed_listener );
+remove_action( 'sprint_engine/runner_completed_followup_actions', $followup_listener );
+sprint_engine_runner_check( sprint_engine_runner_shell( str_replace( array( '<p>COMPLETED ACTION</p>', '<p><a href="#se-runner-main">FOLLOWUP ACTION</a></p>' ), '', $html ) ) === sprint_engine_runner_shell( sprint_engine_runner_html( $runner->resolve( $slug ) ) ), 'No completion listeners preserve the existing completed shell.' );
+$completed_calls = array(); $followup_calls = array(); add_action( 'sprint_engine/runner_completed_actions', $completed_listener );
+add_action( 'sprint_engine/runner_completed_followup_actions', $followup_listener );
 $_REQUEST = array( 'user_id' => $outsider, 'sprint_id' => $other, 'attempt_id' => 999, 'attempt_number' => 99 );
 for ( $render = 0; $render < 2; ++$render ) { sprint_engine_runner_html( $runner->resolve( $slug ) ); }
 sprint_engine_runner_check( 2 === count( $completed_calls ) && $completed_calls[0] === $completed_calls[1] && $context['progress']['attempt_id'] === $completed_calls[0]['attempt_id'] && 1 === $completed_calls[0]['attempt_number'] && $sprint === $completed_calls[0]['sprint_id'] && $before === sprint_engine_runner_rows( $user, $sprint ), 'Repeated completion renders ignore submitted attempt selectors and preserve every progress row/timestamp.' );
+sprint_engine_runner_check( array( array( $completed_calls[0] ), array( $completed_calls[1] ) ) === $followup_calls, 'Both repeated follow-up renders ignore every request-supplied identity.' );
 $_REQUEST = array();
+$completed_calls = array(); $followup_calls = array();
+wp_set_current_user( 0 ); sprint_engine_runner_html( $context );
+wp_set_current_user( $user );
+add_filter( 'sprint_engine/user_can_access_sprint', $deny );
+sprint_engine_runner_html( $runner->resolve( $slug ) );
+remove_filter( 'sprint_engine/user_can_access_sprint', $deny );
+sprint_engine_runner_check( '' === sprint_engine_runner_html( array() ) && '' === sprint_engine_runner_html( array( 'state' => null ) ) && array() === $completed_calls && array() === $followup_calls, 'Anonymous completed, denied completed, missing and malformed template contexts never fire either completion action.' );
+$render_writes = array();
+$render_context = $runner->resolve( $slug );
+$track_render_writes = static function ( $sql ) use ( &$render_writes ) { if ( preg_match( '/^\s*(INSERT|UPDATE|DELETE|REPLACE|ALTER|CREATE|DROP)\b/i', $sql ) ) { $render_writes[] = $sql; } return $sql; };
+add_filter( 'query', $track_render_writes );
+sprint_engine_runner_html( $render_context );
+remove_filter( 'query', $track_render_writes );
+sprint_engine_runner_check( array() === $render_writes && $before === sprint_engine_runner_rows( $user, $sprint ), 'Rendering both completion hooks performs no database mutations, including progress or entitlement writes.' );
 remove_action( 'sprint_engine/runner_completed_actions', $completed_listener );
+remove_action( 'sprint_engine/runner_completed_followup_actions', $followup_listener );
 remove_action( 'sprint_engine/runner_access_denied_actions', $denied_listener );
 sprint_engine_runner_check( str_contains( $html, '<p>Well done &amp; thanks.</p>' ) && str_contains( $html, '[sprint_engine_completion_test] Next' ) && ! str_contains( $html, '<b>Next</b>' ), 'Completion is escaped multiline text without HTML or shortcode execution.' );
 sprint_engine_runner_check( str_contains( $html, 'se-runner__button--primary' ) && str_contains( $html, 'Feedback &amp; next</a>' ) && str_contains( $html, esc_url( 'https://example.org/feedback?a=1&b=2' ) ), 'Completed Runner renders valid primary CTA label and destination.' );
@@ -447,13 +470,32 @@ add_action("sprint_engine/runner_access_denied_actions", static function ($id) {
 // A historical completed attempt must not select the new completion extension.
 $first_attempt = $context['progress']['attempt_id'];
 $restarted = $service->restart_sprint( $user, $sprint );
-$completed_calls = array(); add_action( 'sprint_engine/runner_completed_actions', $completed_listener );
+$completed_calls = array(); $followup_calls = array(); add_action( 'sprint_engine/runner_completed_actions', $completed_listener );
+add_action( 'sprint_engine/runner_completed_followup_actions', $followup_listener );
 sprint_engine_runner_html( $runner->resolve( $slug ) );
-sprint_engine_runner_check( 2 === $restarted['attempt_number'] && array() === $completed_calls, 'Restarted attempt in progress never fires completion action for its historical completed attempt.' );
+sprint_engine_runner_check( 2 === $restarted['attempt_number'] && array() === $completed_calls && array() === $followup_calls, 'Restarted attempt in progress never fires completion action for its historical completed attempt.' );
 foreach ( $steps as $step ) { $service->complete_step( $user, $sprint, $step ); }
 sprint_engine_runner_html( $runner->resolve( $slug ) );
 sprint_engine_runner_check( array( array( 'sprint_id' => $sprint, 'attempt_id' => $restarted['attempt_id'], 'attempt_number' => 2 ) ) === $completed_calls && $first_attempt !== $restarted['attempt_id'], 'New completion context selects canonical Attempt 2 rather than the historical completed attempt.' );
+sprint_engine_runner_check( array( array( $completed_calls[0] ) ) === $followup_calls, 'Follow-up also selects only canonical Attempt 2.' );
+wp_set_current_user( $outsider );
+$service->start_sprint( $outsider, $sprint );
+foreach ( $steps as $step ) { $service->complete_step( $outsider, $sprint, $step ); }
+$member_attempts = array();
+foreach ( array( $user => $outsider, $outsider => $user ) as $member => $supplied_member ) {
+	wp_set_current_user( $member );
+	$completed_calls = array(); $followup_calls = array();
+	$_GET = $_REQUEST = array( 'user_id' => $supplied_member, 'attempt_id' => $restarted['attempt_id'], 'attempt_number' => 2, 'sprint_id' => $other );
+	$member_state = $service->get_state( $member, $sprint );
+	sprint_engine_runner_html( $runner->resolve( $slug ) );
+	$expected_completed = array( 'sprint_id' => $sprint, 'attempt_id' => $member_state['attempt_id'], 'attempt_number' => $member_state['attempt_number'] );
+	sprint_engine_runner_check( array( $expected_completed ) === $completed_calls && array( array( $expected_completed ) ) === $followup_calls, 'Both completion actions bind to authenticated member despite another member identity: ' . $member );
+	$member_attempts[] = $member_state['attempt_id'];
+}
+sprint_engine_runner_check( $member_attempts[0] !== $member_attempts[1], 'Two independent completed members receive distinct canonical attempt IDs.' );
+$_GET = $_REQUEST = array(); wp_set_current_user( $user );
 remove_action( 'sprint_engine/runner_completed_actions', $completed_listener );
+remove_action( 'sprint_engine/runner_completed_followup_actions', $followup_listener );
 $before = sprint_engine_runner_rows( $user, $sprint );
 
 wp_set_current_user( 1 );

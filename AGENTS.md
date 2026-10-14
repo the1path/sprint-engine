@@ -111,6 +111,7 @@ Where implemented by the current ticket/specification, preserve the documented p
 - `sprint_engine/user_can_access_sprint`
 - `sprint_engine/runner_template`
 - `sprint_engine/runner_completed_actions`
+- `sprint_engine/runner_completed_followup_actions`
 - `sprint_engine/dashboard_completed_card_actions`
 - `sprint_engine/runner_access_denied_actions`
 - `sprint_engine/runner_show_public_access_gate`

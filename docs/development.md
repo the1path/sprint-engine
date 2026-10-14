@@ -5,8 +5,9 @@ published. Published stable remains **0.2.0**. Start with the
 [documentation index](README.md) for architecture and validation records.
 The [contribution guide](../CONTRIBUTING.md) covers focused issues and pull requests.
 See [0.2.2 release validation](validation/release-0.2.2.md) for package evidence
-and the future WordPress.org SVN manifest. This release updates metadata only;
-the existing SE-017 presentation hooks and all runtime behavior are unchanged.
+and the future WordPress.org SVN manifest. That release preparation updated
+metadata only. The subsequent SE-018 feature documented below awaits separate
+Core 0.2.3 release preparation.
 
 ## Author a linear Sprint
 
@@ -354,6 +355,31 @@ sandbox a callback that deliberately writes, changes headers or leaks data.
 Callbacks must preserve these boundaries and advertise only content appropriate
 to their independent policy. Core supplies no recommendations or commerce logic.
 See [SE-017 validation and callback examples](validation/se-017.md).
+
+### Post-completion follow-up hook (SE-018, future Core 0.2.3)
+
+`do_action( 'sprint_engine/runner_completed_followup_actions', $completed )` runs
+once per authenticated, authorized completed Runner render, immediately after
+the completion **Back to My Sprints** link and before the closing
+`se-runner__completion` container. It receives one array with exactly integer
+`sprint_id`, `attempt_id`, `attempt_number`, using the same canonical payload as
+`runner_completed_actions`. Core constructs that payload once from its existing
+server-authorized Runner context; request identifiers never select it.
+
+The SE-017 `runner_completed_actions` still runs after the creator message/CTA
+and before Restart Sprint. Both fire on each eligible render, including revisits;
+neither is a lifecycle event. Anonymous, not-started, in-progress, denied,
+missing or malformed route contexts do not fire either. Historical completed
+attempts do not trigger them while the canonical attempt is in progress.
+
+This additive presentation action adds no markup without listeners, no access or
+progress writes, and no recommendation logic. Trusted callbacks must escape their
+output and authorize linked destinations independently, and can access the member
+through `get_current_user_id()`. Action return values are ignored. Template
+overrides own their hook placement. Dashboard and access-denied hooks are unchanged.
+See [SE-018 validation](validation/se-018.md). Source metadata remains 0.2.2/schema 2;
+a separate release preparation ticket must set Core 0.2.3 before publishing this
+feature. The historical 0.2.2 package evidence above predates SE-018.
 
 ## Runner Branding
 
