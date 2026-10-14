@@ -179,10 +179,14 @@ Deploy to a development or staging WordPress site first and verify the relevant 
 ## 15. Current development target
 
 Published Core is **0.2.2**, successfully published to WordPress.org and updated
-on an existing installation. Development source retains version metadata
-**0.2.2**, schema **2**, with unreleased SE-018 functionality that is not included
-in the published WordPress.org 0.2.2 package. The next planned public release is
-**0.2.3**, not yet prepared or published. Work from the current ticket/issue
+on an existing installation. Development source uses version metadata **0.2.3**,
+schema **2**, with unreleased SE-018 functionality that is not included in the
+published WordPress.org 0.2.2 package. Core **0.2.3** remains under active
+development; this version bump is not release preparation or approval. Further
+changes may accumulate before final release verification and publication.
+The GitHub development readme Stable Tag is 0.2.3 only in source; WordPress.org
+remains at 0.2.2. The next planned public release is **0.2.3**, not yet prepared
+or published. Work from the current ticket/issue
 rather than a historical implementation sequence. Keep changes tightly scoped and use
 the existing implementation and relevant documentation to determine what is
 already supported. Version, schema and release changes require explicit ticket
