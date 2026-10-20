@@ -27,7 +27,7 @@ $fixture = json_decode( ob_get_clean(), true );
 $service = new ThePath\SprintEngine\Progress\ProgressService();
 wp_set_current_user( $fixture['other'] );
 $service->start_sprint( $fixture['other'], $fixture['ids']['completed'] );
-foreach ( $fixture['steps']['completed'] as $step ) { $service->complete_step( $fixture['other'], $fixture['ids']['completed'], $step ); }
+foreach ( $fixture['steps']['completed'] as $step ) { $service->complete_step( $fixture['other'], $fixture['ids']['completed'], $step, test_attempt_id( $fixture['other'], $fixture['ids']['completed'] ) ); }
 foreach ( array( 'user', 'other' ) as $member ) {
     $state = $service->get_state( $fixture[$member], $fixture['ids']['completed'] );
     $fixture['completed'][$member] = array( 'sprint_id' => $fixture['ids']['completed'], 'attempt_id' => $state['attempt_id'], 'attempt_number' => $state['attempt_number'] );

@@ -34,16 +34,24 @@ final class ProgressService {
 	 * @var callable
 	 */
 	private $clock;
+	/**
+	 * Optional member boundary, rechecked after acquiring the transaction lock.
+	 *
+	 * @var callable|null
+	 */
+	private $mutation_guard;
 
 	/**
 	 * Create the internal service with an optional deterministic UTC clock.
 	 *
 	 * @param callable|null $clock UTC clock; defaults to WordPress UTC time.
+	 * @param callable|null $mutation_guard Returns true or WP_Error for user/Sprint.
 	 */
-	public function __construct( $clock = null ) {
-		$this->enrolments = new EnrolmentRepository();
-		$this->steps      = new StepProgressRepository();
-		$this->clock      = $clock ?? static function () {
+	public function __construct( $clock = null, $mutation_guard = null ) {
+		$this->enrolments     = new EnrolmentRepository();
+		$this->steps          = new StepProgressRepository();
+		$this->mutation_guard = $mutation_guard;
+		$this->clock          = $clock ?? static function () {
 			return current_time( 'mysql', true );
 		};
 	}
@@ -60,14 +68,15 @@ final class ProgressService {
 	}
 
 	/**
-	 * Restart a completed Sprint as a new attempt; retries return an active attempt.
+	 * Restart the expected current attempt; supersede unfinished runs atomically.
 	 *
 	 * @param int $user User ID.
 	 * @param int $sprint Sprint ID.
+	 * @param int $expected_attempt_id Attempt rendered to the caller; required.
 	 * @return array|\WP_Error
 	 */
-	public function restart_sprint( $user, $sprint ) {
-		return $this->operate( 'restart', $user, $sprint );
+	public function restart_sprint( $user, $sprint, $expected_attempt_id = null ) {
+		return $this->operate( 'restart', $user, $sprint, 0, $expected_attempt_id );
 	}
 
 	/**
@@ -97,6 +106,7 @@ final class ProgressService {
 	 * Member-facing callers MUST apply their own authorization policy and bind the
 	 * user ID to the authenticated member. This method does not check AccessManager.
 	 * Global reads retain Sprint IDs even when their current posts no longer exist.
+	 * Includes read-only restarted attempts; their original timestamps are retained.
 	 *
 	 * @param int      $user Existing user ID (decimal strings also accepted).
 	 * @param int|null $sprint Optional existing Sprint ID, including trashed Sprints.
@@ -147,10 +157,11 @@ final class ProgressService {
 	 * @param int $user User ID.
 	 * @param int $sprint Sprint ID.
 	 * @param int $step Step ID.
+	 * @param int $expected_attempt_id Attempt rendered to the caller; required.
 	 * @return array|\WP_Error
 	 */
-	public function complete_step( $user, $sprint, $step ) {
-		return $this->operate( 'complete', $user, $sprint, $step );
+	public function complete_step( $user, $sprint, $step, $expected_attempt_id = null ) {
+		return $this->operate( 'complete', $user, $sprint, $step, $expected_attempt_id );
 	}
 
 	/**
@@ -171,9 +182,10 @@ final class ProgressService {
 	 * @param int    $user User ID.
 	 * @param int    $sprint Sprint ID.
 	 * @param int    $step Optional completion Step.
+	 * @param int    $expected_attempt_id Required for restart/completion writes.
 	 * @return array|\WP_Error
 	 */
-	private function operate( $operation, $user, $sprint, $step = 0 ) {
+	private function operate( $operation, $user, $sprint, $step = 0, $expected_attempt_id = null ) {
 		if ( ! $this->valid_id( $user ) || ! get_userdata( (int) $user ) ) {
 			return new \WP_Error( 'sprint_engine_progress_user', __( 'The user does not exist.', 'sprint-engine' ) );
 		}
@@ -183,6 +195,9 @@ final class ProgressService {
 		if ( 'complete' === $operation && ! $this->valid_id( $step ) ) {
 			return new \WP_Error( 'sprint_engine_progress_step', __( 'Supply a valid Step ID.', 'sprint-engine' ) );
 		}
+		if ( in_array( $operation, array( 'restart', 'complete' ), true ) && ! $this->valid_id( $expected_attempt_id ) ) {
+			return new \WP_Error( 'sprint_engine_progress_attempt', __( 'Supply the displayed attempt ID.', 'sprint-engine' ) );
+		}
 		$user   = (int) $user;
 		$sprint = (int) $sprint;
 		$step   = (int) $step;
@@ -190,7 +205,13 @@ final class ProgressService {
 		$repair = false;
 		$result = ( new Transaction() )->run(
 			$sprint,
-			function () use ( $operation, $user, $sprint, $step, &$events, &$repair ) {
+			function () use ( $operation, $user, $sprint, $step, $expected_attempt_id, &$events, &$repair ) {
+				if ( 'read' !== $operation && null !== $this->mutation_guard ) {
+					$allowed = call_user_func( $this->mutation_guard, $user, $sprint );
+					if ( true !== $allowed ) {
+						return is_wp_error( $allowed ) ? $allowed : $this->state_error();
+					}
+				}
 				$chain = $this->chain( $sprint );
 				if ( is_wp_error( $chain ) ) {
 					return $chain;
@@ -199,16 +220,20 @@ final class ProgressService {
 				if ( $row && ! in_array( $row['status'], array( 'not_started', 'in_progress', 'completed' ), true ) ) {
 					return $this->state_error();
 				}
+				if ( in_array( $operation, array( 'restart', 'complete' ), true ) && $row && $row['id'] !== (int) $expected_attempt_id ) {
+					return new \WP_Error( 'sprint_engine_progress_stale_attempt', __( 'This run has changed. Reload the Sprint before continuing.', 'sprint-engine' ) );
+				}
 				$now = call_user_func( $this->clock );
 				if ( 'restart' === $operation ) {
 					if ( ! Meta::read( $sprint, 'sprint_engine_sprint' )['_sprint_engine_launchable'] ) {
 						return new \WP_Error( 'sprint_engine_progress_not_launchable', __( 'This Sprint is not launchable.', 'sprint-engine' ) );
 					}
 					if ( ! $row || 'not_started' === $row['status'] ) {
-						return new \WP_Error( 'sprint_engine_progress_restart_unavailable', __( 'Complete this Sprint before restarting it.', 'sprint-engine' ) );
+						return new \WP_Error( 'sprint_engine_progress_restart_unavailable', __( 'Start this Sprint before restarting it.', 'sprint-engine' ) );
 					}
 					if ( 'in_progress' === $row['status'] ) {
-						return $this->state( $user, $sprint, $chain );
+						// Preserve every original pointer/timestamp and all Step progress.
+						$this->enrolments->update( $row['id'], array( 'status' => 'restarted' ) );
 					}
 				}
 				$attempt = $row['attempt_number'] ?? 1;

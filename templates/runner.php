@@ -28,6 +28,9 @@ if ( ! isset( $sprint_engine_context['state'] ) ) {
 	<nav class="se-runner__utility" aria-label="<?php esc_attr_e( 'Sprint navigation', 'sprint-engine' ); ?>">
 		<?php echo \ThePath\SprintEngine\Settings\RunnerBranding::logo(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core attachment helper escapes markup. ?>
 		<?php // Save & Exit retains already-persisted progress; this link performs no save write. ?>
+		<?php if ( is_user_logged_in() && 'in_progress' === $sprint_engine_context['state'] ) : ?>
+			<button class="se-runner__button se-runner__button--secondary" type="button" id="se-runner-restart" aria-haspopup="dialog" aria-controls="se-restart-dialog" aria-describedby="se-runner-status"><?php esc_html_e( 'Restart Sprint', 'sprint-engine' ); ?></button>
+		<?php endif; ?>
 		<a class="se-runner__button se-runner__button--secondary" href="<?php echo esc_url( \ThePath\SprintEngine\Dashboard\Routes::url() ); ?>"><?php echo esc_html( 'in_progress' === $sprint_engine_context['state'] ? __( 'Save & Exit', 'sprint-engine' ) : __( 'Back to My Sprints', 'sprint-engine' ) ); ?></a>
 	</nav>
 	<header class="se-runner__header">
@@ -154,6 +157,20 @@ if ( ! isset( $sprint_engine_context['state'] ) ) {
 		<?php endif; ?>
 	</main>
 </div>
+<?php if ( is_user_logged_in() && 'in_progress' === $sprint_engine_context['state'] ) : ?>
+	<dialog class="se-runner__restart-dialog" id="se-restart-dialog" aria-labelledby="se-restart-title" aria-describedby="se-restart-description">
+		<h2 id="se-restart-title"><?php esc_html_e( 'Restart this Sprint?', 'sprint-engine' ); ?></h2>
+		<div id="se-restart-description">
+			<p><?php esc_html_e( "You'll start again from Step 1.", 'sprint-engine' ); ?></p>
+			<p><?php esc_html_e( "Your current run and previously saved work will be preserved in History, but you won't be able to continue or edit this run after restarting.", 'sprint-engine' ); ?></p>
+			<p><?php esc_html_e( 'Any unsaved responses will be lost.', 'sprint-engine' ); ?></p>
+		</div>
+		<form method="dialog" class="se-runner__dialog-actions">
+			<button class="se-runner__button se-runner__button--secondary" value="cancel" autofocus><?php esc_html_e( 'Cancel', 'sprint-engine' ); ?></button>
+			<button class="se-runner__button se-runner__button--primary" value="restart"><?php esc_html_e( 'Restart', 'sprint-engine' ); ?></button>
+		</form>
+	</dialog>
+<?php endif; ?>
 <?php wp_footer(); ?>
 </body>
 </html>

@@ -7,7 +7,8 @@ use ThePath\SprintEngine\Dashboard\Routes;
 use ThePath\SprintEngine\Runner\Routes as RunnerRoutes;
 $root=getenv('SE_TEST_WP_ROOT');
 if (!$root || 'yes'!==getenv('SE_TEST_DISPOSABLE')) { exit(1); }
-require $root . '/wp-load.php'; require_once ABSPATH . 'wp-admin/includes/user.php';
+require $root . '/wp-load.php';
+require_once dirname( __DIR__ ) . '/attempt-identity.php'; require_once ABSPATH . 'wp-admin/includes/user.php';
 function sprint_engine_dashboard_browser_snapshot($fixture) {
     global $wpdb;
     return array($wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sprint_engine_enrolments WHERE user_id IN (%d,%d) ORDER BY id",$fixture['user'],$fixture['other']),ARRAY_A),$wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sprint_engine_step_progress WHERE user_id IN (%d,%d) ORDER BY id",$fixture['user'],$fixture['other']),ARRAY_A));
@@ -61,7 +62,7 @@ wp_update_attachment_metadata($image,array('width'=>1,'height'=>1,'file'=>_wp_re
 $fixture['user']=wp_insert_user(array('user_login'=>'se013-browser-'.wp_generate_password(10,false),'user_pass'=>wp_generate_password(),'role'=>'subscriber'));
 $fixture['other']=wp_insert_user(array('user_login'=>'se013-browser-b-'.wp_generate_password(10,false),'user_pass'=>wp_generate_password(),'role'=>'subscriber'));
 wp_set_current_user($fixture['user']);
-foreach(array('active','completed') as $key) { $service->start_sprint($fixture['user'],$fixture['ids'][$key]); $service->complete_step($fixture['user'],$fixture['ids'][$key],$fixture['steps'][$key][0]); if($key==='completed')$service->complete_step($fixture['user'],$fixture['ids'][$key],$fixture['steps'][$key][1]); }
+foreach(array('active','completed') as $key) { $service->start_sprint($fixture['user'],$fixture['ids'][$key]); $service->complete_step($fixture['user'],$fixture['ids'][$key],$fixture['steps'][$key][0], test_attempt_id( $fixture['user'], $fixture['ids'][$key] ) ); if($key==='completed')$service->complete_step($fixture['user'],$fixture['ids'][$key],$fixture['steps'][$key][1], test_attempt_id( $fixture['user'], $fixture['ids'][$key] ) ); }
 // Server-side access boundary for just these disposable members, including leak tests.
 if (!is_dir(WPMU_PLUGIN_DIR))mkdir(WPMU_PLUGIN_DIR,0755,true);
 $allowed=array_values(array_diff($fixture['ids'],array($fixture['ids']['denied'])));

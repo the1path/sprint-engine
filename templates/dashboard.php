@@ -70,7 +70,7 @@ $sprint_engine_sections = array(
 									<?php endif; ?>
 									<div class="se-dashboard__actions">
 										<?php if ( 'completed' === $sprint_engine_state ) : ?>
-											<button class="se-dashboard__button" type="button" data-sprint-engine-restart data-endpoint="<?php echo esc_url( rest_url( 'sprint-engine/v1/sprints/' . $sprint_engine_item['sprint_id'] . '/restart' ) ); ?>" data-runner-url="<?php echo esc_url( $sprint_engine_item['runner_url'] ); ?>" aria-describedby="se-dashboard-status-<?php echo esc_attr( $sprint_engine_item['sprint_id'] ); ?>"><?php esc_html_e( 'Restart Sprint', 'sprint-engine' ); ?></button>
+											<button class="se-dashboard__button" type="button" data-sprint-engine-restart data-attempt-id="<?php echo esc_attr( $sprint_engine_item['attempt_id'] ); ?>" data-endpoint="<?php echo esc_url( rest_url( 'sprint-engine/v1/sprints/' . $sprint_engine_item['sprint_id'] . '/restart' ) ); ?>" data-runner-url="<?php echo esc_url( $sprint_engine_item['runner_url'] ); ?>" aria-describedby="se-dashboard-status-<?php echo esc_attr( $sprint_engine_item['sprint_id'] ); ?>"><?php esc_html_e( 'Restart Sprint', 'sprint-engine' ); ?></button>
 											<a href="<?php echo esc_url( $sprint_engine_item['runner_url'] ); ?>"><?php esc_html_e( 'View Completed Sprint', 'sprint-engine' ); ?></a>
 											<p id="se-dashboard-status-<?php echo esc_attr( $sprint_engine_item['sprint_id'] ); ?>" role="status" aria-live="polite" aria-atomic="true"></p>
 											<noscript><p><?php esc_html_e( 'JavaScript is required to restart this Sprint.', 'sprint-engine' ); ?></p></noscript>

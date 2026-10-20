@@ -17,6 +17,7 @@ if ( ! $wordpress || 'yes' !== getenv( 'SE_TEST_DISPOSABLE' ) ) {
 	exit( 1 );
 }
 require $wordpress . '/wp-load.php';
+require_once dirname( __DIR__ ) . '/attempt-identity.php';
 require_once ABSPATH . 'wp-admin/includes/user.php';
 error_reporting( E_ALL );
 set_error_handler( static function ( $severity, $message, $file, $line ) { throw new ErrorException( $message, 0, $severity, $file, $line ); } );
@@ -29,7 +30,7 @@ if ( isset( $argv[1] ) && 'worker' === $argv[1] ) {
 		add_action( 'sprint_engine/' . $event, static function ( ...$args ) use ( &$worker_events, $event ) { $worker_events[] = array_merge( array( $event ), $args ); }, 10, 5 );
 	}
 	$service = new ProgressService();
-	$result = 'start' === $argv[2] ? $service->start_sprint( (int) $argv[3], (int) $argv[4] ) : ( 'restart' === $argv[2] ? $service->restart_sprint( (int) $argv[3], (int) $argv[4] ) : $service->complete_step( (int) $argv[3], (int) $argv[4], (int) $argv[5] ) );
+	$result = 'start' === $argv[2] ? $service->start_sprint( (int) $argv[3], (int) $argv[4] ) : ( 'restart' === $argv[2] ? $service->restart_sprint( (int) $argv[3], (int) $argv[4], (int) $argv[7] ) : $service->complete_step( (int) $argv[3], (int) $argv[4], (int) $argv[5], (int) $argv[7] ) );
 	echo wp_json_encode( array( 'result' => is_wp_error( $result ) ? $result->get_error_code() : $result, 'events' => $worker_events ) );
 	exit( 0 );
 }
@@ -89,7 +90,7 @@ sprint_engine_progress_check( true === Meta::save( $sprint, array( '_sprint_engi
 foreach ( array( 0, -1, 1.2, true, array(), 'bad', '99999999999999999999999', 999999999 ) as $invalid ) {
 	sprint_engine_progress_error( $service->start_sprint( $invalid, $sprint ), 'sprint_engine_progress_user', 'Invalid/nonexistent user rejected.' );
 	sprint_engine_progress_error( $service->get_state( $user, $invalid ), 'sprint_engine_progress_sprint', 'Invalid/nonexistent Sprint rejected.' );
-	sprint_engine_progress_error( $service->complete_step( $user, $sprint, $invalid ), 'sprint_engine_progress_step', 'Invalid/nonexistent completion Step rejected.' );
+	sprint_engine_progress_error( $service->complete_step( $user, $sprint, $invalid, test_attempt_id( $user, $sprint ) ), 'sprint_engine_progress_step', 'Invalid/nonexistent completion Step rejected.' );
 }
 sprint_engine_progress_error( $service->get_state( $user, $steps[0] ), 'sprint_engine_progress_sprint', 'Wrong post type is not a Sprint.' );
 
@@ -105,20 +106,20 @@ $before = sprint_engine_progress_snapshot( $user, $sprint );
 $now = '2026-09-23 11:00:00';
 sprint_engine_progress_check( $state === $service->start_sprint( $user, $sprint ) && $before === sprint_engine_progress_snapshot( $user, $sprint ) && 2 === count( $events ), 'Repeated start preserves all rows, original start/activity times and hooks.' );
 sprint_engine_progress_check( $state === $service->get_state( $user, $sprint ) && $before === sprint_engine_progress_snapshot( $user, $sprint ), 'Canonical reads leave progress unchanged.' );
-sprint_engine_progress_error( $service->complete_step( $user, $sprint, $steps[3] ), 'sprint_engine_progress_out_of_order', 'Future incomplete Step rejected.' );
-sprint_engine_progress_error( $service->complete_step( $user, $sprint, $foreign ), 'sprint_engine_progress_step', 'Cross-Sprint completion rejected.' );
-sprint_engine_progress_error( $service->complete_step( $users[1], $sprint, $steps[0] ), 'sprint_engine_progress_state', 'Unenrolled completion rejected.' );
+sprint_engine_progress_error( $service->complete_step( $user, $sprint, $steps[3], test_attempt_id( $user, $sprint ) ), 'sprint_engine_progress_out_of_order', 'Future incomplete Step rejected.' );
+sprint_engine_progress_error( $service->complete_step( $user, $sprint, $foreign, test_attempt_id( $user, $sprint ) ), 'sprint_engine_progress_step', 'Cross-Sprint completion rejected.' );
+sprint_engine_progress_error( $service->complete_step( $users[1], $sprint, $steps[0], test_attempt_id( $users[1], $sprint ) ), 'sprint_engine_progress_state', 'Unenrolled completion rejected.' );
 
 for ( $i = 0; $i < 5; ++$i ) {
 	$now = '2026-09-23 12:0' . $i . ':00';
-	$state = $service->complete_step( $user, $sprint, $steps[$i] );
+	$state = $service->complete_step( $user, $sprint, $steps[$i], test_attempt_id( $user, $sprint ) );
 	sprint_engine_progress_check( ! is_wp_error( $state ) && $i + 1 === $state['completed_steps'] && (float) ( 20 * ( $i + 1 ) ) === $state['percentage'], 'Completion calculates exact progress at Step ' . ( $i + 1 ) );
 	sprint_engine_progress_check( ( $steps[$i + 1] ?? null ) === $state['current_step_id'], 'Completion follows explicit next link at Step ' . ( $i + 1 ) );
 	sprint_engine_progress_check( $now === $progress->find( $user, $sprint, $steps[$i] )['completed_at'], 'Step completion records its UTC timestamp once.' );
 	$before = sprint_engine_progress_snapshot( $user, $sprint ); $event_count = count( $events );
 	$now = '2026-09-23 13:00:00';
-	sprint_engine_progress_check( $state === $service->complete_step( $user, $sprint, $steps[$i] ) && $before === sprint_engine_progress_snapshot( $user, $sprint ) && $event_count === count( $events ), 'Duplicate completion preserves all rows, timestamps, pointer and events.' );
-	sprint_engine_progress_check( $state === $service->complete_step( $user, $sprint, $steps[0] ), 'Stale previous-Step request returns current canonical state.' );
+	sprint_engine_progress_check( $state === $service->complete_step( $user, $sprint, $steps[$i], test_attempt_id( $user, $sprint ) ) && $before === sprint_engine_progress_snapshot( $user, $sprint ) && $event_count === count( $events ), 'Duplicate completion preserves all rows, timestamps, pointer and events.' );
+	sprint_engine_progress_check( $state === $service->complete_step( $user, $sprint, $steps[0], test_attempt_id( $user, $sprint ) ), 'Stale previous-Step request returns current canonical state.' );
 }
 sprint_engine_progress_check( 'completed' === $state['status'] && null === $state['current_step_id'] && '2026-09-23 12:04:00' === $state['completed_at'], 'Final Step completes Sprint, clears current and sets completion time.' );
 sprint_engine_progress_check( $state === $service->start_sprint( $user, $sprint ) && $state === $service->resume_sprint( $user, $sprint ) && $state === $service->get_progress( $user, $sprint ), 'Completed Sprint stays completed at 100%; start/resume never reset it.' );
@@ -129,7 +130,7 @@ sprint_engine_progress_check( 5 === count( sprint_engine_progress_snapshot( $use
 // Normal resume updates meaningful activity, without resetting current/start/completion.
 $second = $users[1];
 $service->start_sprint( $second, $sprint );
-$service->complete_step( $second, $sprint, $steps[0] );
+$service->complete_step( $second, $sprint, $steps[0], test_attempt_id( $second, $sprint ) );
 $row = $enrolments->find( $second, $sprint ); $completed_before = $progress->find( $second, $sprint, $steps[0] );
 $now = '2026-09-24 10:00:00'; $event_count = count( $events );
 $state = $service->resume_sprint( $second, $sprint );
@@ -141,7 +142,7 @@ foreach ( array( $foreign, $steps[0], 99999999 ) as $bad_link ) {
 	update_post_meta( $steps[0], '_sprint_engine_next_step_id', $bad_link );
 	$before = sprint_engine_progress_snapshot( $second, $sprint );
 	sprint_engine_progress_error( $service->start_sprint( $users[2], $sprint ), 'sprint_engine_progress_structure', 'Corrupt foreign/self/missing chain cannot start.' );
-	sprint_engine_progress_error( $service->complete_step( $second, $sprint, $steps[1] ), 'sprint_engine_progress_structure', 'Corrupt chain cannot advance.' );
+	sprint_engine_progress_error( $service->complete_step( $second, $sprint, $steps[1], test_attempt_id( $second, $sprint ) ), 'sprint_engine_progress_structure', 'Corrupt chain cannot advance.' );
 	sprint_engine_progress_error( $service->resume_sprint( $second, $sprint ), 'sprint_engine_progress_structure', 'Corrupt chain is not guessed during resume.' );
 	sprint_engine_progress_check( $before === sprint_engine_progress_snapshot( $second, $sprint ), 'Structure error preserves progress.' );
 }
@@ -178,8 +179,8 @@ sprint_engine_progress_check( $steps[3] === $service->resume_sprint( $second, $s
 $manager->save_step( $steps[3], array( '_sprint_engine_sprint_id' => $other ) );
 $remaining = array_values( array_diff( $remaining, array( $steps[3] ) ) );
 sprint_engine_progress_check( $steps[4] === $service->resume_sprint( $second, $sprint )['current_step_id'], 'Detached current Step recovers without deleting history.' );
-sprint_engine_progress_error( $service->complete_step( $second, $sprint, $steps[3] ), 'sprint_engine_progress_step', 'Detached Step cannot complete in its former Sprint.' );
-$service->complete_step( $second, $sprint, $steps[4] );
+sprint_engine_progress_error( $service->complete_step( $second, $sprint, $steps[3], test_attempt_id( $second, $sprint ) ), 'sprint_engine_progress_step', 'Detached Step cannot complete in its former Sprint.' );
+$service->complete_step( $second, $sprint, $steps[4], test_attempt_id( $second, $sprint ) );
 $row = $enrolments->find( $second, $sprint );
 $enrolments->update( $row['id'], array( 'status' => 'in_progress', 'current_step_id' => 9999999, 'completed_at' => null ) );
 $before = sprint_engine_progress_snapshot( $second, $sprint )[1]; $event_count = count( $events );
@@ -228,7 +229,7 @@ foreach ( array( 'start_step', 'advance', 'next_step', 'commit', 'begin', 'engin
 		return $query;
 	};
 	add_filter( 'query', $block );
-	$result = in_array( $failure, array( 'advance', 'next_step' ), true ) ? $service->complete_step( $failure_user, $sprint, $remaining[0] ) : $service->start_sprint( $failure_user, $sprint );
+	$result = in_array( $failure, array( 'advance', 'next_step' ), true ) ? $service->complete_step( $failure_user, $sprint, $remaining[0], test_attempt_id( $failure_user, $sprint ) ) : $service->start_sprint( $failure_user, $sprint );
 	remove_filter( 'query', $block );
 	sprint_engine_progress_error( $result, 'sprint_engine_progress_persistence', 'Persistence failure returned safely: ' . $failure );
 	sprint_engine_progress_check( $before === sprint_engine_progress_snapshot( $failure_user, $sprint ) && $event_count === count( $events ), 'Failure rolls back all rows and emits no events: ' . $failure );
@@ -248,7 +249,7 @@ function sprint_engine_progress_workers( $operation, $user, $sprint, $step ) {
 	foreach ( array( 'pdo_sqlite', 'sqlite3', 'mysqli' ) as $extension ) {
 		if ( extension_loaded( $extension ) ) { $command[] = '-d'; $command[] = 'extension=' . $extension; }
 	}
-	$command = array_merge( $command, array( __FILE__, 'worker', $operation, (string) $user, (string) $sprint, (string) $step, (string) ( microtime( true ) + 1 ) ) );
+	$command = array_merge( $command, array( __FILE__, 'worker', $operation, (string) $user, (string) $sprint, (string) $step, (string) ( microtime( true ) + 1 ), (string) test_attempt_id( $user, $sprint ) ) );
 	$workers = array();
 	for ( $i = 0; $i < 2; ++$i ) {
 		$process = proc_open( $command, array( 0 => array( 'pipe', 'r' ), 1 => array( 'pipe', 'w' ), 2 => array( 'pipe', 'w' ) ), $pipes );
@@ -285,12 +286,12 @@ sprint_engine_progress_check( is_array( $hook_read ) && 'in_progress' === $hook_
 // A missing Step row may be safely started/completed in the same transaction.
 $eighth = $users[7];
 $wpdb->delete( $wpdb->prefix . 'sprint_engine_step_progress', array( 'user_id' => $eighth, 'sprint_id' => $sprint, 'step_id' => $remaining[0] ) );
-sprint_engine_progress_check( $remaining[1] === $service->complete_step( $eighth, $sprint, $remaining[0] )['current_step_id'], 'Completing current with a missing Step row creates/completes it atomically.' );
+sprint_engine_progress_check( $remaining[1] === $service->complete_step( $eighth, $sprint, $remaining[0], test_attempt_id( $eighth, $sprint ) )['current_step_id'], 'Completing current with a missing Step row creates/completes it atomically.' );
 // Final-completion failure must roll back terminal Step completion and all hooks.
 $before = sprint_engine_progress_snapshot( $eighth, $sprint ); $event_count = count( $events );
 $fail_finish = static function ( $query ) { return str_starts_with( $query, 'UPDATE' ) && str_contains( $query, 'sprint_engine_enrolments' ) ? '' : $query; };
 add_filter( 'query', $fail_finish );
-$result = $service->complete_step( $eighth, $sprint, $remaining[1] );
+$result = $service->complete_step( $eighth, $sprint, $remaining[1], test_attempt_id( $eighth, $sprint ) );
 remove_filter( 'query', $fail_finish );
 sprint_engine_progress_error( $result, 'sprint_engine_progress_persistence', 'Final enrolment write failure returns safe error.' );
 sprint_engine_progress_check( $before === sprint_engine_progress_snapshot( $eighth, $sprint ) && $event_count === count( $events ), 'Failed finish rolls back terminal completion and publishes no events.' );
@@ -313,12 +314,12 @@ $unstarted_row = $enrolments->find( $ninth, $single );
 sprint_engine_progress_check( 'not_started' === $service->resume_sprint( $ninth, $single )['status'] && $unstarted_row === $enrolments->find( $ninth, $single ), 'Resume never starts an existing not_started enrolment.' );
 $service->start_sprint( $ninth, $single );
 sprint_engine_progress_check( $unstarted_row['id'] === $enrolments->find( $ninth, $single )['id'], 'Starting existing not_started enrolment reuses the canonical row.' );
-sprint_engine_progress_check( 'completed' === $service->complete_step( $ninth, $single, $only )['status'], 'One-Step Sprint completes with its only Step.' );
+sprint_engine_progress_check( 'completed' === $service->complete_step( $ninth, $single, $only, test_attempt_id( $ninth, $single ) )['status'], 'One-Step Sprint completes with its only Step.' );
 $before = sprint_engine_progress_snapshot( $ninth, $single );
 Meta::save( $single, array( '_sprint_engine_launchable' => false ) );
 sprint_engine_progress_check( 'completed' === $service->start_sprint( $ninth, $single )['status'] && $before === sprint_engine_progress_snapshot( $ninth, $single ), 'Disabling launchable does not reset or block an existing completed enrolment.' );
 $new_step = $manager->quick_add( $single, 'Later content' );
-sprint_engine_progress_error( $service->complete_step( $ninth, $single, $new_step ), 'sprint_engine_progress_out_of_order', 'Completed enrolment cannot complete newly appended content without a reset feature.' );
+sprint_engine_progress_error( $service->complete_step( $ninth, $single, $new_step, test_attempt_id( $ninth, $single ) ), 'sprint_engine_progress_out_of_order', 'Completed enrolment cannot complete newly appended content without a reset feature.' );
 $manager->save_step( $only, array( '_sprint_engine_sprint_id' => 0 ) );
 $manager->save_step( $new_step, array( '_sprint_engine_sprint_id' => 0 ) );
 sprint_engine_progress_error( $service->resume_sprint( $ninth, $single ), 'sprint_engine_progress_structure', 'Empty current structure returns clear error without guessing or deleting progress.' );
@@ -328,7 +329,8 @@ foreach ( array( $single, $only, $new_step ) as $id ) { wp_delete_post( $id, tru
 // Two real independent restart workers allocate exactly one new attempt.
 $before_restart = sprint_engine_progress_snapshot( $user, $sprint );
 $results = sprint_engine_progress_workers( 'restart', $user, $sprint, 0 );
-sprint_engine_progress_check( is_array( $results[0]['result'] ) && $results[0]['result'] === $results[1]['result'] && 2 === $results[0]['result']['attempt_number'] && 0 === $results[0]['result']['completed_steps'], 'Concurrent restart returns one fresh Attempt 2 to both callers.' );
+$successes = array_values( array_filter( array_column( $results, 'result' ), 'is_array' ) );
+sprint_engine_progress_check( 1 === count( $successes ) && 2 === $successes[0]['attempt_number'] && 0 === $successes[0]['completed_steps'] && in_array( 'sprint_engine_progress_stale_attempt', array_column( $results, 'result' ), true ), 'Concurrent restart returns one fresh Attempt 2 and rejects the stale duplicate.' );
 $race_events = array_count_values( array_column( array_merge( $results[0]['events'], $results[1]['events'] ), 0 ) );
 sprint_engine_progress_check( array( 'sprint_started' => 1, 'step_started' => 1 ) === $race_events, 'Concurrent restart publishes one start and first-Step event across processes.' );
 $after_restart = sprint_engine_progress_snapshot( $user, $sprint );

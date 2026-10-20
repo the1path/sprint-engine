@@ -9,7 +9,7 @@ function setup(fetch, confirm = () => true) {
   const navigations = [];
   const cards = [1,2].map(id => {
     const status = { textContent:'' }, attrs = {};
-    const button = {disabled:false,dataset:{endpoint:`https://example.test/wp-json/sprint-engine/v1/sprints/${id}/restart`,runnerUrl:`https://example.test/sprint/test-${id}/`},setAttribute:(k,v)=>attrs[k]=v,removeAttribute:k=>delete attrs[k],closest:()=>({querySelector:()=>status})};
+    const button = {disabled:false,dataset:{attemptId:String(id+10),endpoint:`https://example.test/wp-json/sprint-engine/v1/sprints/${id}/restart`,runnerUrl:`https://example.test/sprint/test-${id}/`},setAttribute:(k,v)=>attrs[k]=v,removeAttribute:k=>delete attrs[k],closest:()=>({querySelector:()=>status})};
     return {button,status,attrs};
   });
   const config = {nonce:'current-nonce',confirm:'Keep history?',busy:'Restarting',error:'Try again'};
@@ -23,7 +23,7 @@ test('Cancel causes no request, pending state, status message or navigation',asy
 test('Multiple cards scope pending feedback and authenticated requests; duplicate click is ignored',async()=>{
   let resolve; const calls=[]; const t=setup((url,options)=>{calls.push({url,options}); return new Promise(r=>resolve=r);});
   const pending=t.click(1); await t.click(1);
-  assert.equal(calls.length,1); assert.equal(calls[0].url,t.cards[1].button.dataset.endpoint); assert.equal(calls[0].options.method,'POST'); assert.equal(calls[0].options.credentials,'same-origin'); assert.equal(calls[0].options.headers['X-WP-Nonce'],'current-nonce'); assert.equal(calls[0].options.body,undefined);
+  assert.equal(calls.length,1); assert.equal(calls[0].url,t.cards[1].button.dataset.endpoint); assert.equal(calls[0].options.method,'POST'); assert.equal(calls[0].options.credentials,'same-origin'); assert.equal(calls[0].options.headers['X-WP-Nonce'],'current-nonce'); assert.deepEqual(JSON.parse(calls[0].options.body),{expected_attempt_id:'12'});
   assert.equal(t.cards[1].button.disabled,true); assert.equal(t.cards[1].attrs['aria-busy'],'true'); assert.equal(t.cards[0].button.disabled,false); assert.equal(t.cards[0].status.textContent,'');
   resolve({ok:true,json:async()=>({success:true,state:'in_progress',runner_url:t.cards[1].button.dataset.runnerUrl})}); await pending; assert.deepEqual(t.navigations,[t.cards[1].button.dataset.runnerUrl]);
 });

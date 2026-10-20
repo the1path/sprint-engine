@@ -26,7 +26,8 @@
 			var response = await fetch( endpoint.href, {
 				method: 'POST',
 				credentials: 'same-origin',
-				headers: { 'X-WP-Nonce': config.nonce, 'Accept': 'application/json' }
+				headers: { 'X-WP-Nonce': config.nonce, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+				body: JSON.stringify( { expected_attempt_id: button.dataset.attemptId } )
 			} );
 			var data = await response.json();
 			if ( ! response.ok || ! data || data.success !== true || data.state !== 'in_progress' ||
