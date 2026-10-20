@@ -87,7 +87,7 @@ final class Controller {
 	}
 
 	/**
-	 * Restart the authenticated member's completed Sprint.
+	 * Restart the authenticated member's displayed current attempt.
 	 *
 	 * @param \WP_REST_Request $request Request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -142,10 +142,29 @@ final class Controller {
 		if ( ! ( new AccessManager() )->can_access( $user, $sprint->ID ) ) {
 			return $this->error( 403 );
 		}
-		$service = new ProgressService();
-		$state   = $complete ? $service->complete_step( $user, $sprint->ID, $id ) : ( 'restart' === $operation ? $service->restart_sprint( $user, $sprint->ID ) : $service->start_sprint( $user, $sprint->ID ) );
+		// Repeat the member boundary under the same lock as the progress mutation.
+		$service  = new ProgressService(
+			null,
+			function ( $member, $sprint_id ) use ( $request ) {
+				$permission = $this->permissions( $request );
+				if ( is_wp_error( $permission ) ) {
+					return $permission;
+				}
+				if ( get_current_user_id() !== $member || ! ( new AccessManager() )->can_access( $member, $sprint_id ) ) {
+					return $this->error( 403 );
+				}
+				return '' === Availability::reason( get_post( $sprint_id ) ) ? true : $this->error( 404 );
+			}
+		);
+		$expected = $request->get_param( 'expected_attempt_id' );
+		$state    = $complete ? $service->complete_step( $user, $sprint->ID, $id, $expected ) : ( 'restart' === $operation ? $service->restart_sprint( $user, $sprint->ID, $expected ) : $service->start_sprint( $user, $sprint->ID ) );
 		if ( is_wp_error( $state ) ) {
+			if ( str_starts_with( $state->get_error_code(), 'sprint_engine_write_' ) ) {
+				return $state;
+			}
 			$statuses = array(
+				'sprint_engine_progress_attempt'        => 400,
+				'sprint_engine_progress_stale_attempt'  => 409,
 				'sprint_engine_progress_user'           => 401,
 				'sprint_engine_progress_sprint'         => 404,
 				'sprint_engine_progress_step'           => 404,

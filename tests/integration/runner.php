@@ -28,6 +28,7 @@ $_SERVER['HTTP_HOST'] = '127.0.0.1:8094';
 $_SERVER['REQUEST_URI'] = '/';
 $_SERVER['REQUEST_METHOD'] = 'GET';
 require $wordpress . '/wp-load.php';
+require_once dirname( __DIR__ ) . '/attempt-identity.php';
 require_once ABSPATH . 'wp-admin/includes/user.php';
 error_reporting( E_ALL );
 set_error_handler( static function ( $severity, $message, $file, $line ) { throw new ErrorException( $message, 0, $severity, $file, $line ); } );
@@ -219,6 +220,7 @@ sprint_engine_runner_check( 'not_started' === $context['state'] && '25 minutes' 
 sprint_engine_runner_check( str_contains( $context['overview'], 'AUTHORIZED OVERVIEW</p>' ) && str_contains( $context['overview'], 'CONTENT FILTER RAN' ) && array( $sprint ) === $content_calls, 'Overview Gutenberg content uses normal filters and correct post context.' );
 sprint_engine_runner_check( $previous_post === ( $GLOBALS['post'] ?? null ), 'Content rendering restores the previous global post.' );
 $html = sprint_engine_runner_html( $context );
+sprint_engine_runner_check( ! str_contains( $html, 'id="se-runner-restart"' ) && ! str_contains( $html, 'id="se-restart-dialog"' ), 'Never-started Runner does not offer mid-Sprint Restart or its dialog.' );
 sprint_engine_runner_check( str_contains( $html, 'Ready to start' ) && str_contains( $html, '25 minutes' ) && str_contains( $html, 'Runner &lt;em&gt;Title&lt;/em&gt;' ), 'Start HTML shows state/duration and escapes the Sprint title.' );
 sprint_engine_runner_check( ! str_contains( $html, 'STEP SECRET' ) && ! str_contains( $html, 'Complete &amp; Continue' ) && ! str_contains( $html, '<form' ), 'Start page includes no Step, completion control or mutation form.' );
 sprint_engine_runner_check( array( array(), array() ) === sprint_engine_runner_rows( $user, $sprint ), 'Viewing Start does not create enrolment or Step progress.' );
@@ -248,6 +250,8 @@ sprint_engine_runner_check( str_contains( $html, '<audio controls' ) && str_cont
 sprint_engine_runner_check( str_contains( $html, '0 of 5 complete' ) && str_contains( $html, 'value="0"' ) && str_contains( $html, 'Stage 1' ), 'Read-only progress distinguishes first Step from completed count and shows stage.' );
 sprint_engine_runner_check( str_contains( $html, 'Step 1 of 5' ) && str_contains( $html, 'About 10 minutes' ) && str_contains( $html, 'Put this into practice' ), 'Current position, configured duration and task cue render separately from completed count.' );
 sprint_engine_runner_check( str_contains( $html, '>Complete &amp; Continue</button>' ) && str_contains( $html, '>Save &amp; Exit</a>' ) && ! str_contains( $html, 'Continue where you left off' ), 'Intermediate action and exit render without misleading continuity message.' );
+sprint_engine_runner_check( preg_match( '~<nav[^>]*>.*?id="se-runner-restart".*?>Save &amp; Exit</a>.*?</nav>~s', $html ) && 1 === substr_count( $html, 'id="se-runner-restart"' ) && 1 === substr_count( $html, 'id="se-runner-action"' ), 'Active Restart sits next to Save & Exit with distinct action IDs.' );
+sprint_engine_runner_check( str_contains( $html, '<dialog ' ) && str_contains( $html, 'aria-labelledby="se-restart-title"' ) && str_contains( $html, 'value="cancel" autofocus>Cancel' ) && str_contains( $html, 'value="restart">Restart' ) && str_contains( $html, 'Any unsaved responses will be lost.' ), 'Active restart confirmation explains retained history/unsaved work with explicit Cancel and Restart.' );
 $exit_before = sprint_engine_runner_rows( $user, $sprint );
 sprint_engine_runner_check( str_contains( sprint_engine_runner_html( $context ), 'href="' . esc_url( \ThePath\SprintEngine\Dashboard\Routes::url() ) . '">Save &amp; Exit</a>' ) && $exit_before === sprint_engine_runner_rows( $user, $sprint ), 'Save & Exit is a canonical Dashboard link and rendering performs no write.' );
 sprint_engine_runner_check( str_contains( $html, 'aria-labelledby="se-progress-label"' ) && str_contains( $html, 'role="status" aria-live="polite"' ) && str_contains( $html, 'href="#se-runner-main"' ), 'Semantic progress, live feedback and skip link remain accessible.' );
@@ -262,7 +266,7 @@ sprint_engine_runner_check( ! str_contains( sprint_engine_runner_html( $display 
 sprint_engine_runner_check( array( array(), array() ) === sprint_engine_runner_rows( $outsider, $sprint ), 'Request-supplied user ID never creates or updates another user progress.' );
 $before = sprint_engine_runner_rows( $user, $sprint )[1];
 sprint_engine_runner_check( $steps[0] === $runner->resolve( $slug )['step']['id'] && $before === sprint_engine_runner_rows( $user, $sprint )[1], 'Returning resumes same Step without completing it.' );
-$service->complete_step( $user, $sprint, $steps[0] );
+$service->complete_step( $user, $sprint, $steps[0], test_attempt_id( $user, $sprint ) );
 sprint_engine_runner_check( $steps[1] === $runner->resolve( $slug )['step']['id'], 'After service advancement Runner displays the new canonical Step.' );
 $middle = $runner->resolve( $slug );
 $publication_before = sprint_engine_runner_rows( $user, $sprint );
@@ -366,7 +370,7 @@ foreach ( array_slice( $steps, 1 ) as $step ) {
 		sprint_engine_runner_request( '/sprint/' . $slug . '/' ); $runner->prepare(); $runner->enqueue();
 		sprint_engine_runner_check( str_contains( str_replace( '\/', '/', wp_scripts()->get_data( 'sprint-engine-runner', 'data' ) ), 'steps/' . $step . '/complete' ), 'Terminal action uses the same existing completion endpoint.' );
 	}
-	$service->complete_step( $user, $sprint, $step );
+	$service->complete_step( $user, $sprint, $step, test_attempt_id( $user, $sprint ) );
 }
 wp_set_current_user( $user );
 $before = sprint_engine_runner_rows( $user, $sprint );
@@ -469,18 +473,18 @@ add_action("sprint_engine/runner_access_denied_actions", static function ($id) {
 
 // A historical completed attempt must not select the new completion extension.
 $first_attempt = $context['progress']['attempt_id'];
-$restarted = $service->restart_sprint( $user, $sprint );
+$restarted = $service->restart_sprint( $user, $sprint, test_attempt_id( $user, $sprint ) );
 $completed_calls = array(); $followup_calls = array(); add_action( 'sprint_engine/runner_completed_actions', $completed_listener );
 add_action( 'sprint_engine/runner_completed_followup_actions', $followup_listener );
 sprint_engine_runner_html( $runner->resolve( $slug ) );
 sprint_engine_runner_check( 2 === $restarted['attempt_number'] && array() === $completed_calls && array() === $followup_calls, 'Restarted attempt in progress never fires completion action for its historical completed attempt.' );
-foreach ( $steps as $step ) { $service->complete_step( $user, $sprint, $step ); }
+foreach ( $steps as $step ) { $service->complete_step( $user, $sprint, $step, test_attempt_id( $user, $sprint ) ); }
 sprint_engine_runner_html( $runner->resolve( $slug ) );
 sprint_engine_runner_check( array( array( 'sprint_id' => $sprint, 'attempt_id' => $restarted['attempt_id'], 'attempt_number' => 2 ) ) === $completed_calls && $first_attempt !== $restarted['attempt_id'], 'New completion context selects canonical Attempt 2 rather than the historical completed attempt.' );
 sprint_engine_runner_check( array( array( $completed_calls[0] ) ) === $followup_calls, 'Follow-up also selects only canonical Attempt 2.' );
 wp_set_current_user( $outsider );
 $service->start_sprint( $outsider, $sprint );
-foreach ( $steps as $step ) { $service->complete_step( $outsider, $sprint, $step ); }
+foreach ( $steps as $step ) { $service->complete_step( $outsider, $sprint, $step, test_attempt_id( $outsider, $sprint ) ); }
 $member_attempts = array();
 foreach ( array( $user => $outsider, $outsider => $user ) as $member => $supplied_member ) {
 	wp_set_current_user( $member );

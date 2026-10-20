@@ -8,6 +8,7 @@ use ThePath\SprintEngine\Progress\EnrolmentRepository;
 $root = getenv( 'SE_TEST_WP_ROOT' );
 if ( ! $root || 'yes' !== getenv( 'SE_TEST_DISPOSABLE' ) ) { exit( 1 ); }
 require $root . '/wp-load.php';
+require_once dirname( __DIR__ ) . '/attempt-identity.php';
 require_once ABSPATH . 'wp-admin/includes/user.php';
 error_reporting( E_ALL );
 set_error_handler( static function ( $severity, $message, $file, $line ) { throw new ErrorException( $message, 0, $severity, $file, $line ); } );
@@ -69,9 +70,9 @@ history_check( array( history_project( $repo->find( $user, $sprint ) ) ) === $on
 history_check( ! array_key_exists( 'user_id', $one[0] ) && ! array_key_exists( 'id', $one[0] ) && 10 === count( $one[0] ), 'Only the ten public fields are projected, with no user ID or repository ID.' );
 for ( $run = 1; $run <= 2; ++$run ) {
 	$now = '2026-10-08 ' . ( 9 + $run ) . ':00:00';
-	foreach ( $steps[$sprint] as $step ) { $lifecycle->complete_step( $user, $sprint, $step ); }
+	foreach ( $steps[$sprint] as $step ) { $lifecycle->complete_step( $user, $sprint, $step, test_attempt_id( $user, $sprint ) ); }
 	$now = 2 === $run ? '2026-10-08 08:00:00' : '2026-10-08 12:00:00'; // Sequence, not timestamps, determines newest.
-	$lifecycle->restart_sprint( $user, $sprint );
+	$lifecycle->restart_sprint( $user, $sprint, test_attempt_id( $user, $sprint ) );
 }
 $lifecycle->start_sprint( $user, $sprints[1] );
 $lifecycle->start_sprint( $users[1], $sprint );

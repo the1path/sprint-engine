@@ -18,6 +18,7 @@ $_SERVER['SERVER_NAME'] = '127.0.0.1';
 $_SERVER['REQUEST_URI'] = '/';
 $_SERVER['REQUEST_METHOD'] = 'GET';
 require $root . '/wp-load.php';
+require_once dirname( __DIR__ ) . '/attempt-identity.php';
 require_once ABSPATH . 'wp-admin/includes/user.php';
 error_reporting(E_ALL);
 set_error_handler(static function ($severity, $message, $file, $line) { throw new ErrorException($message, 0, $severity, $file, $line); });
@@ -103,8 +104,8 @@ wp_set_current_user(0); $login = $dashboard->resolve(); parse_str(wp_parse_url($
 sprint_engine_dashboard_check('login' === $login['state'] && Routes::url() === $query['redirect_to'] && !isset($login['sections']), 'Anonymous response exposes no member data and returns login to canonical Dashboard.');
 wp_set_current_user($user);
 foreach (array(3,4,5,6,7,8) as $index) {
-    $id = $sprints[$index]; $service->start_sprint($user,$id); $service->complete_step($user,$id,$steps[$id][0]);
-    if ($index >= 6) { $service->complete_step($user,$id,$steps[$id][1]); }
+    $id = $sprints[$index]; $service->start_sprint($user,$id); $service->complete_step($user,$id,$steps[$id][0], test_attempt_id( $user, $id ) );
+    if ($index >= 6) { $service->complete_step($user,$id,$steps[$id][1], test_attempt_id( $user, $id ) ); }
     $row = (new EnrolmentRepository())->find($user,$id);
     (new EnrolmentRepository())->update($row['id'], array('last_activity_at'=>$index===3?'2026-09-02 10:00:00':'2026-09-01 10:00:00','completed_at'=>$index>=6?($index===6?'2026-09-02 10:00:00':'2026-09-01 10:00:00'):null));
 }
@@ -189,7 +190,7 @@ sprint_engine_dashboard_html($second); remove_action('sprint_engine/dashboard_co
 sprint_engine_dashboard_check(array() === $card_calls, 'Second member with no completions never receives first member completed-card context despite submitted selectors.');
 sprint_engine_dashboard_check(9 === count($second['sections']['not_started']) && !$second['sections']['completed'] && !$second['sections']['in_progress'], 'Second user sees own Available states, never the first member attempts.');
 wp_set_current_user($user);
-$history_before = sprint_engine_dashboard_rows(); $restart = $service->restart_sprint($user,$sprints[6]);
+$history_before = sprint_engine_dashboard_rows(); $restart = $service->restart_sprint($user,$sprints[6], test_attempt_id( $user, $sprints[6] ) );
 $latest = $dashboard->resolve();
 $card_calls = array(); add_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
 sprint_engine_dashboard_html($latest); remove_action('sprint_engine/dashboard_completed_card_actions', $card_listener);

@@ -119,22 +119,31 @@ Its methods return canonical state arrays or a safe `WP_Error`:
 $progress = new \ThePath\SprintEngine\Progress\ProgressService();
 $state = $progress->start_sprint( $user_id, $sprint_id );
 $state = $progress->get_state( $user_id, $sprint_id );
-$state = $progress->complete_step( $user_id, $sprint_id, $step_id );
+$state = $progress->complete_step( $user_id, $sprint_id, $step_id, $rendered_attempt_id );
 $state = $progress->get_progress( $user_id, $sprint_id );
 $state = $progress->resume_sprint( $user_id, $sprint_id );
-$state = $progress->restart_sprint( $user_id, $sprint_id );
+$state = $progress->restart_sprint( $user_id, $sprint_id, $rendered_attempt_id );
 ```
 
 This is an internal application API. Member callers must authenticate,
 authorize through AccessManager and bind the user ID to the authenticated member
 before invoking it. SE-003 checks data integrity and existence, not entitlements.
+For member mutations, the optional second constructor argument is a guard callable
+`function ( $user, $sprint )` returning exact `true` or a safe `WP_Error`. Core REST
+uses it to repeat authentication/nonce, AccessManager and Availability checks after
+the existing transaction lock is acquired and caches are cleared. Trusted direct
+PHP callers remain responsible for their own member policy. No Pro dependency is
+needed to use this seam.
 
 Start requires a launchable, valid linear Sprint. Repeated starts and completed
 Step retries preserve progress/timestamps and do not repeat transition hooks.
 Navigation follows explicit links. Reads do not create or repair progress;
 resume preserves the stored current Step or repairs a stale pointer against a
 valid remaining chain. Broken links require an author to review and Save order.
-Removed-Step history is retained. Completed Sprints can be restarted explicitly.
+Removed-Step history is retained. In-progress and completed Sprints can be restarted
+explicitly. Complete and Restart require the attempt ID captured when rendering;
+omitting it fails closed. Never replace a missing rendered identity by looking up
+the latest attempt immediately before a member write.
 
 State contains status, Sprint/current Step IDs, attempt_id and attempt_number,
 completed/total valid Step counts,
@@ -171,6 +180,11 @@ and `updated_at`. Numeric IDs/attempt numbers are integers; a null current point
 remains null. Stored status, pointers (including stale pointers), and UTC datetime
 strings/null timestamps are preserved without repair. No `user_id`, Step content,
 completion counts, SQL or repository internals are exposed.
+SE-019 adds the explicit historical status `restarted` for superseded unfinished
+attempts, alongside `not_started`, `in_progress` and `completed`. A restarted attempt
+is permanently read-only, neither active nor completed; its original pointer and
+timestamps (including null `completed_at`) are preserved. History still returns
+all owned attempts. Core supplies no History interface or content snapshots.
 
 With a Sprint filter, ordering is `attempt_number DESC`, then `attempt_id DESC`.
 Global ordering is `sprint_id ASC`, then the same descending attempt order.
@@ -205,10 +219,27 @@ That clean-install evidence does not establish real-backend schema-1 migration c
 
 Start stays idempotent even after completion. Restart is a separate operation:
 POST /wp-json/sprint-engine/v1/sprints/{id}/restart, authenticated with the REST
-nonce and authorized through AccessManager. A completed attempt creates Attempt
+nonce and authorized through AccessManager. A completed or in-progress attempt creates Attempt
 N+1 under the existing Sprint lock, immediately at the current first Step with
-zero completions. Previous attempts stay intact. Retried restart during an active
-attempt returns its unchanged state and publishes no additional events.
+zero completions. Completed attempts stay untouched. An unfinished source changes
+only status to `restarted`; every source ID, timestamp, pointer and Step row stays
+intact. Source transition, replacement insert and first-Step insert commit together
+or all roll back. Supersession emits no Sprint-completed action or completion time.
+
+**SE-019 transport change (unreleased Core 0.2.3):** both Restart and Step Complete
+POST bodies must supply `expected_attempt_id`, a positive integer or decimal string
+from the rendered Runner/Dashboard. This is a precondition, never a client-selected
+new attempt ID or attempt number. The service compares it with the latest owned
+attempt ID **inside** the transaction. Missing/malformed identity returns HTTP 400;
+a valid stale/foreign identity returns HTTP 409 without writes or events. Repeated
+requests for a superseded source always conflict, including network retries and
+same-Step stale completion. The first committed restart wins; the Sprint lock and
+attempt-aware unique keys serialize concurrent restart/completion. A completion
+that wins first remains in its source attempt; a restart that wins first makes the
+old completion stale. Start's contract is unchanged. All owned Core callers include
+the rendered identity; no legacy fallback resolves latest for an unbound write.
+Nonce, current-member binding, access, Step membership/order, safe errors and private
+no-store responses remain mandatory. Reload to resolve conflicts or lost responses.
 
 The completed Runner retains its message, optional CTA and Back to My Sprints, with a
 secondary Restart Sprint button. Native confirmation explains retained history;
@@ -218,8 +249,34 @@ The four lifecycle actions keep their leading user/Sprint(/Step) arguments and
 append attempt_id, attempt_number after successful commit. Existing listeners
 accepting fewer arguments remain compatible.
 
-In-progress Start Over, history UI, content snapshots and branching
-are deferred. No attempt deletion, new status or client-selected attempt exists.
+The in-progress Runner places Restart Sprint beside Save & Exit. Its modal dialog
+explains starting at Step 1, retained History, read-only superseded work and loss of
+unsaved responses, with Cancel and Restart actions. Escape/Cancel send no request;
+Cancel receives initial focus. Restart and completion share one pending guard, with
+distinct controls. Success returns to the canonical Runner URL. Browsers without
+native dialog support cannot invoke this action. History UI, snapshots and branching
+remain deferred; there is no attempt deletion.
+
+### Pro compatibility prerequisite for SE-019
+
+Core remains independently installable and never reads or changes Pro Workspace
+responses. **The combined Core/Pro feature is not ready for deployment** until a
+separate Pro compatibility ticket:
+
+- Recognises/displays `restarted` historical attempts, keeps their owned Workbooks
+  accessible and read-only, and never offers Continue or editing for them.
+- Binds Workspace save requests to the attempt rendered in the browser; validates
+  ownership, current status and expected identity inside Pro's locked persistence
+  operation before any response mutation. Resolving latest at save time is unsafe.
+  Pro's lock must serialize with Core's existing Sprint-row transaction protocol;
+  a separate preflight read or unrelated lock leaves a race with restart.
+- Preserves completed-attempt History/Workbook behaviour and all existing responses.
+- Tests with updated Core: same-Step stale tabs, save/restart races, repeated restarts,
+  all historical statuses, completed restarts, authorization and retained responses.
+
+Pro's current status handling and latest-at-save behaviour are incompatible. Core
+adds no Pro integration code or Pro History redesign. See [SE-019 validation](validation/se-019.md)
+for the local test evidence and remaining backend/browser limitations.
 
 ## My Sprints member Dashboard (SE-013)
 
@@ -467,6 +524,7 @@ SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/structure.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/progress.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/attempts.php
+SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/mid-sprint-restart.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/attempt-history.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/migration.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/runner.php

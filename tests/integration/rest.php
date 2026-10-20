@@ -14,6 +14,7 @@ ob_start();
 $_SERVER['HTTP_HOST']      = '127.0.0.1:8094';
 $_SERVER['REQUEST_METHOD'] = 'GET';
 require $wordpress . '/wp-load.php';
+require_once dirname( __DIR__ ) . '/attempt-identity.php';
 require_once ABSPATH . 'wp-admin/includes/user.php';
 error_reporting( E_ALL );
 set_error_handler(
@@ -31,6 +32,10 @@ function check_write( $ok, $label ) {
 	echo "PASS: $label\n";
 }
 function request_write( $resource, $id, $operation, $body = array(), $nonce = true, $method = 'POST' ) {
+	if ( 'start' !== $operation && ! array_key_exists( 'expected_attempt_id', $body ) ) {
+		$parent = 'steps' === $resource ? (int) get_post_meta( (int) $id, '_sprint_engine_sprint_id', true ) : (int) $id;
+		$body['expected_attempt_id'] = test_attempt_id( get_current_user_id(), $parent );
+	}
 	$r = new WP_REST_Request( $method, '/sprint-engine/v1/' . $resource . '/' . $id . '/' . $operation );
 	$r->set_body_params( $body );
 	if ( $nonce !== false ) {
@@ -219,7 +224,7 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
 		throw new RuntimeException( 'Loopback only' );
 	}
 	$cookie = LOGGED_IN_COOKIE . '=' . wp_generate_auth_cookie( $second, time() + 3600, 'logged_in' );
-	$http   = static function ( $target, $method = 'GET', $nonce = null ) use ( $cookie ) {
+	$http   = static function ( $target, $method = 'GET', $nonce = null, $attempt = null ) use ( $cookie ) {
 		$headers = array( 'Cookie' => $cookie );
 		if ( $nonce !== null ) {
 			$headers['X-WP-Nonce'] = $nonce;
@@ -229,6 +234,7 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
 			array(
 				'method'  => $method,
 				'headers' => $headers,
+				'body'    => array( 'expected_attempt_id' => $attempt ),
 				'timeout' => 30,
 			)
 		);
@@ -262,10 +268,10 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
 			check_write( wp_remote_retrieve_response_code( $malformed ) === 400 && str_contains( wp_remote_retrieve_header( $malformed, 'cache-control' ), 'no-store' ), 'Malformed write response is no-store' );
 			check_write( wp_remote_retrieve_response_code( $http( $config['endpoint'], 'POST' ) ) === 401, 'HTTP cookie without nonce rejected' );
 			check_write( wp_remote_retrieve_response_code( $http( $config['endpoint'], 'POST', 'invalid' ) ) === 403, 'HTTP invalid nonce rejected' );}
-		$result = $http( $config['endpoint'], 'POST', $config['nonce'] );
+		$result = $http( $config['endpoint'], 'POST', $config['nonce'], $config['attemptId'] );
 		$body   = json_decode( wp_remote_retrieve_body( $result ), true );
 		check_write( wp_remote_retrieve_response_code( $result ) === 200 && $body['runner_url'] === $url, 'HTTP action succeeds at canonical URL' );
-		$retry = $http( $config['endpoint'], 'POST', $config['nonce'] );
+		$retry = $http( $config['endpoint'], 'POST', $config['nonce'], $config['attemptId'] );
 		check_write( json_decode( wp_remote_retrieve_body( $retry ), true ) === $body, 'HTTP double submission is idempotent' );
 		$html = wp_remote_retrieve_body( $http( $url ) );
 		check_write( $i === 5 ? str_contains( $html, 'Sprint complete' ) : str_contains( $html, 'PRIVATE STEP ' . ( $i + 1 ) ), 'HTTP refresh shows next canonical state' );
@@ -295,7 +301,7 @@ check_write( 200 === $r->get_status() && 2 === $data['attempt_number'] && is_int
 $after = rows_write( $user );
 check_write( $old_rows[0][0] === $after[0][0] && $old_rows[1] === array_slice( $after[1], 0, count( $old_rows[1] ) ), 'REST restart preserves all prior progress exactly' );
 check_write( rows_write( $second ) === $other_rows, 'REST restart cannot change another user' );
-check_write( $data === request_write( 'sprints', $sprint, 'restart' )->get_data() && $after === rows_write( $user ), 'REST restart retry returns same attempt and no extra rows' );
+check_write( 409 === request_write( 'sprints', $sprint, 'restart', array( 'expected_attempt_id' => $old_rows[0][0]['id'] ) )->get_status() && $after === rows_write( $user ), 'REST restart retry rejects stale source without extra rows' );
 check_write( 2 === request_write( 'sprints', $sprint, 'start' )->get_data()['attempt_number'], 'Start consistently returns latest attempt metadata' );
 check_write( 2 === request_write( 'steps', $steps[0], 'complete' )->get_data()['attempt_number'], 'Complete consistently returns latest attempt metadata' );
 wp_set_current_user( $second );
@@ -310,10 +316,10 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
   $result = $http( $endpoint, 'POST', '' === $nonce ? null : $nonce );
   check_write( $status === wp_remote_retrieve_response_code( $result ) && str_contains( wp_remote_retrieve_header( $result, 'cache-control' ), 'no-store' ), 'Restart HTTP auth error has no-store' );
  }
- $result = $http( $endpoint, 'POST', $config['nonce'] );
+ $result = $http( $endpoint, 'POST', $config['nonce'], $config['attemptId'] );
  $body = json_decode( wp_remote_retrieve_body( $result ), true );
  check_write( 200 === wp_remote_retrieve_response_code( $result ) && 2 === $body['attempt_number'] && 0 === $body['progress']['completed_steps'] && str_contains( wp_remote_retrieve_header( $result, 'cache-control' ), 'no-store' ), 'Real cookie/nonce restart succeeds with private no-store' );
- check_write( $body === json_decode( wp_remote_retrieve_body( $http( $endpoint, 'POST', $config['nonce'] ) ), true ), 'Real HTTP restart retry remains idempotent' );
+ check_write( 409 === wp_remote_retrieve_response_code( $http( $endpoint, 'POST', $config['nonce'], $config['attemptId'] ) ), 'Real HTTP restart retry is a safe stale conflict' );
 }
 wp_set_current_user( 1 );
 foreach ( array( $user, $second ) as $id ) {

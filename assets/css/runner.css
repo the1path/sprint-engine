@@ -31,6 +31,9 @@ body.se-runner {
 .se-runner *, .se-runner *::before, .se-runner *::after { box-sizing: border-box; }
 .se-runner .se-runner__shell { width: min(100% - 2rem, 50rem); margin: 1rem auto 4rem; }
 .se-runner .se-runner__utility { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.se-runner .se-runner__restart-dialog { width: min(100% - 2rem, 34rem); max-height: calc(100% - 2rem); overflow: auto; padding: clamp(1.25rem, 5vw, 2rem); color: var(--se-text); background: var(--se-surface); border: 1px solid var(--se-border); border-radius: var(--se-radius); }
+.se-runner .se-runner__restart-dialog::backdrop { background: rgb(0 0 0 / 55%); }
+.se-runner .se-runner__dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 1rem; }
 .se-runner .se-runner__header { padding: 0 clamp(0rem, 2vw, 1rem) 2rem; }
 .se-runner .se-runner__main { padding: clamp(1.25rem, 5vw, 3rem); background: var(--se-surface); border: 1px solid var(--se-border); border-radius: var(--se-radius); }
 .se-runner .se-runner__featured-image { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 7; object-fit: cover; border-radius: var(--se-radius); margin-bottom: 1.5rem; }

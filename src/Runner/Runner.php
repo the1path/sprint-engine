@@ -247,12 +247,15 @@ final class Runner {
 					'sprint-engine-runner',
 					'sprintEngineRunner',
 					array(
-						'endpoint'  => rest_url( 'sprint-engine/v1/' . $route ),
-						'nonce'     => wp_create_nonce( 'wp_rest' ),
-						'runnerUrl' => $this->context['canonical_url'],
-						'busy'      => $restart ? __( 'Restarting Sprint…', 'sprint-engine' ) : ( $start ? __( 'Starting Sprint…', 'sprint-engine' ) : __( 'Saving progress…', 'sprint-engine' ) ),
-						'confirm'   => $restart ? __( 'Restart this Sprint? Your previous completed attempt will be kept and you will start again from the first Step.', 'sprint-engine' ) : '',
-						'error'     => __( 'The request could not be confirmed. Try again, or reload the Sprint to check your progress.', 'sprint-engine' ),
+						'attemptId'       => $this->context['progress']['attempt_id'],
+						'restartEndpoint' => rest_url( 'sprint-engine/v1/sprints/' . $this->context['sprint_id'] . '/restart' ),
+						'restartBusy'     => __( 'Restarting Sprint…', 'sprint-engine' ),
+						'endpoint'        => rest_url( 'sprint-engine/v1/' . $route ),
+						'nonce'           => wp_create_nonce( 'wp_rest' ),
+						'runnerUrl'       => $this->context['canonical_url'],
+						'busy'            => $restart ? __( 'Restarting Sprint…', 'sprint-engine' ) : ( $start ? __( 'Starting Sprint…', 'sprint-engine' ) : __( 'Saving progress…', 'sprint-engine' ) ),
+						'confirm'         => $restart ? __( 'Restart this Sprint? Your previous completed attempt will be kept and you will start again from the first Step.', 'sprint-engine' ) : '',
+						'error'           => __( 'The request could not be confirmed. Try again, or reload the Sprint to check your progress.', 'sprint-engine' ),
 					)
 				);
 			}

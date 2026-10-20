@@ -64,7 +64,7 @@ const assert = require('node:assert/strict');
           await action.hover();
           assert.equal(await action.evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(22, 67, 51)');
           await page.mouse.move(0, 0);
-          const exit = page.locator('.se-runner__utility .se-runner__button--secondary');
+          const exit = page.locator('.se-runner__utility a.se-runner__button--secondary');
           assert.equal(await exit.evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(238, 244, 240)');
           await action.focus();
           assert(await action.evaluate(el => getComputedStyle(el).outlineStyle !== 'none'));

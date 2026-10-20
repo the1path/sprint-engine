@@ -8,6 +8,7 @@ use ThePath\SprintEngine\Progress\ProgressService;
 
 if ( 'yes' !== getenv( 'SE_TEST_DISPOSABLE' ) || ! getenv( 'SE_TEST_WP_ROOT' ) ) { exit( 1 ); }
 require getenv( 'SE_TEST_WP_ROOT' ) . '/wp-load.php';
+require_once dirname( __DIR__ ) . '/attempt-identity.php';
 require_once ABSPATH . 'wp-admin/includes/user.php';
 error_reporting( E_ALL );
 set_error_handler( static function ( $severity, $message, $file, $line ) { throw new ErrorException( $message, 0, $severity, $file, $line ); } );
@@ -147,7 +148,7 @@ sprint_engine_polish_check( array() === Meta::steps( $sprint ) && 10 === Meta::r
 wp_update_post( array( 'ID' => $steps[0], 'post_status' => 'publish' ) );
 $manager->save_step( $steps[0], array( '_sprint_engine_sprint_id' => $sprint ) );
 Meta::save( $sprint, array( '_sprint_engine_launchable' => true ) );
-wp_set_current_user( $user ); $service->resume_sprint( $user, $sprint ); $service->complete_step( $user, $sprint, $steps[0] );
+wp_set_current_user( $user ); $service->resume_sprint( $user, $sprint ); $service->complete_step( $user, $sprint, $steps[0], test_attempt_id( $user, $sprint ) );
 $context = $runner->resolve( $slug );
 sprint_engine_polish_check( 'completed' === $context['state'] && str_contains( $context['featured_image'], 'alt="Sprint banner"' ), 'Completion returns Sprint banner.' );
 update_post_meta( $sprint, '_thumbnail_id', 99999999 );
