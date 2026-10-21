@@ -150,7 +150,8 @@ if ( ! isset( $sprint_engine_context['state'] ) ) {
 			<?php if ( 'in_progress' === $sprint_engine_context['state'] ) : ?>
 				<p class="se-runner__save-note"><?php esc_html_e( 'Completed Steps are saved. Mark this Step complete when you’re ready.', 'sprint-engine' ); ?></p>
 			<?php endif; ?>
-			<button class="se-runner__button se-runner__button--primary" type="button" id="se-runner-action" aria-describedby="se-runner-status"><?php echo esc_html( 'not_started' === $sprint_engine_context['state'] ? __( 'Start Sprint', 'sprint-engine' ) : ( ! empty( $sprint_engine_context['step']['is_terminal'] ) ? __( 'Complete Sprint', 'sprint-engine' ) : __( 'Complete & Continue', 'sprint-engine' ) ) ); ?></button>
+			<?php // After reordering, the last outstanding requirement may be structurally nonterminal. ?>
+			<button class="se-runner__button se-runner__button--primary" type="button" id="se-runner-action" aria-describedby="se-runner-status"><?php echo esc_html( 'not_started' === $sprint_engine_context['state'] ? __( 'Start Sprint', 'sprint-engine' ) : ( 1 === $sprint_engine_context['progress']['total_steps'] - $sprint_engine_context['progress']['completed_steps'] ? __( 'Complete Sprint', 'sprint-engine' ) : __( 'Complete & Continue', 'sprint-engine' ) ) ); ?></button>
 			<p id="se-runner-status" role="status" aria-live="polite" aria-atomic="true"></p>
 			<noscript><p><?php esc_html_e( 'JavaScript is required to start this Sprint and save Step completion in this version.', 'sprint-engine' ); ?></p></noscript>
 			</div>

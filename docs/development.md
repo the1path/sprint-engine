@@ -137,9 +137,10 @@ needed to use this seam.
 
 Start requires a launchable, valid linear Sprint. Repeated starts and completed
 Step retries preserve progress/timestamps and do not repeat transition hooks.
-Navigation follows explicit links. Reads do not create or repair progress;
-resume preserves the stored current Step or repairs a stale pointer against a
-valid remaining chain. Broken links require an author to review and Save order.
+The validated runtime chain follows explicit links. Reads do not create or repair
+progress; resume selects the earliest incomplete Step in that current chain,
+including when the stored pointer is still a valid but later incomplete Step.
+Broken links require an author to review and Save order.
 Removed-Step history is retained. In-progress and completed Sprints can be restarted
 explicitly. Complete and Restart require the attempt ID captured when rendering;
 omitting it fails closed. Never replace a missing rendered identity by looking up
@@ -153,6 +154,53 @@ content and progress tables on MySQL/MariaDB (official SQLite integration is
 supported for local checks), serializes on the Sprint row, and fires the four
 specified lifecycle actions only after commit. See [se-003 validation](validation/se-003.md)
 for API behaviour, recovery limits, concurrency and event-delivery assumptions.
+
+### Safe Step change recovery (SE-020)
+
+For the canonical in-progress attempt, the next requirement is the **earliest Step
+in the currently validated explicit chain absent from that user's completed IDs
+for the same Sprint and attempt**. Insertions, reorderings, removals, trash and
+parent moves do not create a new attempt or rewrite historical progress. Completion
+counts intersect stored completed IDs with current required IDs; detached/removed
+rows stay stored with their original timestamps but no longer inflate percentages.
+
+Runner entry calls `resume_sprint()` before displaying instructional content. Under
+the existing Sprint-row lock it corrects a differing pointer, updates UTC activity,
+and starts the selected Step only if no row exists. Re-entering a visited incomplete
+Step retains its original start time and emits no duplicate start event. A completed
+attempt remains completed after structural edits; historical restarted attempts
+are never selected for recovery. If every required Step is already completed,
+explicit resume retains the existing completion repair, preserving an existing
+completion timestamp and emitting completion only when appropriate. `get_state()`,
+`get_progress()`, `get_attempt_history()` and Dashboard reads never perform recovery.
+
+New completions require both the stored pointer and earliest outstanding requirement
+to equal the submitted Step, as well as the SE-019 rendered `expected_attempt_id`
+matching the latest attempt. An old tab completing a still-valid Step after earlier
+work is inserted/reordered receives the existing safe HTTP 409/reload response,
+with no progress writes or lifecycle events. Reloading the canonical Runner recovers
+the participant's position. After an authorized completion the service selects the
+earliest remaining requirement, skipping completed Steps wherever they now appear.
+The last outstanding requirement can finish the Sprint even when completed Steps
+follow it in the revised chain. A retry of a valid already-persisted completion
+returns canonical state without repairing the pointer or advancing through new work.
+Removed/foreign Steps and superseded attempt identities still fail closed.
+
+Recovery requires a valid nonempty chain; it never repairs authoring metadata or
+guesses order from malformed links. Member Runner/REST boundaries retain publication,
+password, Launchable, access, authentication and required-Step readiness checks.
+Runner's default service now repeats its member boundary under the lock, as REST
+already does, so a change between preflight and mutation cannot bypass it. Trusted
+PHP service callers retain their existing responsibility for member policy, including
+supplying the optional locked mutation guard; the service does not add entitlements
+or change its existing draft-content internal API contract.
+
+The existing public method signatures, REST routes, attempt-history payload and
+lifecycle hook arguments are unchanged. Step completion, pointer update, Step entry
+and finish remain one transaction, serialized with StructureManager and SE-019
+restart. Events fire only after commit. No schema, version, migration, snapshot,
+new persisted state or Pro dependency is introduced. See [SE-020 validation](validation/se-020.md)
+for executed Core/Pro checks and backend limitations.
 
 ## Attempts and restart (SE-012)
 
@@ -257,11 +305,11 @@ distinct controls. Success returns to the canonical Runner URL. Browsers without
 native dialog support cannot invoke this action. History UI, snapshots and branching
 remain deferred; there is no attempt deletion.
 
-### Pro compatibility prerequisite for SE-019
+### Pro compatibility prerequisite for SE-019 (historical)
 
 Core remains independently installable and never reads or changes Pro Workspace
-responses. **The combined Core/Pro feature is not ready for deployment** until a
-separate Pro compatibility ticket:
+responses. At SE-019 implementation, the combined Core/Pro feature required a
+separate Pro compatibility ticket that:
 
 - Recognises/displays `restarted` historical attempts, keeps their owned Workbooks
   accessible and read-only, and never offers Continue or editing for them.
@@ -274,9 +322,13 @@ separate Pro compatibility ticket:
 - Tests with updated Core: same-Step stale tabs, save/restart races, repeated restarts,
   all historical statuses, completed restarts, authorization and retained responses.
 
-Pro's current status handling and latest-at-save behaviour are incompatible. Core
-adds no Pro integration code or Pro History redesign. See [SE-019 validation](validation/se-019.md)
-for the local test evidence and remaining backend/browser limitations.
+The Pro version available during SE-019 had incompatible status handling and
+latest-at-save behaviour. The merged PRO-006.3 baseline now passes the focused
+restart, History and structural-recovery acceptance recorded in
+[SE-020 validation](validation/se-020.md), with its broader Workspace-suite and
+environment limitations stated there. Core adds no Pro integration code or Pro
+History redesign. [SE-019 validation](validation/se-019.md) retains the original
+implementation evidence and prerequisite requirements.
 
 ## My Sprints member Dashboard (SE-013)
 
@@ -525,6 +577,7 @@ SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/progress.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/attempts.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/mid-sprint-restart.php
+SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/step-change-recovery.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/attempt-history.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/migration.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/runner.php

@@ -327,7 +327,7 @@ final class ProgressService {
 	}
 
 	/**
-	 * Persist one explicit completion and its next-Step or terminal transition.
+	 * Complete the earliest requirement and advance past historical completions.
 	 *
 	 * @param array|null $row Enrolment.
 	 * @param int        $user User ID.
@@ -349,17 +349,17 @@ final class ProgressService {
 		if ( in_array( $step, $completed, true ) ) {
 			return true;
 		}
-		if ( 'in_progress' !== $row['status'] || $row['current_step_id'] !== $step ) {
-			return new \WP_Error( 'sprint_engine_progress_out_of_order', __( 'Only the current Step can be completed. Resume the Sprint and try again.', 'sprint-engine' ) );
+		$incomplete = array_values( array_diff( $chain, $completed ) );
+		if ( 'in_progress' !== $row['status'] || $row['current_step_id'] !== $step || ( $incomplete[0] ?? null ) !== $step ) {
+			return new \WP_Error( 'sprint_engine_progress_out_of_order', __( 'Progress has changed. Reload or resume the Sprint before completing this Step.', 'sprint-engine' ) );
 		}
 		$this->enter_step( $row, $user, $sprint, $step, $now, $events );
 		EnrolmentRepository::check( $this->steps->complete( $user, $sprint, $step, $now, $row['attempt_number'] ) );
 		$events[] = array( 'sprint_engine/step_completed', $user, $sprint, $step, $row['id'], $row['attempt_number'] );
-		$next     = (int) get_post_meta( $step, '_sprint_engine_next_step_id', true );
+		// The validated chain follows explicit links; completed history may be noncontiguous.
+		$remaining = array_values( array_diff( $chain, array_merge( $completed, array( $step ) ) ) );
+		$next      = $remaining[0] ?? null;
 		if ( $next ) {
-			if ( ! in_array( $next, $chain, true ) || in_array( $next, $completed, true ) ) {
-				return $this->state_error();
-			}
 			$this->enrolments->update(
 				$row['id'],
 				array(
@@ -370,9 +370,6 @@ final class ProgressService {
 			);
 			$this->enter_step( $row, $user, $sprint, $next, $now, $events );
 		} else {
-			if ( end( $chain ) !== $step || array_diff( $chain, array_merge( $completed, array( $step ) ) ) ) {
-				return $this->state_error();
-			}
 			$this->finish( $row, $user, $sprint, $now, $events );
 		}
 		return true;
@@ -395,8 +392,8 @@ final class ProgressService {
 			$this->finish( $row, $user, $sprint, $now, $events );
 			return true;
 		}
-		$repair  = ! in_array( $row['current_step_id'], $incomplete, true );
-		$current = $repair ? $incomplete[0] : $row['current_step_id'];
+		$current = $incomplete[0];
+		$repair  = $row['current_step_id'] !== $current;
 		$this->enrolments->update(
 			$row['id'],
 			array(
