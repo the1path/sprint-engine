@@ -45,7 +45,13 @@ final class Runner {
 	 */
 	public function __construct( ?AccessManager $access = null, ?ProgressService $progress = null ) {
 		$this->access   = $access ?? new AccessManager();
-		$this->progress = $progress ?? new ProgressService();
+		$this->progress = $progress ?? new ProgressService(
+			null,
+			function ( $user, $sprint ) {
+				// Recheck member readiness after the shared Sprint lock and cache invalidation.
+				return get_current_user_id() === $user && $this->access->can_access( $user, $sprint ) && '' === Availability::reason( get_post( $sprint ) );
+			}
+		);
 	}
 
 	/** Register scoped frontend hooks. */

@@ -24,6 +24,7 @@
       "php tests/integration/migration.php",
       "php tests/integration/attempts.php",
       "php tests/integration/mid-sprint-restart.php",
+      "php tests/integration/step-change-recovery.php",
       "php tests/integration/attempt-history.php",
       "php tests/integration/runner.php",
       "php tests/integration/dashboard.php",

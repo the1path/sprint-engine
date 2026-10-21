@@ -82,6 +82,8 @@ sprint_engine_admin_check( $sprint === $result && 'my-brilliant-sprint' === get_
 sprint_engine_admin_check( $before === sprint_engine_admin_state( $sprint, $step ), 'Slug save preserves title, structure, Step slug and all progress rows.' );
 sprint_engine_admin_check( $sprint === get_page_by_path( 'my-brilliant-sprint', OBJECT, array( 'sprint_engine_sprint' ) )->ID && ! get_page_by_path( $slug, OBJECT, array( 'sprint_engine_sprint' ) ), 'New slug resolves same Sprint; old slug resolves no separate Sprint.' );
 sprint_engine_admin_check( 200 === ( new Runner() )->resolve( 'my-brilliant-sprint' )['status'] && 404 === ( new Runner() )->resolve( $slug )['status'], 'Existing Runner resolves renamed Sprint and rejects old slug.' );
+// Runner entry legitimately updates resume activity; isolate the following admin writes.
+$before = sprint_engine_admin_state( $sprint, $step );
 // Real core AJAX boundary, including nonce/capability failures.
 define( 'DOING_AJAX', true );
 class SE_Admin_Ajax_End extends RuntimeException {}
