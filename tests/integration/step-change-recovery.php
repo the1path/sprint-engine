@@ -172,6 +172,14 @@ foreach ( array( 'current-later', 'incomplete-earlier', 'completed-later', 'last
 	recovery_order( $sprint, $order );
 	$state = $service->resume_sprint( $user, $sprint );
 	recovery_check( $order['completed-later' === $case || 'last-outstanding' === $case ? 0 : 1] === $state['current_step_id'], 'Reorder selects earliest outstanding requirement: ' . $case );
+	if ( in_array( $case, array( 'last-outstanding', 'completed-later' ), true ) ) {
+		$context = recovery_runner( $sprint );
+		set_query_var( 'sprint_engine_runner_context', $context );
+		ob_start(); include dirname( __DIR__, 2 ) . '/templates/runner.php'; $html = ob_get_clean();
+		recovery_check( false === $context['step']['is_terminal'], 'Reordered current Step retains its nonterminal structural meaning: ' . $case );
+		$label = 'last-outstanding' === $case ? 'Complete Sprint' : 'Complete &amp; Continue';
+		recovery_check( str_contains( $html, '>' . $label . '</button>' ), 'Runner action reflects outstanding requirements: ' . $case );
+	}
 	$completed_before = array_values( array_filter( $before[1], static function ( $row ) { return 'completed' === $row['status']; } ) );
 	while ( 'in_progress' === $state['status'] ) {
 		$state = $service->complete_step( $user, $sprint, $state['current_step_id'], $attempt );

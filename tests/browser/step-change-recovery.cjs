@@ -13,6 +13,7 @@ const {execFileSync} = require('node:child_process');
   const context = await browser.newContext(); await context.addCookies([fixture.cookie]);
   const page = await context.newPage(); await page.goto(fixture.url);
   assert(await page.getByRole('heading', {name:'Recovery Step B', exact:true}).isVisible());
+  assert.equal(await page.locator('#se-runner-action').innerText(), 'Complete & Continue');
   const inserted = JSON.parse(php('edit')).inserted;
   const responsePromise = page.waitForResponse(r => r.url().includes('/complete') && r.request().method() === 'POST');
   await page.locator('#se-runner-action').click(); const response = await responsePromise;
@@ -24,13 +25,20 @@ const {execFileSync} = require('node:child_process');
   await page.reload(); assert(await page.getByRole('heading', {name:'New required Step X', exact:true}).isVisible());
   assert((await page.evaluate(() => sprintEngineRunner.endpoint)).endsWith(`/steps/${inserted}/complete`));
   assert.equal(Number(await page.evaluate(() => sprintEngineRunner.attemptId)),fixture.attempt);
+  assert.equal(await page.locator('#se-runner-action').innerText(), 'Complete & Continue');
   for (const title of ['Recovery Step B', 'Recovery Step D']) {
    await Promise.all([page.waitForNavigation(),page.locator('#se-runner-action').click()]);
    assert(await page.getByRole('heading', {name:title, exact:true}).isVisible());
+   assert.equal(await page.locator('#se-runner-action').innerText(), title === 'Recovery Step D' ? 'Complete Sprint' : 'Complete & Continue');
   }
+  console.log(php('last-outstanding').trim());
+  await page.reload();
+  assert(await page.getByRole('heading', {name:'Recovery Step D', exact:true}).isVisible());
+  assert.equal(await page.locator('#se-runner-action').innerText(), 'Complete Sprint');
   await Promise.all([page.waitForNavigation(),page.locator('#se-runner-action').click()]);
   assert(await page.getByRole('heading', {name:'Sprint complete', exact:true}).isVisible());
   console.log(php('verify').trim());
   console.log('PASS: Real stale browser submission conflicts, reload recovers X, and completion skips prior C without restart.');
+  console.log('PASS: Intermediate Steps offer Complete & Continue; a nonterminal last-outstanding Step offers Complete Sprint and finishes the Sprint.');
  } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

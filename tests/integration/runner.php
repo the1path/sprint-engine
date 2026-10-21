@@ -364,7 +364,7 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
 
 foreach ( array_slice( $steps, 1 ) as $step ) {
 	$active = $runner->resolve( $slug );
-	sprint_engine_runner_check( ( $step === $steps[4] ) === $active['step']['is_terminal'], 'Only the validated explicit terminal link changes the action label.' );
+	sprint_engine_runner_check( ( $step === $steps[4] ) === $active['step']['is_terminal'], 'is_terminal still identifies only the validated explicit terminal link.' );
 	if ( $step === $steps[4] ) {
 		sprint_engine_runner_check( str_contains( sprint_engine_runner_html( $active ), '>Complete Sprint</button>' ), 'Terminal Step offers Complete Sprint using the existing action ID.' );
 		sprint_engine_runner_request( '/sprint/' . $slug . '/' ); $runner->prepare(); $runner->enqueue();

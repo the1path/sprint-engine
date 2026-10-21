@@ -24,6 +24,14 @@ if ( isset( $argv[1] ) ) {
 		$result = $manager->apply_linear_order( $f['sprint'], array( $f['steps'][0], $x, $f['steps'][1], $f['steps'][2], $f['steps'][3] ) );
 		if ( true !== $result || $f['before'] !== browser_recovery_rows( $f['user'], $f['sprint'] ) ) { throw new RuntimeException( 'Author edit mutated progress.' ); }
 		echo wp_json_encode( array( 'inserted' => $x ) );
+	} elseif ( 'last-outstanding' === $argv[2] ) {
+		$before = browser_recovery_rows( $f['user'], $f['sprint'] );
+		$order = wp_list_pluck( Meta::steps( $f['sprint'] ), 'ID' );
+		$last = $f['steps'][3];
+		$result = $manager->apply_linear_order( $f['sprint'], array_merge( array( $last ), array_values( array_diff( $order, array( $last ) ) ) ) );
+		$state = $service->get_state( $f['user'], $f['sprint'] );
+		if ( true !== $result || $last !== $state['current_step_id'] || 1 !== $state['total_steps'] - $state['completed_steps'] || ! get_post_meta( $last, '_sprint_engine_next_step_id', true ) || $before !== browser_recovery_rows( $f['user'], $f['sprint'] ) ) { throw new RuntimeException( 'Nonterminal last-outstanding fixture failed.' ); }
+		echo "PASS: Last outstanding Step moved before completed Steps without changing progress.\n";
 	} elseif ( 'stale' === $argv[2] ) {
 		if ( $f['before'] !== browser_recovery_rows( $f['user'], $f['sprint'] ) ) { throw new RuntimeException( 'Stale HTTP completion mutated progress.' ); }
 		echo "PASS: Stale HTTP completion preserves exact progress rows.\n";
