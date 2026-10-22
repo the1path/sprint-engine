@@ -39,9 +39,25 @@ $sprint_engine_sections = array(
 	<main id="se-dashboard-main" tabindex="-1">
 		<?php if ( 'error' === $sprint_engine_context['state'] ) : ?>
 			<p class="se-dashboard__empty" role="alert"><?php echo esc_html( $sprint_engine_context['message'] ); ?></p>
-		<?php elseif ( ! array_filter( $sprint_engine_context['sections'] ) ) : ?>
-			<p class="se-dashboard__empty"><?php esc_html_e( 'No Sprints are available to you yet.', 'sprint-engine' ); ?></p>
-		<?php else : ?>
+		<?php elseif ( 'ready' === $sprint_engine_context['state'] && is_user_logged_in() ) : ?>
+			<?php
+			/**
+			 * Render additional sections before the authorized individual Sprint sections.
+			 *
+			 * @param array $context Existing authorized ready Dashboard context.
+			 */
+			do_action( 'sprint_engine/dashboard_before_sprint_sections', $sprint_engine_context ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Trusted callbacks escape their own output.
+			/**
+			 * Suppress the Core empty state only when an extension reports meaningful content.
+			 *
+			 * @param bool  $has_sections Default false; only exact true suppresses the message.
+			 * @param array $context Existing authorized ready Dashboard context.
+			 */
+			$sprint_engine_has_additional_sections = apply_filters( 'sprint_engine/dashboard_has_additional_sections', false, $sprint_engine_context ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Presentation only, never an access or progress decision.
+			?>
+			<?php if ( ! array_filter( $sprint_engine_context['sections'] ) && true !== $sprint_engine_has_additional_sections ) : ?>
+				<p class="se-dashboard__empty"><?php esc_html_e( 'No Sprints are available to you yet.', 'sprint-engine' ); ?></p>
+			<?php endif; ?>
 			<?php foreach ( $sprint_engine_sections as $sprint_engine_state => $sprint_engine_label ) : ?>
 				<?php
 				if ( empty( $sprint_engine_context['sections'][ $sprint_engine_state ] ) ) {
@@ -56,6 +72,15 @@ $sprint_engine_sections = array(
 								<div class="se-dashboard__card-content">
 									<p class="se-dashboard__label"><?php echo esc_html( $sprint_engine_label ); ?></p>
 									<h3 id="se-dashboard-title-<?php echo esc_attr( $sprint_engine_item['sprint_id'] ); ?>"><?php echo esc_html( $sprint_engine_item['title'] ); ?></h3>
+									<?php
+									/**
+									 * Render context after the authorized Sprint card title, before its description.
+									 *
+									 * @param array  $item Existing safe Dashboard item for the current member.
+									 * @param string $state Canonical display state: in_progress, not_started or completed.
+									 */
+									do_action( 'sprint_engine/dashboard_card_context', $sprint_engine_item, $sprint_engine_state ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Trusted callbacks escape their own output.
+									?>
 									<?php if ( '' !== $sprint_engine_item['excerpt'] ) : ?>
 										<p><?php echo esc_html( $sprint_engine_item['excerpt'] ); ?></p>
 									<?php endif; ?>

@@ -388,6 +388,53 @@ unchanged; ordinary requests do
 not flush them. Core 0.2.3 development retains schema 2 and adds no storage migration.
 See [SE-013 validation](validation/se-013.md) for evidence and limitations.
 
+### Dashboard presentation hooks (SE-021, unreleased Core 0.2.3)
+
+The built-in template provides three additive presentation hooks, only inside an
+authenticated, successfully resolved `ready` Dashboard render:
+
+- `do_action( 'sprint_engine/dashboard_before_sprint_sections', $context )`
+  fires exactly once inside `<main id="se-dashboard-main">`, before the existing
+  individual Sprint sections, including when all three Core sections are empty.
+  Its sole argument is the existing authorized context (`state`, `status`,
+  `sections`), unchanged. A trusted extension may output an accessible section
+  with an `<h2>` and its own appropriately escaped content/links.
+- `apply_filters( 'sprint_engine/dashboard_has_additional_sections', false, $context )`
+  runs once after that action with the same authorized context. Default `false`
+  preserves “No Sprints are available to you yet.” when Core sections are empty.
+  Only exact boolean `true` suppresses this message; `1`, `'true'`, arrays, objects
+  and all other values retain it. Populated Core sections render regardless of
+  the result. Coordinate rendering and this signal using the same request-local
+  authorized extension data. Core does not capture/parse callback HTML or infer
+  additional content availability.
+- `do_action( 'sprint_engine/dashboard_card_context', $item, $state )` fires once
+  for each individual Sprint card actually rendered, immediately after its `<h3>`
+  and before its excerpt/other descriptive content. `$item` is exactly the safe
+  normalized item documented above, after `dashboard_items` and grouping/sorting;
+  `$state` is its canonical display state (`in_progress`, `not_started`,
+  `completed`). Invocation follows the existing section/card order. Excluded or
+  inaccessible Sprints receive no call; private Step instructions are not supplied.
+
+No new hook runs for login/error contexts, even if a partial context contains
+sections. With no listeners there is no additional markup or wrapper and the
+default Dashboard presentation is unchanged. Header/title/navigation, skip link,
+main landmark, card controls, sorting, branding and private/no-store/noindex
+handling remain intact. `dashboard_header_actions` retains its header placement
+and established error-context behavior; `dashboard_completed_card_actions` still
+runs after completed-card controls. Existing template overrides own placement of
+all presentation actions; `dashboard_items` and template/context contracts are
+unchanged. Existing extensions do not need to adopt the new hooks.
+
+These hooks do not authorize access, grant entitlement, read History, create
+attempts or change progress. Core's coordinator still owns Sprint authentication,
+availability/access and canonical state projection, with no additional queries.
+The extension owns additional data lookup, ownership/access checks, escaping,
+destination authorization and scoped styling; the authenticated member is available
+through `get_current_user_id()`. Trusted PHP callbacks are not sandboxed and must
+preserve these read-only/privacy boundaries. Core contains no Journey model,
+labels, relationships or deduplication policy. See the illustrative consumer and
+verification in [SE-021 validation](validation/se-021.md).
+
 ## Sprint Runner
 
 Publish a valid, launchable Sprint and visit `/sprint/{sprint-slug}/` using

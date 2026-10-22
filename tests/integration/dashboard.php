@@ -61,7 +61,7 @@ foreach (array('Zulu available', 'Alpha available', 'Alpha available', 'Z recent
     $sprints[] = $id; $posts[] = $id;
     $steps[$id] = array($manager->quick_add($id, 'First'), $manager->quick_add($id, 'Second'));
     $posts = array_merge($posts, $steps[$id]);
-    foreach ($steps[$id] as $step) { wp_update_post(array('ID'=>$step,'post_status'=>'publish')); }
+    foreach ($steps[$id] as $step) { wp_update_post(array('ID'=>$step,'post_status'=>'publish','post_content'=>'PRIVATE STEP INSTRUCTION SE021')); }
     Meta::save($id, array('_sprint_engine_launchable'=>true));
 }
 Meta::save($sprints[0], array('_sprint_engine_estimated_duration_value'=>'1.5','_sprint_engine_estimated_duration_unit'=>'hours'));
@@ -151,11 +151,70 @@ sprint_engine_dashboard_check(preg_replace('/>\s+</', '><', sprint_engine_dashbo
 remove_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
 sprint_engine_dashboard_check(sprint_engine_dashboard_shell($html) === sprint_engine_dashboard_shell(sprint_engine_dashboard_html($context)), 'Without a completed-card listener the Dashboard shell is unchanged.');
 sprint_engine_dashboard_check($before === sprint_engine_dashboard_rows(), 'Exact enrolment and Step progress rows/timestamps unchanged by resolve and render.');
+// SE-021: realistic trusted consumers share request-local, already authorized data.
+$section_calls = $additional_calls = $context_calls = array();
+$has_additional = false;
+$section_listener = static function (...$args) use (&$section_calls) {
+    $section_calls[] = $args;
+    echo '<section class="se021-section" aria-labelledby="se021-heading"><h2 id="se021-heading">' . esc_html('Your Journeys & learning') . '</h2><a href="' . esc_url(home_url('/extension/')) . '">' . esc_html('Example <Journey>') . '</a></section>';
+};
+$additional_listener = static function (...$args) use (&$additional_calls, &$has_additional) {
+    $additional_calls[] = $args;
+    return $has_additional;
+};
+$context_listener = static function (...$args) use (&$context_calls) {
+    $context_calls[] = $args;
+    echo '<p class="se021-context"><a href="' . esc_url(home_url('/extension/')) . '">' . esc_html('Part of <Example Journey> & learning') . '</a></p>';
+};
+add_action('sprint_engine/dashboard_before_sprint_sections', $section_listener, 10, 99);
+add_filter('sprint_engine/dashboard_has_additional_sections', $additional_listener, 10, 99);
+add_action('sprint_engine/dashboard_card_context', $context_listener, 10, 99);
+add_action('sprint_engine/dashboard_header_actions', $header_listener);
+add_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+$render_queries = array();
+$query_listener = static function ($sql) use (&$render_queries) { $render_queries[] = $sql; return $sql; };
+add_filter('query', $query_listener);
+$presentation_html = sprint_engine_dashboard_html($context);
+remove_filter('query', $query_listener);
+sprint_engine_dashboard_check(array(array($context)) === $section_calls && array(array(false, $context)) === $additional_calls, 'SE-021 section action and false-default filter each receive exactly the authorized ready context once.');
+$expected_cards = array();
+foreach ($context['sections'] as $state => $items) {
+    foreach ($items as $item) { $expected_cards[] = array($item, $state); }
+}
+sprint_engine_dashboard_check($expected_cards === $context_calls, 'SE-021 card context fires exactly once per rendered authorized item, with its canonical state in existing section/sort order.');
+$section_position = strpos($presentation_html, '<section class="se021-section"');
+sprint_engine_dashboard_check(strpos($presentation_html, '<main id="se-dashboard-main"') < $section_position && $section_position < strpos($presentation_html, '<section class="se-dashboard__section"') && strpos($presentation_html, '</header>') < $section_position, 'SE-021 additional section is inside main before Sprint sections; member header navigation stays in header.');
+preg_match_all('/<article.*?<\/article>/s', $presentation_html, $presentation_cards);
+foreach ($presentation_cards[0] as $index => $card) {
+    $item = $expected_cards[$index][0];
+    $after_title = substr($card, strpos($card, '</h3>') + 5);
+    sprint_engine_dashboard_check(1 === substr_count($card, 'class="se021-context"') && str_starts_with(ltrim($after_title), '<p class="se021-context"') && ('' === $item['excerpt'] || strpos($card, 'class="se021-context"') < strpos($card, esc_html($item['excerpt']))), 'SE-021 context follows title directly, before excerpt/description: ' . $item['sprint_id']);
+    if ('completed' === $expected_cards[$index][1]) {
+        sprint_engine_dashboard_check(strpos($card, '>View Completed Sprint</a>') < strpos($card, 'class="completed-card-test"') && strpos($card, 'class="se021-context"') < strpos($card, 'class="se-dashboard__actions"'), 'SE-021 retains completed recommendation placement after existing Restart/View controls.');
+    }
+}
+sprint_engine_dashboard_check(str_contains($presentation_html, '<h2 id="se021-heading">Your Journeys &amp; learning</h2>') && str_contains($presentation_html, 'Example &lt;Journey&gt;') && str_contains($presentation_html, 'Part of &lt;Example Journey&gt; &amp; learning') && 1 === substr_count($presentation_html, '<h1>'), 'SE-021 trusted consumer escapes headings/context/links and preserves one page heading.');
+$without_extensions = preg_replace(array('/<section class="se021-section".*?<\/section>/s', '/<p class="se021-context">.*?<\/p>/s', '/<a class="history-test-action".*?<\/a>/s', '/<p class="completed-card-test">.*?<\/p>/s'), '', $presentation_html);
+sprint_engine_dashboard_check(preg_replace('/>\s+</', '><', sprint_engine_dashboard_shell($html)) === preg_replace('/>\s+</', '><', sprint_engine_dashboard_shell($without_extensions)), 'SE-021 listeners add only their own output; all existing images, descriptions, progress, URLs, controls and navigation placement remain intact.');
+sprint_engine_dashboard_check(!str_contains(wp_json_encode(array($section_calls, $additional_calls, $context_calls)), 'PRIVATE STEP INSTRUCTION SE021') && !array_filter($render_queries, static function ($sql) { return str_contains($sql, 'sprint_engine_enrolments') || str_contains($sql, 'sprint_engine_step_progress'); }), 'SE-021 hook arguments contain no private Step instructions; rendering introduces no progress/History reads.');
+sprint_engine_dashboard_check($before === sprint_engine_dashboard_rows(), 'SE-021 combined presentation hooks create no attempts and preserve exact progress/timestamps.');
+$has_additional = true;
+$populated_html = sprint_engine_dashboard_html($context);
+sprint_engine_dashboard_check(count($expected_cards) === substr_count($populated_html, '<article ') && 3 === substr_count($populated_html, '<section class="se-dashboard__section"'), 'SE-021 exact true never hides populated Core sections.');
+remove_action('sprint_engine/dashboard_header_actions', $header_listener);
+remove_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
+remove_action('sprint_engine/dashboard_before_sprint_sections', $section_listener, 10);
+remove_filter('sprint_engine/dashboard_has_additional_sections', $additional_listener, 10);
+remove_action('sprint_engine/dashboard_card_context', $context_listener, 10);
+sprint_engine_dashboard_check(sprint_engine_dashboard_shell($html) === sprint_engine_dashboard_shell(sprint_engine_dashboard_html($context)), 'SE-021 removing all listeners restores exact default shell with no extra wrappers.');
 sprint_engine_dashboard_check(200 === $context['status'] && array('in_progress','not_started','completed') === array_keys($context['sections']), 'Sections use locked display order.');
 foreach (array(0,3,6) as $index) {
     $id=$sprints[$index]; $snapshot=sprint_engine_dashboard_rows();
     wp_update_post(array('ID'=>$steps[$id][0],'post_status'=>'draft'));
     $blocked=$dashboard->resolve(); $blocked_html=sprint_engine_dashboard_html($blocked);
+    $context_calls = array(); add_action('sprint_engine/dashboard_card_context', $context_listener, 10, 99);
+    sprint_engine_dashboard_html($blocked); remove_action('sprint_engine/dashboard_card_context', $context_listener, 10);
+    sprint_engine_dashboard_check(!in_array($id, array_map(static function ($args) { return $args[0]['sprint_id']; }, $context_calls), true), 'SE-021 unavailable Sprint never receives card context: ' . $index);
     $card_calls = array(); add_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
     sprint_engine_dashboard_html($blocked); remove_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
     sprint_engine_dashboard_check(!in_array($id, array_map(static function ($args) { return $args[0]['sprint_id']; }, $card_calls), true), 'Unavailable card never reaches completed-card action: ' . $index);
@@ -213,8 +272,35 @@ $failure = static function ($sql) { return str_starts_with($sql,'SHOW TABLE STAT
 add_filter('query',$failure); $error = $dashboard->resolve(); remove_filter('query',$failure);
 sprint_engine_dashboard_check(503 === $error['status'] && !isset($error['sections']) && !str_contains(sprint_engine_dashboard_html($error),'Zulu'), 'Canonical read failure gives generic 503 with no guessed actions or partial cards.');
 $deny_all = static function () { return false; }; add_filter('sprint_engine/user_can_access_sprint',$deny_all,99);
-$empty = sprint_engine_dashboard_html($dashboard->resolve()); remove_filter('sprint_engine/user_can_access_sprint',$deny_all,99);
+$empty_context = $dashboard->resolve(); $empty = sprint_engine_dashboard_html($empty_context); remove_filter('sprint_engine/user_can_access_sprint',$deny_all,99);
 sprint_engine_dashboard_check(str_contains($empty,'No Sprints are available to you yet.') && !str_contains($empty,'<section'), 'Useful empty state omits empty sections and counts.');
+$empty_snapshot = sprint_engine_dashboard_rows();
+add_action('sprint_engine/dashboard_before_sprint_sections', $section_listener, 10, 99);
+add_filter('sprint_engine/dashboard_has_additional_sections', $additional_listener, 10, 99);
+add_action('sprint_engine/dashboard_card_context', $context_listener, 10, 99);
+foreach (array(false, 1, 'true', array(true), (object) array('content' => true), null, true) as $value) {
+    $has_additional = $value; $section_calls = $additional_calls = $context_calls = array();
+    $only_extension = sprint_engine_dashboard_html($empty_context);
+    sprint_engine_dashboard_check((true !== $value) === str_contains($only_extension, 'No Sprints are available to you yet.'), 'SE-021 only exact boolean true suppresses empty copy: ' . get_debug_type($value));
+    sprint_engine_dashboard_check(array(array($empty_context)) === $section_calls && array(array(false, $empty_context)) === $additional_calls && array() === $context_calls && str_contains($only_extension, '<section class="se021-section"') && !str_contains($only_extension, '<article '), 'SE-021 empty Core still renders one extension section without Sprint cards or access changes.');
+}
+// Even deliberately supplied partial/stale context must never reach the new hooks.
+foreach (array($error, array_merge($error, array('sections' => $context['sections'])), array_merge($context, array('state' => 'login'))) as $ineligible) {
+    $section_calls = $additional_calls = $context_calls = array();
+    $ineligible_html = sprint_engine_dashboard_html($ineligible);
+    sprint_engine_dashboard_check(array() === $section_calls && array() === $additional_calls && array() === $context_calls && !str_contains($ineligible_html, 'se021-') && !str_contains($ineligible_html, '<article '), 'SE-021 error/login and partial contexts cannot render extension or Sprint content.');
+}
+wp_set_current_user(0);
+foreach (array($login, $context) as $anonymous_context) {
+    $section_calls = $additional_calls = $context_calls = array();
+    $anonymous_html = sprint_engine_dashboard_html($anonymous_context);
+    sprint_engine_dashboard_check(array() === $section_calls && array() === $additional_calls && array() === $context_calls && !str_contains($anonymous_html, '<article ') && !str_contains($anonymous_html, 'se021-'), 'SE-021 anonymous login or stale ready context exposes no member cards or new extension content.');
+}
+wp_set_current_user($user);
+sprint_engine_dashboard_check($empty_snapshot === sprint_engine_dashboard_rows(), 'SE-021 empty-state values and ineligible rendering preserve exact attempts/progress.');
+remove_action('sprint_engine/dashboard_before_sprint_sections', $section_listener, 10);
+remove_filter('sprint_engine/dashboard_has_additional_sections', $additional_listener, 10);
+remove_action('sprint_engine/dashboard_card_context', $context_listener, 10);
 $method = new ReflectionMethod(Dashboard::class,'timestamp'); $method->setAccessible(true);
 foreach (array(null,'bad','2026-02-30 00:00:00',"2026-01-01 00:00:00\0") as $invalid) { sprint_engine_dashboard_check(PHP_INT_MIN === $method->invoke(null,$invalid), 'Invalid/null timestamps sort last without warnings.'); }
 $default = dirname((new ReflectionClass(Dashboard::class))->getFileName(),3) . '/templates/dashboard.php';

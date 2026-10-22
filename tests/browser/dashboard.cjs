@@ -27,6 +27,42 @@ const assert=require('node:assert/strict');
    assert.equal(await page.locator('.se-runner__logo').count(),1);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    await page.screenshot({path:`${output}/dashboard-branded-390.png`,fullPage:true});
    console.log('PASS: Dashboard uses saved primary/primary text/background/surface/text/corner/logo branding at 390px.');
+  } else if(process.argv[3]==='extensions') {
+   await assertDashboard();
+   const baseline=await page.locator('.se-dashboard__shell').evaluate(el=>el.outerHTML.replace(/>\s+</g,'><'));
+   for(const width of [1440,390]) {
+    await page.setViewportSize({width,height:1000});
+    for(const mode of ['populated','only','truthy','empty']) {
+     const response=await page.goto(`${fixture.url}?se021_fixture=${mode}`);
+     assert.equal(response.status(),200);assert(response.headers()['cache-control'].includes('private, no-store'));assert.equal(response.headers()['x-robots-tag'],'noindex, nofollow');
+     assert.equal(await page.locator('h1').count(),1);assert.equal(await page.locator('main#se-dashboard-main').count(),1);
+     assert.equal(await page.locator('.se-dashboard__skip').getAttribute('href'),'#se-dashboard-main');
+     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+     const hasSection=mode!=='empty';
+     assert.equal(await page.locator('main > .se021-additional').count(),hasSection?1:0);
+     assert.equal(await page.getByText('No Sprints are available to you yet.',{exact:true}).count(),['truthy','empty'].includes(mode)?1:0);
+     if(hasSection) {
+      assert.equal(await page.locator('main > section > h2').first().textContent(),'Your Journeys');
+      assert.equal(await page.locator('.se021-additional h3').textContent(),'Example <Journey> & learning');
+      const link=page.getByRole('link',{name:'Open example',exact:true});await link.focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');
+      assert(await link.evaluate(el=>el===document.activeElement&&el.matches(':focus-visible')&&getComputedStyle(el).outlineStyle==='solid'));
+     }
+     if(mode==='populated') {
+      assert.deepEqual(await page.locator('main > section > h2').allTextContents(),['Your Journeys','In Progress','Available','Completed']);
+      assert.equal(await page.locator('.se021-card-context').count(),3);
+      for(const key of ['active','available','completed']) {
+       assert(await card(key).locator('h3 + .se021-card-context').isVisible());
+       assert.equal(await card(key).locator('.se021-card-context').textContent(),'Part of <Example Journey> & learning');
+      }
+      const stripped=await page.locator('.se-dashboard__shell').evaluate(el=>{const clone=el.cloneNode(true);clone.querySelectorAll('.se021-additional,.se021-card-context').forEach(n=>n.remove());return clone.outerHTML.replace(/>\s+</g,'><');});
+      assert.equal(stripped,baseline);
+     } else {assert.equal(await page.locator('.se021-card-context').count(),0);assert.equal(await page.locator('main > section:not(.se021-additional)').count(),0);}
+     if(mode==='populated'||mode==='only')await page.screenshot({path:`${output}/extensions-${mode}-${width}.png`,fullPage:true});
+    }
+   }
+   const anon=await browser.newPage();await anon.goto(`${fixture.url}?se021_fixture=only`);assert(anon.url().includes('wp-login.php?redirect_to='));assert.equal(await anon.locator('.se021-additional').count(),0);await anon.close();
+   await assertDashboard();assert.equal(await page.locator('.se-dashboard__shell').evaluate(el=>el.outerHTML.replace(/>\s+</g,'><')),baseline);
+   console.log('PASS: SE-021 real authenticated WordPress rendering at 1440/390px; additional-only/empty/exact-true/truthy modes, card positions, safe headings/links, focus, shell/control equality, privacy, anonymous redirect and unchanged default.');
   } else if(process.argv[3]==='read') {
    const anon=await browser.newPage();await anon.goto(fixture.url);assert(anon.url().includes('wp-login.php?redirect_to='));await anon.close();
    await assertDashboard();
