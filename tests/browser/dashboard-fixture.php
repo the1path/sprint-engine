@@ -15,6 +15,30 @@ function sprint_engine_dashboard_browser_snapshot($fixture) {
 }
 if (isset($argv[1])) {
     $fixture=json_decode(file_get_contents($argv[1]),true); $mode=$argv[2] ?? 'cleanup';
+    if ($mode==='extensions') {
+        // SE-021 trusted presentation fixture, restricted to this disposable member.
+        $consumer = '<?php /* SE013 disposable SE-021 consumer; never packaged. */' . "\n";
+        $consumer .= '$se021_member = ' . var_export($fixture['user'], true) . ';' . "\n";
+        $consumer .= <<<'PHP'
+add_action('init', static function () use ($se021_member) {
+    $mode = $_GET['se021_fixture'] ?? '';
+    if (get_current_user_id() !== $se021_member || !in_array($mode, array('populated', 'only', 'truthy', 'empty'), true)) { return; }
+    // Real integrations must obtain this request-local model through their own ownership/access checks.
+    $additional = 'empty' === $mode ? array() : array('title' => 'Example <Journey> & learning', 'url' => \ThePath\SprintEngine\Dashboard\Routes::url());
+    if ('populated' !== $mode) { add_filter('sprint_engine/user_can_access_sprint', '__return_false', 99); }
+    add_action('sprint_engine/dashboard_before_sprint_sections', static function ($context) use ($additional) {
+        if (!$additional) { return; }
+        echo '<section class="se-dashboard__section se021-additional" aria-labelledby="se021-journeys"><h2 id="se021-journeys">Your Journeys</h2><div class="se-dashboard__grid"><article class="se-dashboard__card"><div class="se-dashboard__card-content"><h3>' . esc_html($additional['title']) . '</h3><a href="' . esc_url($additional['url']) . '">Open example</a></div></article></div></section>';
+    });
+    add_filter('sprint_engine/dashboard_has_additional_sections', static function ($default, $context) use ($additional, $mode) { return 'truthy' === $mode ? 'true' : !empty($additional); }, 10, 2);
+    add_action('sprint_engine/dashboard_card_context', static function ($item, $state) use ($additional) {
+        if ($additional) { echo '<p class="se021-card-context"><a href="' . esc_url($additional['url']) . '">' . esc_html('Part of <Example Journey> & learning') . '</a></p>'; }
+    }, 10, 2);
+});
+PHP;
+        file_put_contents(WPMU_PLUGIN_DIR.'/sprint-engine-se021-fixture.php', $consumer);
+        exit;
+    }
     if ($mode==='brand') {
         update_option(ThePath\SprintEngine\Settings\RunnerBranding::OPTION, array('primary'=>'#482070','primary_text'=>'#ffffff','background'=>'#e9e0f0','surface'=>'#fffafa','text'=>'#191020','muted'=>'#554460','corner_style'=>'rounded','logo_id'=>$fixture['image']));
         exit;
@@ -44,6 +68,8 @@ if (isset($argv[1])) {
     foreach(array($fixture['user'],$fixture['other']) as $member) { $wpdb->delete($wpdb->prefix.'sprint_engine_step_progress',array('user_id'=>$member));$wpdb->delete($wpdb->prefix.'sprint_engine_enrolments',array('user_id'=>$member)); wp_delete_user($member); }
     $helper=WPMU_PLUGIN_DIR.'/sprint-engine-dashboard-fixture.php';
     if (is_file($helper) && str_contains(file_get_contents($helper),'SE013 disposable')) { unlink($helper); }
+    $helper=WPMU_PLUGIN_DIR.'/sprint-engine-se021-fixture.php';
+    if (is_file($helper) && str_contains(file_get_contents($helper),'SE013 disposable SE-021')) { unlink($helper); }
     exit;
 }
 wp_set_current_user(1); $manager=new StructureManager(); $service=new ProgressService();
