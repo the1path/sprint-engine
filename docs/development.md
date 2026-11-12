@@ -1,21 +1,16 @@
 # Sprint Engine development guide
 
-Published Core is **0.2.2**, successfully published to WordPress.org and updated
-on an existing installation. This guide documents development source with version
-metadata **0.2.3**, schema **2**, including unreleased SE-018 functionality.
-SE-018 is not included in the published WordPress.org 0.2.2 package. The next
-planned public release is **0.2.3**, not yet prepared or published. Start with the
-[documentation index](README.md) for architecture and validation records.
-The [contribution guide](../CONTRIBUTING.md) covers focused issues and pull requests.
-See [0.2.2 release validation](validation/release-0.2.2.md) for historical package
-evidence and the WordPress.org SVN manifest recorded during preparation. That
-preparation updated metadata only. The subsequent SE-018 feature documented below
-awaits separate Core 0.2.3 release preparation. The development version bump
-in [SE-018.1](validation/se-018-1.md) is not release approval: Core 0.2.3 remains
-under active development and may receive additional changes. The GitHub readme
-Stable Tag is 0.2.3 for development source only; WordPress.org stays at 0.2.2.
-Final changelog, release verification and SVN publication will be handled
-separately when ready.
+WordPress.org serves Core **0.2.2**. This guide documents development source
+with version metadata **0.2.3** and schema **2**. The
+[SE-026 release review](validation/se-026-release-0.2.3.md) records the tested
+candidate, changelog and NO-GO recommendation pending a
+decision on the breaking Complete Step and Restart request changes. Publication
+requires separate authorisation.
+
+Start with the [documentation index](README.md) for architecture and validation
+records. The [contribution guide](../CONTRIBUTING.md) covers focused issues and
+pull requests. See [0.2.2 release validation](validation/release-0.2.2.md) for
+historical package evidence and the WordPress.org SVN manifest.
 
 ## Author a linear Sprint
 
@@ -583,9 +578,8 @@ overrides own their hook placement. Dashboard and access-denied hooks are unchan
 See [SE-018 validation](validation/se-018.md). Development source metadata remains
 0.2.3/schema 2 with this unreleased feature; published Core 0.2.2 excludes SE-018.
 The development version allows version-based integrations to select this hook.
-Core 0.2.3 is not yet prepared or published; a separate release preparation ticket
-will handle the final changelog and release verification. The historical 0.2.2
-package evidence above predates SE-018 and remains unchanged.
+The [SE-026 release review](validation/se-026-release-0.2.3.md) covers the
+candidate package and the decision pending before publication.
 
 ## Runner Branding
 
