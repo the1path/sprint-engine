@@ -1,6 +1,6 @@
 === Sprint Engine ===
 Contributors: thepath
-Tags: training, learning, journeys, workflows, onboarding
+Tags: lms, membership, onboarding, coaching, training
 Requires at least: 6.0
 Tested up to: 7.1
 Stable tag: 0.2.3
@@ -8,250 +8,163 @@ Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Turn WordPress into a guided action platform for onboarding, member journeys, training, implementation and more.
+Turn courses, content and expertise into guided, action-focused journeys in WordPress. Works alongside your LMS or on its own.
 
 == Description ==
 
-Sprint Engine helps you build guided, step-by-step journeys in WordPress that move people from start to outcome. Create focused Sprints for onboarding, member journeys, training programmes, implementation processes, coaching, guided reviews, internal workflows and more.
+**You have the content. Sprint Engine creates the journey.**
 
-A Sprint is a structured journey made up of ordered Steps that users work through one at a time. Content can explain, teach or prompt action, while saved progress and a distraction-free Runner help users stay focused on what comes next.
+Help your members, learners and clients put knowledge to work.
 
-What you can build with Sprint Engine:
+Sprint Engine turns content, expertise and repeatable processes into **guided, step-by-step experiences** in WordPress. Give people a clear starting point and a path to a meaningful outcome.
 
-* Guided onboarding and customer success journeys
-* Member journeys and engagement pathways
-* Content journeys that turn information into action
-* Implementation guides and programmes
-* Coaching and development journeys
-* Training experiences
-* Assessments and guided reviews
-* Internal processes and workflows
+Each experience is called a **Sprint**. Participants follow focused Steps and return whenever they're ready.
 
-Unlike a traditional LMS, Sprint Engine isn’t built around courses, grades, quizzes or certificates. The focus is action: guiding someone through a practical process towards a clear outcome.
+= Make more of the LMS and membership you already have =
 
-= How Sprint Engine works =
+**Your LMS delivers the learning. Sprint Engine guides the doing.**
 
-A Sprint contains:
+Bring courses, articles, videos and member resources together into a purposeful experience. A Sprint can introduce a goal, link to a course and guide someone through applying what they learn.
 
-* A Start screen that introduces the Sprint and explains what the user will achieve
-* An ordered sequence of Steps
-* Optional Content and Task Step modes
-* Saved progress for logged-in users
-* A distraction-free frontend Runner
-* A Completion screen with an optional next-action button
+* Help new members find their feet and reach their first win.
+* Create a clear route through a growing content library.
+* Connect courses and resources to practical activities.
+* Guide participants from learning to implementation.
 
-Authors create Sprint and Step content using the normal WordPress block editor.
+Your existing LMS continues to deliver courses and manage course access. Sprint Engine provides the guided path around them.
 
-Steps are organised using the Sprint Structure Manager. The Runner then presents those Steps one at a time while keeping track of the user's progress.
+= A lightweight LMS alternative for action-focused learning =
 
-= Key features =
+**Teach less passively. Help people do more.**
 
-* Create outcome-focused Sprints in WordPress
-* Build Sprint content with the native block editor
-* Add and order Steps from the Sprint editor
-* Content and Task Step modes
-* Optional Sprint and Step time estimates
-* Featured images for Sprints and individual Steps
-* Dedicated distraction-free Sprint Runner
-* Start, resume and completion states
-* Progress saved for individual logged-in users
-* Built-in My Sprints member Dashboard: Available, In Progress and Completed
-* Save & Exit returns to the Dashboard to resume later
-* Restart completed Sprints while keeping previous attempts
-* Configurable Runner logo, colours and corner styles
-* Custom completion message and next-action button
-* Administrator validation to help prevent invalid Sprint configuration
-* Responsive frontend layout
-* No external LMS required
+Build guided training, onboarding and development programmes directly in WordPress. Combine learning content with tasks, reflection and real-world activities so every Step moves participants closer to their goal.
 
-= My Sprints member Dashboard =
+Ideal for practical programmes where progress and action matter more than traditional course administration.
 
-Visit /sprint-engine/dashboard/ while logged in, or find the link in Sprints → Settings.
-No WordPress Page is required. The Dashboard shows Sprints you can access in In Progress,
-Available and Completed sections, using the same branding as Runner.
-Start Sprint opens the Runner overview; Continue Sprint resumes saved progress.
-Restart Sprint confirms before creating a new attempt and keeps previous attempts.
-View Completed Sprint reopens the completion screen. Save & Exit returns here.
-Viewing the Dashboard creates no progress and stores no additional personal data.
+= Turn your expertise into a guided programme =
+
+**Make your method repeatable.**
+
+Consultants, coaches, membership creators and WordPress agencies can turn a proven process into a consistent experience that clients and members complete at their own pace.
+
+Create client onboarding, coaching, implementation or member success programmes. Build once and guide people through again and again.
+
+= What could you create? =
+
+* **Member onboarding:** Lead new members to their first meaningful result.
+* **LMS learning pathways:** Turn scattered courses and resources into a clear journey.
+* **Coaching and consulting:** Give clients a practical framework to follow.
+* **Training and development:** Connect learning to everyday action.
+* **Customer success:** Guide customers from getting started to seeing value.
+* **Implementation and workflows:** Make repeatable processes easier to follow.
+
+= Everything you need to create the journey =
+
+* **Build with ease.** Create Sprints and Steps using the familiar WordPress editor.
+* **Guide every step.** Keep participants focused on the next action in a dedicated Sprint experience.
+* **Keep momentum going.** Save progress and pick up where you left off.
+* **Give everyone a home base.** Bring available, active and completed Sprints together in My Sprints.
+* **Run it again.** Restart active or completed Sprints and preserve previous attempts.
+* **Apply your brand.** Make the participant experience feel part of your website.
+* **Make the finish count.** Celebrate completion and guide people towards their next action.
+
+= Coming soon: Sprint Engine Pro =
+
+Take the journey further with a premium extension in development:
+
+* **Turn action into tangible work.** Let participants record answers, ideas, decisions and practical outputs as they go.
+* **Create personal Workbooks.** Bring that work together to review, print and export.
+* **See progress over time.** Revisit earlier Sprint attempts and saved Workbooks.
+* **Connect Sprints into Journeys.** Build longer programmes from multiple Sprints.
+* **Monetise your programmes.** Offer paid Sprint access through WooCommerce, with compatible subscription options.
+
+These are planned Pro capabilities. This WordPress.org download is the free Sprint Engine Core.
+
+= Getting started =
+
+Create a Sprint, add and arrange Steps with the WordPress editor, then publish and share its Runner URL.
+
+Logged-in participants can work through the Steps, save their progress, and return through the My Sprints dashboard at `/sprint-engine/dashboard/`.
 
 == Installation ==
 
-1. Upload the Sprint Engine plugin to WordPress or install it from the WordPress Plugin Directory.
-2. Activate Sprint Engine.
-3. Open Sprints in the WordPress administration area.
-4. Add a new Sprint.
-5. Add an introduction using the normal WordPress editor.
-6. Add Steps using the Sprint Structure Manager.
-7. Edit each Step and add its content.
-8. Order the Steps and click Save order.
-9. Publish every Step, then mark the Sprint as Launchable and publish it.
-10. Open the Runner URL to test the Sprint.
-
-Logged-in users can then start the Sprint and their progress will be saved as they move through the Steps.
+1. Install and activate Sprint Engine from the WordPress Plugin Directory. Use a permalink structure other than Plain.
+2. Go to **Sprints** in WordPress and create a Sprint.
+3. Write an introduction and add Steps using the Sprint Structure Manager.
+4. Add your content and activities, then save the Step order.
+5. Publish each Step, mark the Sprint **Launchable**, and publish it.
+6. Open the Runner URL to experience the Sprint before sharing it.
 
 == Frequently Asked Questions ==
 
 = What is a Sprint? =
 
-A Sprint is a focused, structured sequence of Steps designed to help a user reach a specific outcome.
+A Sprint is a sequence of Steps guiding someone towards an outcome, such as onboarding, developing a skill or implementing a process.
 
-For example, a Sprint could guide someone through planning a project, improving a business process, completing employee onboarding or working through a development exercise.
+= Can I use Sprint Engine with my existing LMS? =
 
-= Is Sprint Engine an LMS? =
+Yes. Add links to courses, lessons and resources within your Steps. Participants can follow those links and return to continue their Sprint. Your LMS handles its course access and completion records, while participants mark their Sprint Steps complete in Sprint Engine.
 
-Not in the traditional sense.
+= Can Sprint Engine work as an LMS alternative? =
 
-Sprint Engine does not currently provide quizzes, grades, certificates, course hierarchies or other common LMS features.
-
-It is designed around guided implementation: helping someone work through a sequence of content and tasks towards an outcome.
+Yes, for guided training, onboarding and action-based programmes. Sprint Engine focuses on the participant journey and progress. For specialised functions such as graded quizzes or certificates, you can continue using a dedicated LMS alongside it.
 
 = Can I use the WordPress block editor? =
 
-Yes.
+Yes. Build Sprint introductions and Steps with the native block editor, including supported text, media, links and blocks.
 
-Sprint introductions and Step content are authored using the normal WordPress block editor, so you can use standard Gutenberg blocks including text, images, audio and other supported content.
+= Can participants leave and resume later? =
 
-= What is the Sprint Runner? =
+Yes. Progress is saved for logged-in users, who can resume from the My Sprints dashboard.
 
-The Runner is the frontend experience used by Sprint participants.
+= Can participants restart a Sprint? =
 
-It presents one Step at a time, shows progress, saves completion state and allows users to return later and continue.
+Yes. Participants can restart an active or completed Sprint. Restarting creates a fresh attempt at the first Step and keeps previous attempt records.
 
-Each Sprint has a canonical Runner URL based on its WordPress slug.
+= Can I customise the experience? =
 
-= Does Sprint Engine save user progress? =
+Yes. In **Sprints → Settings → Runner Branding**, apply your logo, colours and typography. Choose the website font, the system default or one of five locally hosted fonts. You can also choose how to celebrate completion and direct participants to their next action.
 
-Yes.
+= Who can create Sprints? =
 
-Sprint Engine stores progress for logged-in WordPress users, including the Sprint they have started, their current Step, completed Steps and completion status.
+Sprint authoring in Core is intended for WordPress administrators.
 
-= Can users leave a Sprint and continue later? =
+= Why won't my Sprint launch? =
 
-Yes.
+Make sure the Sprint is published and marked Launchable, has at least one Step, has a valid saved Step order and has every associated Step published. After a permalink change, saving WordPress Permalink settings can rebuild the Runner routes.
 
-Progress is saved against the logged-in WordPress user. Returning to the same Sprint allows the user to resume their progress.
+= What happens to my data if I deactivate or uninstall? =
 
-= Does Sprint Engine include memberships, subscriptions or payments? =
-
-No.
-
-Sprint Engine focuses on the Sprint authoring and Runner experience.
-
-Access control is separated from the Sprint content and progress system so additional membership, commerce or access integrations can be added separately.
-
-= Can I customise the Runner? =
-
-Yes.
-
-Sprint Engine includes site-wide Runner branding settings for:
-
-* Logo
-* Primary colour
-* Primary button text colour
-* Background colour
-* Surface colour
-* Text colour
-* Muted text colour
-* Corner style
-
-= Can individual Steps have featured images? =
-
-Yes.
-
-A Sprint featured image can appear on the Start and Completion screens.
-
-A Step can also have its own featured image. A Step without an image does not automatically inherit the Sprint image.
-
-= Can I add a next action after somebody completes a Sprint? =
-
-Yes.
-
-Each Sprint can have a custom completion message and an optional button linking to a full HTTP or HTTPS URL.
-
-This can be used to direct users to another Sprint, a feedback form, a booking page or another next step.
-
-= Can I create branching or conditional Sprints? =
-
-Not in version 0.2.2.
-
-The current release intentionally supports a single linear Step sequence.
-
-= Who can create and manage Sprints? =
-
-In version 0.2.2, Sprint authoring is intended for WordPress administrators.
-
-Custom authoring roles and capabilities are not currently included.
-
-= What happens if I deactivate Sprint Engine? =
-
-Deactivation does not delete your Sprint content, progress records or Sprint Engine settings.
-
-Reactivating the plugin allows that data to be used again.
-
-= What happens if I uninstall Sprint Engine? =
-
-Version 0.2.2 intentionally retains Sprint content, progress data and plugin settings when the plugin is uninstalled.
-
-If you need to permanently remove stored Sprint Engine data, make an appropriate database backup and remove the data manually.
-
-= What data does Sprint Engine store? =
-
-Sprint Engine stores Sprint and Step content using WordPress content and metadata.
-
-It also stores progress records associated with WordPress user IDs, including enrolment status, current Step, Step completion state and relevant timestamps.
-
-Sprint Engine does not require an external service to provide its core Sprint and progress functionality.
-
-= Why is my Sprint not available in the Runner? =
-
-Check that:
-
-* The Sprint is published
-* The Sprint contains at least one Step
-* The Steps form a valid saved order
-* Every associated Step is Published (Draft, Pending, Private and Scheduled Steps prevent launch)
-* The Sprint is marked Launchable
-
-If you have recently changed permalink settings or are seeing a Runner 404, saving WordPress Permalink settings once may rebuild the required rewrite rules.
-
-= Can I restart a completed Sprint? =
-
-Yes. Choose Restart Sprint on the Completion screen and confirm. A new attempt starts at the first current Step, and your previous completed attempt is kept. Starting over during an active attempt and viewing attempt history are not included yet.
+Sprint Engine retains Sprint content, settings and progress records on deactivation and uninstall. Back up your database before manually deleting stored data.
 
 == Screenshots ==
 
-1. Create a Sprint using the WordPress block editor, with introduction content, estimated duration and setup guidance.
-2. Build and organise the journey using Sprint Structure, with Step ordering and publication status visible.
-3. Edit individual Steps using the WordPress block editor, including stage labels, duration and Step settings.
-4. Guide participants through one Step at a time using the distraction-free Sprint Runner.
-5. Track available and in-progress Sprints from the My Sprints Dashboard, with saved progress and resume actions.
+1. **Create a guided programme.** Turn content or a proven process into a focused Sprint.
+2. **Shape the journey.** Arrange Steps into a clear path towards an outcome.
+3. **Make every Step meaningful.** Combine instructions, resources and activities.
+4. **Keep participants moving.** Deliver a focused, step-by-step experience in the Sprint Runner.
+5. **Make progress visible.** Give participants one place to start, continue and revisit Sprints.
 
 == Privacy and Data ==
 
-Sprint Engine stores progress against logged-in WordPress user IDs.
+Sprint and Step content is stored as WordPress content and metadata. Progress records are associated with logged-in WordPress user IDs and may include Sprint and attempt IDs, current Step, Step completion state, Sprint status, and start, activity and completion timestamps.
 
-Progress records may include:
+The My Sprints dashboard presents existing content and progress data. Core authoring, Runner and progress functionality run within WordPress. Bundled fonts are served by your site. With the website font selected, Sprint Engine can use the theme's locally hosted font. Content you embed from other services may make its own requests.
 
-* Sprint ID
-* Attempt ID and sequential attempt number
-* Current Step ID
-* Sprint status
-* Step completion status
-* Start time
-* Last activity time
-* Completion time
-
-The member Dashboard derives its display from existing content and progress. It introduces no new stored personal data.
-
-Sprint Engine also stores Sprint and Step configuration as WordPress content and metadata.
-
-The core plugin does not require a third-party service to provide Sprint authoring, Runner or progress functionality.
-
-Sprint Engine retains its content, settings and progress data when deactivated and when uninstalled in version 0.2.2.
-
-Site owners are responsible for determining how their use of Sprint Engine relates to their own privacy policy, data-retention obligations and applicable laws.
+Core retains content, settings and progress on deactivation and uninstall. Site owners should address this in their privacy and data-retention policies.
 
 == Changelog ==
+
+= 0.2.3 =
+
+* Preview Steps in the block editor, including draft Steps and Steps in unpublished Sprints.
+* Use your website font, the system default or one of five locally hosted fonts.
+* Return to the website from the Sprint Runner and My Sprints using the linked logo or the Back to website link.
+* Restart an in-progress Sprint while preserving previous attempts.
+* Resume at the next incomplete Step when a Sprint's Steps are added, removed or reordered.
+* Add Dashboard and completion hooks for integrations.
+* Integrations that complete Steps or restart Sprints must now submit the attempt ID captured when the participant opened the view.
+* Keep database schema 2. Existing installations require no data migration.
 
 = 0.2.2 =
 
