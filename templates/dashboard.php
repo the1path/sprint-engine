@@ -94,13 +94,26 @@ $sprint_engine_sections = array(
 										<p class="se-dashboard__muted"><?php esc_html_e( 'All Steps complete — 100%', 'sprint-engine' ); ?></p>
 									<?php endif; ?>
 									<div class="se-dashboard__actions">
+										<div class="se-dashboard__action-row">
+											<?php if ( 'completed' === $sprint_engine_state ) : ?>
+												<button class="se-dashboard__button" type="button" data-sprint-engine-restart data-attempt-id="<?php echo esc_attr( $sprint_engine_item['attempt_id'] ); ?>" data-endpoint="<?php echo esc_url( rest_url( 'sprint-engine/v1/sprints/' . $sprint_engine_item['sprint_id'] . '/restart' ) ); ?>" data-runner-url="<?php echo esc_url( $sprint_engine_item['runner_url'] ); ?>" aria-describedby="se-dashboard-status-<?php echo esc_attr( $sprint_engine_item['sprint_id'] ); ?>"><?php esc_html_e( 'Restart Sprint', 'sprint-engine' ); ?></button>
+											<?php else : ?>
+												<a class="se-dashboard__button" href="<?php echo esc_url( $sprint_engine_item['runner_url'] ); ?>"><?php echo esc_html( 'in_progress' === $sprint_engine_state ? __( 'Continue Sprint', 'sprint-engine' ) : __( 'Start Sprint', 'sprint-engine' ) ); ?></a>
+											<?php endif; ?>
+											<?php
+											/**
+											 * Render secondary actions alongside the authorized card's primary Sprint control.
+											 *
+											 * @param array  $item Existing safe Dashboard item for the current member.
+											 * @param string $state Canonical display state: in_progress, not_started or completed.
+											 */
+											do_action( 'sprint_engine/dashboard_card_actions', $sprint_engine_item, $sprint_engine_state ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Trusted callbacks escape their own output.
+											?>
+										</div>
 										<?php if ( 'completed' === $sprint_engine_state ) : ?>
-											<button class="se-dashboard__button" type="button" data-sprint-engine-restart data-attempt-id="<?php echo esc_attr( $sprint_engine_item['attempt_id'] ); ?>" data-endpoint="<?php echo esc_url( rest_url( 'sprint-engine/v1/sprints/' . $sprint_engine_item['sprint_id'] . '/restart' ) ); ?>" data-runner-url="<?php echo esc_url( $sprint_engine_item['runner_url'] ); ?>" aria-describedby="se-dashboard-status-<?php echo esc_attr( $sprint_engine_item['sprint_id'] ); ?>"><?php esc_html_e( 'Restart Sprint', 'sprint-engine' ); ?></button>
 											<a href="<?php echo esc_url( $sprint_engine_item['runner_url'] ); ?>"><?php esc_html_e( 'View Completed Sprint', 'sprint-engine' ); ?></a>
 											<p id="se-dashboard-status-<?php echo esc_attr( $sprint_engine_item['sprint_id'] ); ?>" role="status" aria-live="polite" aria-atomic="true"></p>
 											<noscript><p><?php esc_html_e( 'JavaScript is required to restart this Sprint.', 'sprint-engine' ); ?></p></noscript>
-										<?php else : ?>
-											<a class="se-dashboard__button" href="<?php echo esc_url( $sprint_engine_item['runner_url'] ); ?>"><?php echo esc_html( 'in_progress' === $sprint_engine_state ? __( 'Continue Sprint', 'sprint-engine' ) : __( 'Start Sprint', 'sprint-engine' ) ); ?></a>
 										<?php endif; ?>
 									</div>
 									<?php if ( 'completed' === $sprint_engine_state && is_user_logged_in() ) : ?>
