@@ -45,6 +45,7 @@ body.se-runner {
 .se-runner a:hover { text-decoration-thickness: 2px; }
 .se-runner :focus-visible { outline: 3px solid #245dd1; outline-offset: 4px; }
 .se-runner .se-runner__intro, .se-runner .se-runner__save-note { color: var(--se-muted); }
+.se-runner .se-runner__preview-note { margin: 0; max-width: 26rem; color: var(--se-muted); font-size: .875rem; }
 .se-runner .se-runner__label { margin: 0 0 .5rem; color: var(--se-label); font-size: .8rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
 .se-runner .se-runner__metadata { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-bottom: 1.5rem; color: var(--se-muted); font-size: .875rem; }
 .se-runner .se-runner__task { padding: .75rem 1rem; border-left: 3px solid var(--se-accent); background: var(--se-task); }

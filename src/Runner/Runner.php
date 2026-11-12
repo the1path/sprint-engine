@@ -119,7 +119,7 @@ final class Runner {
 		);
 		if ( 'not_started' === $state['status'] ) {
 			$context['duration'] = Meta::sprint_duration( $sprint->ID );
-			$context['overview'] = '' !== $sprint->post_excerpt ? wpautop( esc_html( $sprint->post_excerpt ) ) : $this->content( $sprint );
+			$context['overview'] = '' !== $sprint->post_excerpt ? wpautop( esc_html( $sprint->post_excerpt ) ) : Presentation::content( $sprint );
 		} elseif ( 'in_progress' === $state['status'] ) {
 			$step = $state['current_step_id'];
 			if ( ! is_int( $step ) || ! Meta::belongs_to( $step, $sprint->ID ) ) {
@@ -134,15 +134,11 @@ final class Runner {
 			$index = array_search( $step, $order, true );
 			// Presentation only: never use position to select or advance the current Step.
 			$valid           = false !== $index && count( $order ) === $state['total_steps'] && StructureManager::is_linear( $sprint->ID );
-			$context['step'] = array(
-				'id'                => $step,
-				'title'             => $post->post_title,
-				'stage'             => $meta['_sprint_engine_stage_label'],
-				'mode'              => 'task' === $meta['_sprint_engine_mode'] ? 'task' : 'content',
-				'estimated_minutes' => $meta['_sprint_engine_estimated_minutes'],
-				'position'          => $valid ? $index + 1 : null,
-				'is_terminal'       => $valid && count( $order ) - 1 === $index && 0 === $meta['_sprint_engine_next_step_id'],
-				'content'           => $this->content( $post ),
+			$context['step'] = Presentation::step(
+				$post,
+				$meta,
+				$valid ? $index + 1 : null,
+				$valid && count( $order ) - 1 === $index && 0 === $meta['_sprint_engine_next_step_id']
 			);
 		} elseif ( 'completed' === $state['status'] ) {
 			$meta                  = Meta::read( $sprint->ID, 'sprint_engine_sprint' );
@@ -155,8 +151,7 @@ final class Runner {
 			return $this->unavailable( 503 );
 		}
 		$image_post                = 'in_progress' === $state['status'] ? $context['step']['id'] : $sprint->ID;
-		$image_id                  = get_post_thumbnail_id( $image_post );
-		$context['featured_image'] = $image_id && 'attachment' === get_post_type( $image_id ) && 'trash' !== get_post_status( $image_id ) && wp_attachment_is_image( $image_id ) ? wp_get_attachment_image( $image_id, 'large', false, array( 'class' => 'se-runner__featured-image' ) ) : '';
+		$context['featured_image'] = Presentation::featured_image( $image_post );
 		return $context;
 	}
 
@@ -242,8 +237,7 @@ final class Runner {
 			return;
 		}
 		if ( null !== Routes::slug() ) {
-			wp_enqueue_style( 'sprint-engine-runner', plugins_url( 'assets/css/runner.css', dirname( __DIR__, 2 ) . '/sprint-engine.php' ), array(), Assets::version( 'assets/css/runner.css' ) );
-			wp_add_inline_style( 'sprint-engine-runner', 'body.se-runner{' . \ThePath\SprintEngine\Settings\RunnerBranding::css() . '}' );
+			Presentation::enqueue_style();
 			if ( is_user_logged_in() && null !== $this->context && in_array( $this->context['state'], array( 'not_started', 'in_progress', 'completed' ), true ) ) {
 				$start   = 'not_started' === $this->context['state'];
 				$restart = 'completed' === $this->context['state'];
@@ -276,33 +270,6 @@ final class Runner {
 	 */
 	public function document_title( $title ) {
 		return null !== Routes::slug() && null !== $this->context ? ( $this->context['title'] ?? __( 'Sprint unavailable', 'sprint-engine' ) ) . ' — ' . get_bloginfo( 'name' ) : $title;
-	}
-
-	/**
-	 * Run normal Gutenberg/content filters with the correct temporary post context.
-	 *
-	 * @param \WP_Post $post Authorized content object.
-	 * @return string Rendered HTML.
-	 */
-	private function content( $post ) {
-		$globals = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
-		$saved   = array();
-		foreach ( $globals as $key ) {
-			$saved[ $key ] = array( array_key_exists( $key, $GLOBALS ), $GLOBALS[ $key ] ?? null );
-		}
-		$GLOBALS['post'] = $post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Scoped normal content rendering; restored below.
-		try {
-			setup_postdata( $post );
-			return apply_filters( 'the_content', $post->post_content );
-		} finally {
-			foreach ( $saved as $key => $value ) {
-				if ( $value[0] ) {
-					$GLOBALS[ $key ] = $value[1];
-				} else {
-					unset( $GLOBALS[ $key ] );
-				}
-			}
-		}
 	}
 
 	/**

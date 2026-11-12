@@ -34,6 +34,7 @@ final class Plugin {
 		( new \ThePath\SprintEngine\Dashboard\Routes() )->register_hooks();
 		( new \ThePath\SprintEngine\Dashboard\Dashboard() )->register_hooks();
 		( new Runner() )->register_hooks();
+		( new \ThePath\SprintEngine\Runner\StepPreview() )->register_hooks();
 		( new \ThePath\SprintEngine\Rest\Controller() )->register_hooks();
 		add_action( 'init', array( $this, 'maybe_upgrade' ), 5 );
 		add_action( 'init', array( __CLASS__, 'register_post_types' ) );
