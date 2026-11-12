@@ -5,6 +5,9 @@
  * @package SprintEngine
  */
 
+use ThePath\SprintEngine\Presentation\WebsiteNavigation;
+use ThePath\SprintEngine\Settings\RunnerBranding;
+
 defined( 'ABSPATH' ) || exit;
 
 $sprint_engine_context = get_query_var( 'sprint_engine_runner_context', array() );
@@ -26,10 +29,9 @@ $sprint_engine_is_preview = 'preview' === $sprint_engine_context['state'];
 <?php wp_body_open(); ?>
 <a class="se-runner__skip" href="#se-runner-main"><?php esc_html_e( 'Skip to Sprint content', 'sprint-engine' ); ?></a>
 <div class="se-runner__shell">
-	<?php $sprint_engine_logo = \ThePath\SprintEngine\Settings\RunnerBranding::logo(); ?>
 	<?php if ( $sprint_engine_is_preview ) : ?>
 	<div class="se-runner__utility">
-		<?php echo $sprint_engine_logo; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core attachment helper escapes markup. ?>
+		<?php echo RunnerBranding::logo(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core attachment helper escapes markup. ?>
 		<p class="se-runner__preview-note">
 			<strong><?php esc_html_e( 'Preview Mode', 'sprint-engine' ); ?></strong><br>
 			<?php echo esc_html( $sprint_engine_context['autosaved'] ? __( 'Showing autosaved title and content. Step settings and featured image are from the last save.', 'sprint-engine' ) : __( 'Showing saved Step content and settings.', 'sprint-engine' ) ); ?>
@@ -37,11 +39,7 @@ $sprint_engine_is_preview = 'preview' === $sprint_engine_context['state'];
 	</div>
 	<?php else : ?>
 	<nav class="se-runner__utility" aria-label="<?php esc_attr_e( 'Sprint navigation', 'sprint-engine' ); ?>">
-		<?php if ( '' !== $sprint_engine_logo ) : ?>
-			<a class="se-runner__logo-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Go to website homepage', 'sprint-engine' ); ?>">
-				<?php echo $sprint_engine_logo; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core attachment helper escapes markup. ?>
-			</a>
-		<?php endif; ?>
+		<?php WebsiteNavigation::logo(); ?>
 		<?php // Save & Exit retains already-persisted progress; this link performs no save write. ?>
 		<?php if ( is_user_logged_in() && 'in_progress' === $sprint_engine_context['state'] ) : ?>
 			<button class="se-runner__button se-runner__button--secondary" type="button" id="se-runner-restart" aria-haspopup="dialog" aria-controls="se-restart-dialog" aria-describedby="se-runner-status"><?php esc_html_e( 'Restart Sprint', 'sprint-engine' ); ?></button>
@@ -179,11 +177,11 @@ $sprint_engine_is_preview = 'preview' === $sprint_engine_context['state'];
 			</div>
 		<?php endif; ?>
 	</main>
-	<?php if ( ! $sprint_engine_is_preview ) : ?>
-		<footer class="se-runner__footer">
-			<a class="se-runner__website-link" href="<?php echo esc_url( home_url( '/' ) ); ?>"><span aria-hidden="true">←</span> <?php esc_html_e( 'Back to website', 'sprint-engine' ); ?></a>
-		</footer>
-	<?php endif; ?>
+	<?php
+	if ( ! $sprint_engine_is_preview ) {
+		WebsiteNavigation::footer();
+	}
+	?>
 </div>
 <?php if ( is_user_logged_in() && 'in_progress' === $sprint_engine_context['state'] ) : ?>
 	<dialog class="se-runner__restart-dialog" id="se-restart-dialog" aria-labelledby="se-restart-title" aria-describedby="se-restart-description">

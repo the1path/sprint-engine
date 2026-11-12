@@ -50,7 +50,7 @@ function sprint_engine_runner_shell( $html ) {
 	return preg_replace( '/>\s+</', '><', $match[0] ?? '' );
 }
 function sprint_engine_runner_has_website_footer( $html ) {
-	return 1 === preg_match( '/<\/main>\s*<footer class="se-runner__footer">\s*<a[^>]+href="' . preg_quote( esc_url( home_url( '/' ) ), '/' ) . '"[^>]*>[^\n]*Back to website<\/a>/', $html );
+	return 1 === preg_match( '/<\/main>\s*<footer class="se-website-navigation">\s*<a[^>]+href="' . preg_quote( esc_url( home_url( '/' ) ), '/' ) . '"[^>]*>[^\n]*Back to website<\/a>/', $html );
 }
 function sprint_engine_runner_rows( $user, $sprint ) {
 	global $wpdb;
@@ -341,7 +341,7 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
 	sprint_engine_runner_check( 302 === wp_remote_retrieve_response_code( $response ), 'HTTP anonymous canonical request redirects to login.' );
 	parse_str( wp_parse_url( wp_remote_retrieve_header( $response, 'location' ), PHP_URL_QUERY ), $return_query );
 	sprint_engine_runner_check( Routes::url( $slug ) === $return_query['redirect_to'], 'HTTP login redirect preserves full canonical return destination.' );
-	sprint_engine_runner_check( ! str_contains( wp_remote_retrieve_body( $response ), 'SECRET' ) && ! str_contains( wp_remote_retrieve_body( $response ), 'se-runner__footer' ), 'HTTP anonymous redirect renders neither Step content nor website navigation.' );
+	sprint_engine_runner_check( ! str_contains( wp_remote_retrieve_body( $response ), 'SECRET' ) && ! str_contains( wp_remote_retrieve_body( $response ), 'se-website-navigation' ), 'HTTP anonymous redirect renders neither Step content nor website navigation.' );
 	$response = sprint_engine_runner_http( $path, $outsider ); $body = wp_remote_retrieve_body( $response );
 	sprint_engine_runner_check( 200 === wp_remote_retrieve_response_code( $response ) && str_contains( $body, 'Ready to start' ) && ! str_contains( $body, 'STEP SECRET' ), 'HTTP authenticated unstarted user sees standalone Start state.' );
 	sprint_engine_runner_check( array( array(), array() ) === sprint_engine_runner_rows( $outsider, $sprint ), 'Actual HTTP Start page creates no progress.' );
@@ -363,7 +363,7 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
 	$response = sprint_engine_runner_http( '/?sprint_engine_sprint_slug=' . $slug . '&step_id=' . $steps[0], $user );
 	sprint_engine_runner_check( ! str_contains( wp_remote_retrieve_body( $response ), 'var sprintEngineRunner' ) && ! str_contains( wp_remote_retrieve_body( $response ), 'STEP SECRET' ), 'HTTP query flag cannot invoke Runner on the homepage.' );
 	$response = sprint_engine_runner_http( '/' );
-	sprint_engine_runner_check( ! str_contains( wp_remote_retrieve_body( $response ), 'assets/css/runner.css' ), 'HTTP unrelated homepage does not enqueue Runner CSS.' );
+	sprint_engine_runner_check( ! str_contains( wp_remote_retrieve_body( $response ), 'assets/css/runner.css' ) && ! str_contains( wp_remote_retrieve_body( $response ), 'assets/css/website-navigation.css' ), 'HTTP unrelated homepage does not enqueue Runner or website navigation CSS.' );
 } else {
 	echo "SKIP: HTTP smoke checks; set SE_TEST_HTTP_BASE to the disposable loopback server.\n";
 }

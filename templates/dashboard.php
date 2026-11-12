@@ -5,6 +5,8 @@
  * @package SprintEngine
  */
 
+use ThePath\SprintEngine\Presentation\WebsiteNavigation;
+
 defined( 'ABSPATH' ) || exit;
 
 $sprint_engine_context = get_query_var( 'sprint_engine_dashboard_context', array() );
@@ -31,7 +33,7 @@ $sprint_engine_sections = array(
 <a class="se-dashboard__skip" href="#se-dashboard-main"><?php esc_html_e( 'Skip to My Sprints', 'sprint-engine' ); ?></a>
 <div class="se-dashboard__shell">
 	<header class="se-dashboard__header">
-		<?php echo \ThePath\SprintEngine\Settings\RunnerBranding::logo(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core attachment helper escapes image markup. ?>
+		<?php WebsiteNavigation::logo(); ?>
 		<h1><?php esc_html_e( 'My Sprints', 'sprint-engine' ); ?></h1>
 		<p><?php esc_html_e( 'Choose a Sprint to start, continue where you left off, or revisit something you have completed.', 'sprint-engine' ); ?></p>
 		<?php do_action( 'sprint_engine/dashboard_header_actions', $sprint_engine_context ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Intentional public extension seam; callbacks escape their own output. ?>
@@ -134,6 +136,7 @@ $sprint_engine_sections = array(
 			<?php endforeach; ?>
 		<?php endif; ?>
 	</main>
+	<?php WebsiteNavigation::footer(); ?>
 </div>
 <?php wp_footer(); ?>
 </body>

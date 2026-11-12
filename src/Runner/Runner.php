@@ -11,6 +11,7 @@ use ThePath\SprintEngine\Access\AccessManager;
 use ThePath\SprintEngine\Assets;
 use ThePath\SprintEngine\Content\Meta;
 use ThePath\SprintEngine\Content\StructureManager;
+use ThePath\SprintEngine\Presentation\WebsiteNavigation;
 use ThePath\SprintEngine\Progress\ProgressService;
 
 defined( 'ABSPATH' ) || exit;
@@ -238,6 +239,7 @@ final class Runner {
 		}
 		if ( null !== Routes::slug() ) {
 			Presentation::enqueue_style();
+			WebsiteNavigation::enqueue_style();
 			if ( is_user_logged_in() && null !== $this->context && in_array( $this->context['state'], array( 'not_started', 'in_progress', 'completed' ), true ) ) {
 				$start   = 'not_started' === $this->context['state'];
 				$restart = 'completed' === $this->context['state'];
