@@ -20,6 +20,9 @@ defined( 'ABSPATH' ) || exit;
 /** Composes existing access and canonical state without writing member progress. */
 final class Dashboard {
 
+	/** The built-in template provides the dashboard_card_actions hook. */
+	public const SUPPORTS_CARD_ACTIONS = true;
+
 	/**
 	 * Access boundary.
 	 *

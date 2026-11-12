@@ -18,6 +18,7 @@ body.se-dashboard .se-dashboard__card-content { padding: 1.5rem; }
 body.se-dashboard .se-dashboard__label { color: var(--se-label); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 body.se-dashboard .se-dashboard__muted { font-size: .875rem; }
 body.se-dashboard .se-dashboard__actions { display: flex; align-items: flex-start; flex-direction: column; gap: .75rem; margin-top: 1.5rem; }
+body.se-dashboard .se-dashboard__action-row { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; align-self: stretch; }
 body.se-dashboard .se-dashboard__actions p { margin: 0; font-size: .875rem; }
 body.se-dashboard .se-dashboard__actions [role="status"]:empty { display: none; }
 body.se-dashboard a { color: var(--se-link); text-underline-offset: .2em; }

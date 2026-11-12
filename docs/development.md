@@ -388,9 +388,9 @@ unchanged; ordinary requests do
 not flush them. Core 0.2.3 development retains schema 2 and adds no storage migration.
 See [SE-013 validation](validation/se-013.md) for evidence and limitations.
 
-### Dashboard presentation hooks (SE-021, unreleased Core 0.2.3)
+### Dashboard presentation hooks (unreleased Core 0.2.3)
 
-The built-in template provides three additive presentation hooks, only inside an
+The built-in template provides these additive presentation hooks inside an
 authenticated, successfully resolved `ready` Dashboard render:
 
 - `do_action( 'sprint_engine/dashboard_before_sprint_sections', $context )`
@@ -414,16 +414,28 @@ authenticated, successfully resolved `ready` Dashboard render:
   `$state` is its canonical display state (`in_progress`, `not_started`,
   `completed`). Invocation follows the existing section/card order. Excluded or
   inaccessible Sprints receive no call; private Step instructions are not supplied.
+- `do_action( 'sprint_engine/dashboard_card_actions', $item, $state )` fires once
+  for each rendered card with the same item and state as `dashboard_card_context`.
+  It runs inside `.se-dashboard__actions`, in the wrapping row after the primary
+  Start, Continue or Restart control. The completed Sprint link and restart status
+  follow that row. Trusted callbacks may echo escaped secondary actions and
+  must independently authorize their destinations.
 
 No new hook runs for login/error contexts, even if a partial context contains
-sections. With no listeners there is no additional markup or wrapper and the
-default Dashboard presentation is unchanged. Header/title/navigation, skip link,
-main landmark, card controls, sorting, branding and private/no-store/noindex
+sections. Without listeners the default Dashboard presentation is unchanged.
+Header/title/navigation, skip link, main landmark, card controls, sorting,
+branding and private/no-store/noindex
 handling remain intact. `dashboard_header_actions` retains its header placement
 and established error-context behavior; `dashboard_completed_card_actions` still
 runs after completed-card controls. Existing template overrides own placement of
 all presentation actions; `dashboard_items` and template/context contracts are
 unchanged. Existing extensions do not need to adopt the new hooks.
+
+After plugins load, check for
+`ThePath\SprintEngine\Dashboard\Dashboard::SUPPORTS_CARD_ACTIONS` before using
+`dashboard_card_actions`. Core defines this constant as `true` in builds that
+provide the hook in the built-in template. This distinguishes builds with the
+same version metadata.
 
 These hooks do not authorize access, grant entitlement, read History, create
 attempts or change progress. Core's coordinator still owns Sprint authentication,

@@ -151,6 +151,33 @@ sprint_engine_dashboard_check(preg_replace('/>\s+</', '><', sprint_engine_dashbo
 remove_action('sprint_engine/dashboard_completed_card_actions', $card_listener);
 sprint_engine_dashboard_check(sprint_engine_dashboard_shell($html) === sprint_engine_dashboard_shell(sprint_engine_dashboard_html($context)), 'Without a completed-card listener the Dashboard shell is unchanged.');
 sprint_engine_dashboard_check($before === sprint_engine_dashboard_rows(), 'Exact enrolment and Step progress rows/timestamps unchanged by resolve and render.');
+$action_calls = array();
+$action_listener = static function (...$args) use (&$action_calls) {
+    $action_calls[] = $args;
+    echo '<a class="card-action-test" href="' . esc_url(home_url('/extension/')) . '">Open extension</a>';
+};
+add_action('sprint_engine/dashboard_card_actions', $action_listener, 10, 99);
+$action_html = sprint_engine_dashboard_html($context);
+$expected_actions = array();
+foreach ($context['sections'] as $state => $items) {
+    foreach ($items as $item) {
+        $expected_actions[] = array($item, $state);
+    }
+}
+sprint_engine_dashboard_check(Dashboard::SUPPORTS_CARD_ACTIONS && $expected_actions === $action_calls, 'Advertised action hook fires once per rendered card with the same authorized item and display state.');
+preg_match_all('/<article.*?<\/article>/s', $action_html, $action_cards);
+foreach ($action_cards[0] as $card) {
+    preg_match('/<div class="se-dashboard__actions">\s*<div class="se-dashboard__action-row">(.*?)<\/div>/s', $card, $action_row);
+    sprint_engine_dashboard_check(1 === substr_count($card, 'class="card-action-test"') && preg_match('/class="se-dashboard__button".*?class="card-action-test"/s', $action_row[1] ?? ''), 'Secondary action follows the primary control inside the wrapping action row.');
+}
+$action_calls = array();
+sprint_engine_dashboard_html(array_merge($context, array('state' => 'error', 'message' => 'Unavailable')));
+wp_set_current_user(0);
+sprint_engine_dashboard_html($context);
+wp_set_current_user($user);
+remove_action('sprint_engine/dashboard_card_actions', $action_listener, 10);
+sprint_engine_dashboard_check(array() === $action_calls && $before === sprint_engine_dashboard_rows(), 'Ineligible contexts skip the action hook and rendering preserves exact attempts and progress.');
+
 // SE-021: realistic trusted consumers share request-local, already authorized data.
 $section_calls = $additional_calls = $context_calls = array();
 $has_additional = false;
