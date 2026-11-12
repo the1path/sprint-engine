@@ -591,19 +591,23 @@ package evidence above predates SE-018 and remains unchanged.
 
 Administrators can open **Sprints → Settings → Runner Branding** to choose an
 optional Media Library logo, primary/background/surface/text/muted colours and
-Square, Subtle, Soft or Rounded corners. The live preview updates before saving.
-Branding is **site-wide for every Sprint**. Primary-button text contrast is
+Square, Subtle, Soft or Rounded corners. Typography offers the website's
+declared body font, Sprint Engine's system default, or a locally bundled font.
+The live preview updates before saving. Branding is **site-wide for every Sprint**.
+Primary-button text contrast is
 automatic by default. Optional **Primary button text colour** accepts a six-digit
 hex value; clear it to restore Automatic. A preview warning flags poor button or
 text/background contrast without blocking saving. Arbitrary colours and authored block
 colours still need an accessibility review.
 
-The default Runner appearance is the default, with no saved option required.
-Save applies on the next Runner request. **Reset to defaults** deletes only
+New and existing installations without a saved font choice use **Use website
+font**. Core uses the system stack when it cannot resolve a supported website
+font. Select **System default** to keep the previous system typography.
+Save applies on the next application request. **Reset to defaults** deletes only
 `sprint_engine_runner_branding`; it never changes Sprint content or progress.
-No custom CSS, external fonts, per-Sprint themes or schema migration are added.
-See [se-008 validation](validation/se-008.md) for schema, CSS properties, validation and the
-remaining target host deployment checks.
+See [SE-008 validation](validation/se-008.md) for the original branding contract
+and [SE-024 validation](validation/se-024.md) for typography resolution, privacy
+and extension guidance.
 
 ## Compatibility decisions and limitations
 

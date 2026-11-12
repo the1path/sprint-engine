@@ -241,6 +241,7 @@ final class Dashboard {
 		$base = dirname( __DIR__, 2 ) . '/sprint-engine.php';
 		wp_enqueue_style( 'sprint-engine-dashboard', plugins_url( 'assets/css/dashboard.css', $base ), array(), Assets::version( 'assets/css/dashboard.css' ) );
 		wp_add_inline_style( 'sprint-engine-dashboard', 'body.se-dashboard{' . RunnerBranding::css() . '}' );
+		RunnerBranding::enqueue_fonts( 'sprint-engine-dashboard' );
 		if ( ! is_user_logged_in() || null === $this->context || 'ready' !== $this->context['state'] || empty( $this->context['sections']['completed'] ) ) {
 			return;
 		}

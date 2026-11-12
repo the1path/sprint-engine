@@ -79,5 +79,6 @@ final class Presentation {
 	public static function enqueue_style() {
 		wp_enqueue_style( 'sprint-engine-runner', plugins_url( 'assets/css/runner.css', dirname( __DIR__, 2 ) . '/sprint-engine.php' ), array(), Assets::version( 'assets/css/runner.css' ) );
 		wp_add_inline_style( 'sprint-engine-runner', 'body.se-runner{' . RunnerBranding::css() . '}' );
+		RunnerBranding::enqueue_fonts( 'sprint-engine-runner' );
 	}
 }

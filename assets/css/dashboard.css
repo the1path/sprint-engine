@@ -1,5 +1,5 @@
 /* Standalone member Dashboard; branding variables come from RunnerBranding. */
-body.se-dashboard { margin: 0; background: var(--se-background); color: var(--se-text); font: 1rem/1.7 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body.se-dashboard { margin: 0; background: var(--se-background); color: var(--se-text); font: 1rem/1.7 var(--se-font-family, system-ui); }
 body.se-dashboard *, body.se-dashboard *::before, body.se-dashboard *::after { box-sizing: border-box; }
 body.se-dashboard .se-dashboard__shell { width: min(100% - 3rem, 72rem); margin: 2rem auto 4rem; }
 body.se-dashboard .se-dashboard__header { max-width: 42rem; margin-bottom: 3rem; }
