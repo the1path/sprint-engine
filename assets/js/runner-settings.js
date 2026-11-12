@@ -58,6 +58,10 @@
         jQuery(input).wpColorPicker({change: (event, ui) => change(ui.color.toString()), clear: () => change(input.dataset.color === 'primary_text' ? '' : sprintEngineBranding.settings[input.dataset.color])});
     });
     document.getElementById('se-corner-style').addEventListener('change', event => { config.corner_style = event.target.value; update(); });
+    document.getElementById('se-branding-font').addEventListener('change', event => {
+        const option = event.target.selectedOptions[0];
+        if (option && option.dataset.fontFamily) preview.style.setProperty('--se-font-family', option.dataset.fontFamily);
+    });
     function logo(attachment) {
         document.getElementById('se-logo-id').value = attachment ? attachment.id : 0;
         ['se-logo-thumbnail', 'se-preview-logo'].forEach(id => {

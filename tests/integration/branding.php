@@ -1,6 +1,7 @@
 <?php
 /** SE-008 checks. Disposable WordPress only. */
 use ThePath\SprintEngine\Settings\RunnerBranding as Branding;
+use ThePath\SprintEngine\Settings\RunnerTypography;
 use ThePath\SprintEngine\Settings\SettingsPage;
 use ThePath\SprintEngine\Runner\Runner;
 $root = getenv( 'SE_TEST_WP_ROOT' );
@@ -28,10 +29,42 @@ $baseline = Branding::variables();
 foreach(array('primary'=>'#205b48','background'=>'#f3f6f5','surface'=>'#ffffff','text'=>'#203630','muted'=>'#50645d','accent'=>'#276a55','radius'=>'1rem','control-radius'=>'0.5rem') as $key=>$value) check_branding($baseline['--se-'.$key] === $value, 'Default '.$key);
 check_branding(Branding::logo() === '', 'Default has no broken image');
 remove_filter('sanitize_option_'.Branding::OPTION,array(Branding::class,'sanitize'));
-foreach(array('bad',array('primary'=>'#123456'),array('primary'=>array(),'corner_style'=>array(),'logo_id'=>array())) as $raw) {
- update_option(Branding::OPTION,$raw); $read=Branding::get(); check_branding(count($read)===8 && $read['surface']==='#ffffff','Corrupt/partial storage merged safely');
+foreach(array('bad',array('primary'=>'#123456'),array('primary'=>array(),'corner_style'=>array(),'logo_id'=>array(),'font'=>array()),array('font'=>'x;}body{display:none')) as $raw) {
+ update_option(Branding::OPTION,$raw); $read=Branding::get(); check_branding(array_keys($read) === array_keys(Branding::defaults()) && $read['surface']==='#ffffff' && $read['font']==='website','Corrupt or legacy storage defaults to website typography');
 }
 delete_option(Branding::OPTION); $page->register();
+update_option(Branding::OPTION, array('font'=>'system'));
+check_branding(Branding::variables()['--se-font-family'] === RunnerTypography::SYSTEM, 'System mode keeps the original stack');
+foreach (RunnerTypography::MANUAL as $slug=>$name) {
+    update_option(Branding::OPTION, array('font'=>$slug));
+    $resolved = RunnerTypography::resolve($slug);
+    check_branding(Branding::get()['font'] === $slug && str_contains(Branding::css(), '"Sprint Engine ' . $name . '", ' . RunnerTypography::SYSTEM) && str_contains($resolved['faces'], '/assets/fonts/' . $slug . '-latin-'), 'Manual font resolves to its bundled face and system fallback: ' . $name);
+}
+foreach (array(null,array(),'inherit','Poppins','https://example.invalid/font.woff2','x;}body{display:none') as $font) {
+    $GLOBALS['wp_settings_errors'] = array();
+    update_option(Branding::OPTION,array('font'=>$font));
+    check_branding(Branding::get()['font']==='lato' && count(get_settings_errors(Branding::OPTION))>0, 'Invalid typography retains the saved choice and reports an error');
+}
+update_option(Branding::OPTION, array('font'=>'website'));
+if ( class_exists( WP_Theme_JSON_Data::class ) ) {
+    $remote_theme = static fn( $data ) => $data->update_with( array(
+        'version' => 2,
+        'settings' => array( 'typography' => array( 'fontFamilies' => array(
+            array(
+                'slug' => 'se024-remote',
+                'name' => 'Remote Example',
+                'fontFamily' => 'Arial, serif',
+                'fontFace' => array( array( 'fontFamily' => 'Arial', 'src' => array( 'https://fonts.gstatic.com/example.woff2' ) ) ),
+            ),
+        ) ) ),
+        'styles' => array( 'typography' => array( 'fontFamily' => 'var:preset|font-family|se024-remote' ) ),
+    ) );
+    add_filter( 'wp_theme_json_data_theme', $remote_theme );
+    WP_Theme_JSON_Resolver::clean_cached_data();
+    check_branding( RunnerTypography::resolve('website') === array( 'family' => RunnerTypography::SYSTEM, 'faces' => '' ), 'A remote-only registered website face falls back without registering an external font' );
+    remove_filter( 'wp_theme_json_data_theme', $remote_theme );
+    WP_Theme_JSON_Resolver::clean_cached_data();
+}
 foreach(array('primary','primary_text','background','surface','text','muted') as $key) {
     update_option(Branding::OPTION, array($key=>'#Ab1234','evil'=>'body{}'));
     check_branding(Branding::get()[$key] === '#ab1234' && !isset(get_option(Branding::OPTION)['evil']), 'Save valid '.$key.' and strip unknown keys');
@@ -41,7 +74,7 @@ foreach(array('primary','primary_text','background','surface','text','muted') as
 foreach(array_keys(Branding::RADII) as $corner) { update_option(Branding::OPTION,array('corner_style'=>$corner)); check_branding(Branding::get()['corner_style'] === $corner, 'Corner '.$corner); }
 update_option(Branding::OPTION,array('corner_style'=>'99px;evil'));
 check_branding(Branding::get()['corner_style'] === 'rounded','Invalid corner retains prior value');
-foreach(array(null,'broken',array('primary'=>array()),array('logo_id'=>array()),array('primary'=>'#fff')) as $bad) { check_branding(count(Branding::sanitize($bad)) === 8, 'Malformed values safely normalized'); }
+foreach(array(null,'broken',array('primary'=>array()),array('logo_id'=>array()),array('primary'=>'#fff')) as $bad) { check_branding(array_keys(Branding::sanitize($bad)) === array_keys(Branding::defaults()), 'Malformed values safely normalized'); }
 update_option(Branding::OPTION,array('primary_text'=>'#123456'));
 check_branding(Branding::get()['primary_text'] === '#123456' && Branding::variables()['--se-on-primary'] === '#123456', 'Custom primary text is saved and emitted exactly');
 update_option(Branding::OPTION,array('primary_text'=>''));

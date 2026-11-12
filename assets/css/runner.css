@@ -26,7 +26,7 @@ body.se-runner {
 	padding: 0;
 	background: var(--se-background);
 	color: var(--se-text);
-	font: 1rem/1.7 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	font: 1rem/1.7 var(--se-font-family, system-ui);
 }
 .se-runner *, .se-runner *::before, .se-runner *::after { box-sizing: border-box; }
 .se-runner .se-runner__shell { width: min(100% - 2rem, 50rem); margin: 1rem auto 4rem; }
@@ -37,7 +37,8 @@ body.se-runner {
 .se-runner .se-runner__header { padding: 0 clamp(0rem, 2vw, 1rem) 2rem; }
 .se-runner .se-runner__main { padding: clamp(1.25rem, 5vw, 3rem); background: var(--se-surface); border: 1px solid var(--se-border); border-radius: var(--se-radius); }
 .se-runner .se-runner__featured-image { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 7; object-fit: cover; border-radius: var(--se-radius); margin-bottom: 1.5rem; }
-.se-runner h1, .se-runner h2, .se-runner h3, .se-runner h4 { color: inherit; font-family: inherit; line-height: 1.25; overflow-wrap: anywhere; }
+.se-runner h1, .se-runner h2, .se-runner h3, .se-runner h4 { color: inherit; line-height: 1.25; overflow-wrap: anywhere; }
+.se-runner :where(h1, h2, h3, h4) { font-family: inherit; }
 .se-runner h1 { margin: 0 0 .5rem; font-size: clamp(1.4rem, 4vw, 1.85rem); font-weight: 650; }
 .se-runner h2 { margin: 0 0 1.5rem; font-size: clamp(1.65rem, 5vw, 2.25rem); letter-spacing: -.025em; }
 .se-runner p, .se-runner figure { margin: 0 0 1.25rem; }
@@ -57,9 +58,12 @@ body.se-runner {
 .se-runner progress::-moz-progress-bar { background: var(--se-accent); border-radius: var(--se-radius); }
 .se-runner .se-runner__actions { border-top: 1px solid var(--se-border); margin-top: 2.5rem; padding-top: 1.75rem; }
 .se-runner .se-runner__save-note { font-size: .875rem; }
+.se-runner .se-runner__button { font: inherit; }
+/* Let typography declared on the block or link take precedence. */
+:where(.se-runner .wp-block-file__button, .se-runner .wp-block-button__link) { font: inherit; }
 .se-runner .se-runner__button, .se-runner .wp-block-file__button, .se-runner .wp-block-button__link {
 	display: inline-flex; align-items: center; justify-content: center; min-height: 48px; max-width: 100%; padding: .75rem 1.25rem;
-	border: 1px solid transparent; border-radius: var(--se-control-radius); font: inherit; font-weight: 650; line-height: 1.4; text-align: center;
+	border: 1px solid transparent; border-radius: var(--se-control-radius); font-size: inherit; font-weight: 650; line-height: 1.4; text-align: center;
 	white-space: normal; overflow-wrap: anywhere; text-decoration: none; cursor: pointer;
 }
 .se-runner .se-runner__button--primary { color: var(--se-on-primary); background: var(--se-primary); }

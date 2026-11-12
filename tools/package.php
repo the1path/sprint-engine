@@ -15,7 +15,7 @@ if ( true !== $zip->open( $root . '/dist/sprint-engine.zip', ZipArchive::CREATE 
 }
 $files = array( 'sprint-engine.php', 'uninstall.php', 'readme.txt', 'LICENSE' );
 
-foreach ( array( 'src' => array( 'php' ), 'templates' => array( 'php' ), 'assets' => array( 'js', 'css' ) ) as $directory => $extensions ) {
+foreach ( array( 'src' => array( 'php' ), 'templates' => array( 'php' ), 'assets' => array( 'js', 'css' ), 'assets/fonts' => array( 'woff2', 'txt' ) ) as $directory => $extensions ) {
 	foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root . '/' . $directory, FilesystemIterator::SKIP_DOTS ) ) as $file ) {
 		if ( $file->isLink() ) {
 			throw new RuntimeException( 'Runtime symlinks cannot be packaged.' );

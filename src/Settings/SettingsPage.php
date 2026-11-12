@@ -61,6 +61,7 @@ final class SettingsPage {
 		wp_enqueue_style( 'sprint-engine-branding-runner', plugins_url( 'assets/css/runner.css', $base ), array(), Assets::version( 'assets/css/runner.css' ) );
 		wp_enqueue_style( 'sprint-engine-runner-settings', plugins_url( 'assets/css/runner-settings.css', $base ), array( 'sprint-engine-branding-runner' ), Assets::version( 'assets/css/runner-settings.css' ) );
 		wp_add_inline_style( 'sprint-engine-runner-settings', '#se-branding-preview{' . RunnerBranding::css() . '}' );
+		RunnerBranding::enqueue_fonts( 'sprint-engine-runner-settings', true );
 		wp_enqueue_script( 'sprint-engine-runner-settings', plugins_url( 'assets/js/runner-settings.js', $base ), array( 'wp-color-picker', 'media-views' ), Assets::version( 'assets/js/runner-settings.js' ), true );
 		wp_localize_script(
 			'sprint-engine-runner-settings',
@@ -142,6 +143,21 @@ final class SettingsPage {
 						</select></td></tr>
 					</table>
 					<p id="se-color-help" class="description"><?php esc_html_e( 'Use six-digit hex colours, for example #205b48. Primary button text: Automatic when empty. Clear a custom value to restore automatic contrast.', 'sprint-engine' ); ?></p>
+					<h3><?php esc_html_e( 'Typography', 'sprint-engine' ); ?></h3>
+					<table class="form-table" role="presentation">
+						<tr><th scope="row"><label for="se-branding-font"><?php esc_html_e( 'Font', 'sprint-engine' ); ?></label></th><td>
+							<select id="se-branding-font" name="<?php echo esc_attr( RunnerBranding::OPTION ); ?>[font]" aria-describedby="se-font-help">
+								<option value="website" data-font-family="<?php echo esc_attr( RunnerTypography::resolve( 'website' )['family'] ); ?>" <?php selected( $config['font'], 'website' ); ?>><?php esc_html_e( 'Use website font', 'sprint-engine' ); ?></option>
+								<option value="system" data-font-family="<?php echo esc_attr( RunnerTypography::SYSTEM ); ?>" <?php selected( $config['font'], 'system' ); ?>><?php esc_html_e( 'System default', 'sprint-engine' ); ?></option>
+								<optgroup label="<?php esc_attr_e( 'Choose a font', 'sprint-engine' ); ?>">
+									<?php foreach ( RunnerTypography::MANUAL as $choice => $name ) : ?>
+										<option value="<?php echo esc_attr( $choice ); ?>" data-font-family="<?php echo esc_attr( RunnerTypography::resolve( $choice )['family'] ); ?>" <?php selected( $config['font'], $choice ); ?>><?php echo esc_html( $name ); ?></option>
+									<?php endforeach; ?>
+								</optgroup>
+							</select>
+							<p id="se-font-help" class="description"><?php esc_html_e( 'Website font uses the system default if the site font is unavailable. Fonts in the Choose a font group are served from this plugin.', 'sprint-engine' ); ?></p>
+						</td></tr>
+					</table>
 					<?php submit_button(); ?>
 				</form>
 				<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">

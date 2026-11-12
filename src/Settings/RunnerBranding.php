@@ -20,7 +20,7 @@ final class RunnerBranding {
 	);
 
 	/**
-	 * Built-in SE-007 appearance.
+	 * Built-in branding defaults.
 	 *
 	 * @return array
 	 */
@@ -34,6 +34,7 @@ final class RunnerBranding {
 			'text'         => '#203630',
 			'muted'        => '#50645d',
 			'corner_style' => 'soft',
+			'font'         => 'website',
 		);
 	}
 
@@ -92,6 +93,14 @@ final class RunnerBranding {
 			$fallback['corner_style'] = $input['corner_style'];
 		} elseif ( $report && array_key_exists( 'corner_style', $input ) ) {
 			add_settings_error( self::OPTION, 'sprint_engine_branding_corner_style', __( 'Corner style must be Square, Subtle, Soft or Rounded. The previous style was kept.', 'sprint-engine' ) );
+		}
+		if ( array_key_exists( 'font', $input ) ) {
+			$font = $input['font'];
+			if ( is_string( $font ) && ( 'website' === $font || 'system' === $font || isset( RunnerTypography::MANUAL[ $font ] ) ) ) {
+				$fallback['font'] = $font;
+			} elseif ( $report ) {
+				add_settings_error( self::OPTION, 'sprint_engine_branding_font', __( 'Choose a supported font. The previous font was kept.', 'sprint-engine' ) );
+			}
 		}
 		if ( array_key_exists( 'logo_id', $input ) ) {
 			$raw = $input['logo_id'];
@@ -180,6 +189,7 @@ final class RunnerBranding {
 			$vars['--se-label']          = self::mix( $config['primary'], self::foreground( $config['surface'] ), 0.25 );
 			$vars['--se-link']           = $vars['--se-label'];
 		}
+		$vars['--se-font-family'] = RunnerTypography::resolve( $config['font'] )['family'];
 		return $vars;
 	}
 
@@ -194,6 +204,23 @@ final class RunnerBranding {
 			$css .= $key . ':' . $value . ';';
 		}
 		return $css;
+	}
+
+	/**
+	 * Attach font faces to an already enqueued application stylesheet.
+	 *
+	 * @param string $handle WordPress style handle.
+	 * @param bool   $preview Include every choice for the live branding preview.
+	 */
+	public static function enqueue_fonts( string $handle, bool $preview = false ) {
+		$choices = $preview ? array_merge( array( 'website' ), array_keys( RunnerTypography::MANUAL ) ) : array( self::get()['font'] );
+		$css     = '';
+		foreach ( $choices as $choice ) {
+			$css .= RunnerTypography::resolve( $choice )['faces'];
+		}
+		if ( '' !== $css ) {
+			wp_add_inline_style( $handle, $css );
+		}
 	}
 
 	/**

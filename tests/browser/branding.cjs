@@ -5,7 +5,11 @@ const assert = require('node:assert/strict');
  const fixture=JSON.parse(fs.readFileSync(process.argv[2],'utf8').replace(/^\uFEFF/,''));
  assert(['localhost','127.0.0.1'].includes(new URL(fixture.url).hostname));
  const {variables}=require('../../assets/js/runner-settings.js');
- for(const model of fixture.models) assert.deepEqual(variables(model.config,{square:'0',subtle:'0.5rem',soft:'1rem',rounded:'1.5rem'}),model.variables);
+ for (const model of fixture.models) {
+   const colorAndCornerVariables = {...model.variables};
+   delete colorAndCornerVariables['--se-font-family'];
+   assert.deepEqual(variables(model.config,{square:'0',subtle:'0.5rem',soft:'1rem',rounded:'1.5rem'}),colorAndCornerVariables);
+ }
  const browser=await chromium.launch({channel:process.env.SE_BROWSER_CHANNEL||'chrome',headless:true});
  try {
  const context=await browser.newContext({viewport:{width:1440,height:1000}}); await context.addCookies(fixture.cookies);
