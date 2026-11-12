@@ -46,8 +46,11 @@ function sprint_engine_runner_html( $context ) {
 	return ob_get_clean();
 }
 function sprint_engine_runner_shell( $html ) {
-	preg_match( '/<div class="se-runner__shell">.*?<\/main>\s*<\/div>/s', $html, $match );
+	preg_match( '/<div class="se-runner__shell">.*?<\/main>.*?<\/div>/s', $html, $match );
 	return preg_replace( '/>\s+</', '><', $match[0] ?? '' );
+}
+function sprint_engine_runner_has_website_footer( $html ) {
+	return 1 === preg_match( '/<\/main>\s*<footer class="se-runner__footer">\s*<a[^>]+href="' . preg_quote( esc_url( home_url( '/' ) ), '/' ) . '"[^>]*>[^\n]*Back to website<\/a>/', $html );
 }
 function sprint_engine_runner_rows( $user, $sprint ) {
 	global $wpdb;
@@ -161,6 +164,7 @@ foreach ( array( false, null, 0, 1, 'true', '1', array( true ), new stdClass() )
 $gate_value = true; $gate_calls = array(); $denied_calls = array();
 $_REQUEST = array( 'sprint_id' => $other, 'attempt_id' => 999, 'attempt_number' => 99, 'user_id' => $outsider );
 $gateway = $runner->resolve( $slug ); $gateway_html = sprint_engine_runner_html( $gateway );
+sprint_engine_runner_check( sprint_engine_runner_has_website_footer( $denied_html ) && sprint_engine_runner_has_website_footer( $gateway_html ), 'Authenticated denial and anonymous gateway both offer a website homepage link below main.' );
 parse_str( wp_parse_url( $gateway['login_url'], PHP_URL_QUERY ), $gateway_query );
 sprint_engine_runner_check( 403 === $gateway['status'] && 'error' === $gateway['state'] && array( array( false, $sprint ) ) === $gate_calls && array( array( $sprint ) ) === $denied_calls && array() === $completed_calls && array() === $followup_calls, 'Anonymous opt-in uses the same recognised denial and only the path-resolved Sprint, ignoring supplied identities.' );
 sprint_engine_runner_check( $denied['message'] === $gateway['message'] && Routes::url( $slug ) === $gateway_query['redirect_to'] && str_contains( $gateway_html, '>Login</a>' ) && str_contains( $gateway_html, '<meta name="robots" content="noindex, nofollow">' ) && ! str_contains( $gateway_html, 'SECRET' ) && ! str_contains( $gateway_html, 'AUTHORIZED OVERVIEW' ) && ! isset( $gateway['progress'], $gateway['title'], $gateway['step'] ), 'Opted-in screen remains generic/noindex and offers login back to canonical Runner without private context.' );
@@ -295,6 +299,7 @@ $error_context = $runner->resolve( $slug );
 remove_filter( 'query', $failure );
 sprint_engine_runner_check( 503 === $error_context['status'] && ! str_contains( wp_json_encode( $error_context ), 'SECRET' ) && ! isset( $error_context['progress'] ), 'ProgressService failure becomes safe recoverable 503 context.' );
 $error_html = sprint_engine_runner_html( $error_context );
+sprint_engine_runner_check( sprint_engine_runner_has_website_footer( $error_html ), 'The recoverable 503 screen links to the website homepage below main.' );
 sprint_engine_runner_check( array() === $completed_calls && array() === $followup_calls && array() === $denied_calls && ! isset( $error_context['access_denied_sprint_id'] ), 'Persistence 503 is never treated as access denial.' );
 sprint_engine_runner_check( str_contains( $error_html, 'Try again' ) && str_contains( $error_html, 'Back to My Sprints' ) && ! str_contains( $error_html, 'STEP SECRET' ) && ! str_contains( $error_html, 'se-runner-action' ), 'Persistence error renders useful recovery and exit without content or a write control.' );
 remove_filter( 'the_content', $content_filter, 99 );
@@ -336,7 +341,7 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
 	sprint_engine_runner_check( 302 === wp_remote_retrieve_response_code( $response ), 'HTTP anonymous canonical request redirects to login.' );
 	parse_str( wp_parse_url( wp_remote_retrieve_header( $response, 'location' ), PHP_URL_QUERY ), $return_query );
 	sprint_engine_runner_check( Routes::url( $slug ) === $return_query['redirect_to'], 'HTTP login redirect preserves full canonical return destination.' );
-	sprint_engine_runner_check( ! str_contains( wp_remote_retrieve_body( $response ), 'SECRET' ), 'HTTP anonymous response reveals no Step content.' );
+	sprint_engine_runner_check( ! str_contains( wp_remote_retrieve_body( $response ), 'SECRET' ) && ! str_contains( wp_remote_retrieve_body( $response ), 'se-runner__footer' ), 'HTTP anonymous redirect renders neither Step content nor website navigation.' );
 	$response = sprint_engine_runner_http( $path, $outsider ); $body = wp_remote_retrieve_body( $response );
 	sprint_engine_runner_check( 200 === wp_remote_retrieve_response_code( $response ) && str_contains( $body, 'Ready to start' ) && ! str_contains( $body, 'STEP SECRET' ), 'HTTP authenticated unstarted user sees standalone Start state.' );
 	sprint_engine_runner_check( array( array(), array() ) === sprint_engine_runner_rows( $outsider, $sprint ), 'Actual HTTP Start page creates no progress.' );
@@ -349,6 +354,7 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
 	sprint_engine_runner_check( 200 === wp_remote_retrieve_response_code( $response ) && str_contains( wp_remote_retrieve_body( $response ), 'STEP SECRET CONTENT 2' ), 'HTTP route works without trailing slash and without theme canonical redirection.' );
 	$response = sprint_engine_runner_http( '/sprint/no-such-sprint/', $user );
 	sprint_engine_runner_check( 404 === wp_remote_retrieve_response_code( $response ) && str_contains( wp_remote_retrieve_body( $response ), 'Sprint unavailable' ), 'HTTP unknown Sprint renders safe standalone 404.' );
+	sprint_engine_runner_check( sprint_engine_runner_has_website_footer( wp_remote_retrieve_body( $response ) ), 'HTTP Runner 404 links to the website homepage below main.' );
 	wp_update_post( array( 'ID' => $steps[0], 'post_name' => 'private-step-' . $steps[0] ) );
 	foreach ( array( '%2fsecret', '..%5csecret', '%00bad', get_post_field( 'post_name', $steps[0] ) ) as $bad_slug ) {
 		$response = sprint_engine_runner_http( '/sprint/' . $bad_slug . '/', $user );

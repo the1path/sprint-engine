@@ -28,6 +28,7 @@ const assert = require('node:assert/strict');
     assert(await page.locator('.se-runner__skip').evaluate(el => el === document.activeElement));
     await page.keyboard.press('Enter');
     assert(await page.locator('#se-runner-main').evaluate(el => el === document.activeElement));
+    const websiteLink = page.getByRole('link', {name:'Back to website',exact:true});
     for (let state = 0; state <= 7; ++state) {
       await secondPage.goto(fixture.url);
       assert(await secondPage.getByText(state < 3 ? 'Ready to start' : 'Step 1 of 6', {exact:true}).isVisible());
@@ -36,9 +37,14 @@ const assert = require('node:assert/strict');
         await Promise.all([secondPage.waitForNavigation(), secondPage.locator('#se-runner-action').click()]);
         assert(await secondPage.getByText('Step 1 of 6', {exact:true}).isVisible());
       }
+      assert.equal(await websiteLink.getAttribute('href'), fixture.cookie.url);
+      assert.equal(await page.locator('main + footer').getByRole('link', {name:'Back to website',exact:true}).count(), 1);
       for (const width of [1440, 900, 390]) {
         await page.setViewportSize({width, height:900});
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Page overflow at state ${state}/${width}`);
+        const website = await websiteLink.boundingBox();
+        const main = await page.locator('#se-runner-main').boundingBox();
+        assert(website.y > main.y + main.height && Math.abs(website.x + website.width / 2 - width / 2) < 1);
         const banner = page.locator('.se-runner__featured-image');
         const hasBanner = state === 0 || state === 1 || state === 7;
         assert.equal(await banner.count(), hasBanner ? 1 : 0);

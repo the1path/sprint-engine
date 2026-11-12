@@ -17,6 +17,9 @@ const assert = require('node:assert/strict');
  const errors=[]; page.on('pageerror',error=>errors.push(error.message));
  async function styles(target,selector) { return target.locator(selector).evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,color:s.color,radius:s.borderRadius,accent:s.accentColor};}); }
  await runner.goto(fixture.runner);
+ const home = new URL(fixture.cookies[0].url).href;
+ const logoLink = runner.getByRole('link', {name:'Go to website homepage',exact:true});
+ const footerLink = runner.getByRole('link', {name:'Back to website',exact:true});
  assert.equal((await styles(runner,'body')).background,'rgb(243, 246, 245)');
  assert.equal((await styles(runner,'body')).color,'rgb(32, 54, 48)');
  assert.equal((await styles(runner,'.se-runner__main')).background,'rgb(255, 255, 255)');
@@ -24,6 +27,8 @@ const assert = require('node:assert/strict');
  assert.equal((await styles(runner,'.se-runner__button--primary')).background,'rgb(32, 91, 72)');
  assert.equal((await styles(runner,'progress')).accent,'rgb(39, 106, 85)');
  assert.equal(await runner.locator('.se-runner__logo').count(),0);
+ assert.equal(await logoLink.count(),0);
+ assert.equal(await footerLink.getAttribute('href'),home);
  await page.goto(fixture.url); await page.locator('#se-branding-preview').waitFor();
  // Missing save/reset nonce rejected by real WordPress handlers.
  let response=await context.request.post(new URL('admin-post.php',fixture.url).href,{form:{action:'sprint_engine_reset_branding'}}); assert.equal(response.status(),403);
@@ -80,6 +85,29 @@ const assert = require('node:assert/strict');
    return logo && logo.complete && logo.naturalWidth > 0;
  });
  assert(await runner.locator('.se-runner__logo').evaluate(el=>el.getBoundingClientRect().width<=180));
+ assert.equal(await logoLink.getAttribute('href'),home);
+ assert.equal(await logoLink.locator('img').count(),1);
+ assert.equal(await page.locator('#se-preview-logo').locator('a').count(),0);
+ const dashboardLink = runner.getByRole('link',{name:'Back to My Sprints',exact:true});
+ const dashboard = await context.newPage();
+ await dashboard.goto(await dashboardLink.getAttribute('href'));
+ assert.equal(await dashboard.locator('.se-runner__logo').count(),1);
+ assert.equal(await dashboard.locator('a:has(.se-runner__logo), .se-runner__footer').count(),0);
+ await dashboard.close();
+ const writes=[];
+ // Isolate link activation from the host theme's own homepage writes (such as creating a menu).
+ await runner.route(home,route=>route.fulfill({contentType:'text/html',body:'<p>Website homepage</p>'}));
+ runner.on('request',request=>{if(request.method()!=='GET') writes.push(request.url());});
+ await runner.keyboard.press('Tab');
+ assert(await runner.locator('.se-runner__skip').evaluate(el=>el===document.activeElement));
+ await runner.keyboard.press('Tab');
+ assert(await logoLink.evaluate(el=>el===document.activeElement && getComputedStyle(el).boxShadow!=='none'));
+ await Promise.all([runner.waitForURL(home),runner.keyboard.press('Enter')]);
+ await runner.goto(fixture.runner);
+ await footerLink.focus();
+ await Promise.all([runner.waitForURL(home),runner.keyboard.press('Enter')]);
+ assert.deepEqual(writes,[]);
+ await runner.goto(fixture.runner);
  const savedPrimary=await page.locator('#se-primary').inputValue();
  const savedCorner=await page.locator('#se-corner-style').inputValue();
  // Simulate malformed submissions without the preview repairing the input first.
