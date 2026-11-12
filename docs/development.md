@@ -487,6 +487,33 @@ Access integrations can supply an `AccessProvider` to `AccessManager` or use
 replacements must be readable PHP files under installed plugin/theme directories.
 See [se-004 validation](validation/se-004.md) for the context/API contract and remaining checks.
 
+### Administrator Step preview (SE-023)
+
+In Gutenberg, open **View → Preview Step** to render the Step in a new tab. In
+narrow editors and WordPress versions without the View menu extension point, use
+**Options → Preview Step**. A Step can be a draft and its Sprint can be unpublished.
+The preview uses the built-in Runner, including its saved branding, Stage, Task
+guidance, featured image and WordPress-rendered blocks. Step position appears
+only when the saved Sprint structure provides it.
+
+Preview Step uses WordPress autosave for edited titles and block content. WordPress
+may save an author's edits directly to their draft or keep them in a per-author
+autosave. Save the Step to include changes to the featured image, Sprint
+association, Stage, mode or estimated minutes. The Preview Mode notice identifies
+the content source.
+
+The private site-root request requires the current administrator's session nonce
+for that Step and the capability to edit it. The preview accepts an autosave only
+when it belongs to the current administrator and Step. The response uses
+private/no-store and noindex headers. Configure any cache that serves before
+WordPress to bypass requests with the `sprint_engine_step_preview` parameter.
+
+The preview shares the built-in Step presentation with the Runner. It has no
+participant state or progress controls. Blocks that require an active participant
+session, such as Pro Workspace, can show their normal unavailable state. See
+[SE-023 validation](validation/se-023.md) for the native editor integration and
+acceptance evidence.
+
 ### Presentation hooks (SE-017, Core 0.2.1)
 
 These extension points run in the built-in templates and never change entitlement
