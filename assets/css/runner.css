@@ -36,6 +36,8 @@ body.se-runner {
 .se-runner .se-runner__dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 1rem; }
 .se-runner .se-runner__header { padding: 0 clamp(0rem, 2vw, 1rem) 2rem; }
 .se-runner .se-runner__main { padding: clamp(1.25rem, 5vw, 3rem); background: var(--se-surface); border: 1px solid var(--se-border); border-radius: var(--se-radius); }
+.se-runner .se-runner__footer { margin-top: 1.5rem; text-align: center; font-size: .875rem; }
+.se-runner .se-runner__website-link { display: inline-block; padding-block: .25rem; color: var(--se-muted); overflow-wrap: anywhere; }
 .se-runner .se-runner__featured-image { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 7; object-fit: cover; border-radius: var(--se-radius); margin-bottom: 1.5rem; }
 .se-runner h1, .se-runner h2, .se-runner h3, .se-runner h4 { color: inherit; line-height: 1.25; overflow-wrap: anywhere; }
 .se-runner :where(h1, h2, h3, h4) { font-family: inherit; }
@@ -114,6 +116,8 @@ body.se-runner {
 }
 
 .se-runner .se-runner__logo { max-width: min(180px, 100%); max-height: 64px; width: auto; height: auto; object-fit: contain; margin-right: auto; }
+.se-runner .se-runner__logo-link { max-width: min(180px, 100%); margin-right: auto; }
+.se-runner .se-runner__logo-link .se-runner__logo { display: block; }
 .se-runner #se-preview-logo { margin-right: auto; }
 /* Two-tone focus stays visible on both light and dark brand surfaces. */
 .se-runner :focus-visible { box-shadow: 0 0 0 3px #fff, 0 0 0 7px #000; }
