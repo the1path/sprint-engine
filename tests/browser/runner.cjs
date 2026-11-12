@@ -29,6 +29,7 @@ const assert = require('node:assert/strict');
     await page.keyboard.press('Enter');
     assert(await page.locator('#se-runner-main').evaluate(el => el === document.activeElement));
     const websiteLink = page.getByRole('link', {name:'Back to website',exact:true});
+    const logoLink = page.getByRole('link', {name:'Go to website homepage',exact:true});
     for (let state = 0; state <= 7; ++state) {
       await secondPage.goto(fixture.url);
       assert(await secondPage.getByText(state < 3 ? 'Ready to start' : 'Step 1 of 6', {exact:true}).isVisible());
@@ -38,8 +39,9 @@ const assert = require('node:assert/strict');
         assert(await secondPage.getByText('Step 1 of 6', {exact:true}).isVisible());
       }
       assert.equal(await websiteLink.getAttribute('href'), fixture.cookie.url);
+      assert.equal(await logoLink.getAttribute('href'), fixture.cookie.url);
       assert.equal(await page.locator('main + footer').getByRole('link', {name:'Back to website',exact:true}).count(), 1);
-      for (const width of [1440, 900, 390]) {
+      for (const width of [1440, 768, 390, 320]) {
         await page.setViewportSize({width, height:900});
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Page overflow at state ${state}/${width}`);
         const website = await websiteLink.boundingBox();
@@ -110,7 +112,7 @@ const assert = require('node:assert/strict');
         await page.waitForFunction(() => !document.getElementById('se-runner-action').disabled);
         assert((await page.locator('#se-runner-status').innerText()).includes('Try again'));
         assert(await page.getByText('Step 1 of 6', {exact:true}).isVisible());
-        await page.screenshot({path:`${output}/recoverable-error-390.png`,fullPage:true});
+        await page.screenshot({path:`${output}/recoverable-error-320.png`,fullPage:true});
         await page.unroute(endpoint);
       }
       if (state === 2) {
@@ -156,7 +158,11 @@ const assert = require('node:assert/strict');
     for(let step=2;step<=6;step++) await Promise.all([page.waitForNavigation(),page.locator('#se-runner-action').click()]);
     assert(await page.getByRole('heading',{name:'Sprint complete',exact:true}).isVisible());assert(await page.getByText('You made it.',{exact:true}).isVisible());assert(await page.getByRole('link',{name:'Your next step',exact:true}).isVisible());assert(await page.getByRole('button',{name:'Restart Sprint',exact:true}).isVisible());
     for(const width of [1440,390]) {await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:output+'/attempt-2-completed-'+width+'.png',fullPage:true});}
+    const missing = await page.goto(new URL('sprint/website-navigation-missing/', fixture.cookie.url).href);
+    assert.equal(missing.status(),404);
+    assert.equal(await logoLink.getAttribute('href'), fixture.cookie.url);
+    assert.equal(await websiteLink.getAttribute('href'), fixture.cookie.url);
     console.log('PASS: Restart confirmation cancel/accept, Attempt 2 zero progress, canonical URL, exit/resume and completion; desktop/mobile completion.');
-    console.log('PASS: Eight Runner states at 1440/900/390px; computed button styles, independent users/nonces, browser restart, keyboard journey, exit/resume, canonical URL, focus, touch targets, media containment, custom completion CTA without writes.');
+    console.log('PASS: Eight Runner states at 1440/768/390/320px; homepage links, computed button styles, independent users/nonces, browser restart, keyboard journey, exit/resume, canonical URL, focus, touch targets, media containment, custom completion CTA without writes.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

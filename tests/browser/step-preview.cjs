@@ -57,7 +57,7 @@ const assert = require('node:assert/strict');
       assert.equal(await tab.locator('meta[name=robots]').first().getAttribute('content'), 'noindex, nofollow');
       assert(await tab.getByText('Preview Mode', { exact: true }).isVisible());
       assert.equal(await tab.locator('progress, #se-runner-action, #se-runner-restart, #se-restart-dialog').count(), 0);
-      assert.equal(await tab.locator('.se-runner__footer, a:has(.se-runner__logo)').count(), 0);
+      assert.equal(await tab.locator('.se-website-navigation, a:has(.se-runner__logo), #sprint-engine-website-navigation-css').count(), 0);
       assert.equal(await tab.locator('script[src*="assets/js/runner.js"]').count(), 0);
       return tab;
     }

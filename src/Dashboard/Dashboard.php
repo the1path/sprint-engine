@@ -10,6 +10,7 @@ namespace ThePath\SprintEngine\Dashboard;
 use ThePath\SprintEngine\Access\AccessManager;
 use ThePath\SprintEngine\Assets;
 use ThePath\SprintEngine\Content\Meta;
+use ThePath\SprintEngine\Presentation\WebsiteNavigation;
 use ThePath\SprintEngine\Progress\ProgressService;
 use ThePath\SprintEngine\Runner\Availability;
 use ThePath\SprintEngine\Runner\Routes as RunnerRoutes;
@@ -242,6 +243,7 @@ final class Dashboard {
 		wp_enqueue_style( 'sprint-engine-dashboard', plugins_url( 'assets/css/dashboard.css', $base ), array(), Assets::version( 'assets/css/dashboard.css' ) );
 		wp_add_inline_style( 'sprint-engine-dashboard', 'body.se-dashboard{' . RunnerBranding::css() . '}' );
 		RunnerBranding::enqueue_fonts( 'sprint-engine-dashboard' );
+		WebsiteNavigation::enqueue_style();
 		if ( ! is_user_logged_in() || null === $this->context || 'ready' !== $this->context['state'] || empty( $this->context['sections']['completed'] ) ) {
 			return;
 		}

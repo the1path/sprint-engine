@@ -9,8 +9,12 @@ const assert=require('node:assert/strict');
  try {
   const ctx=await browser.newContext();await ctx.addCookies([fixture.cookie]);const page=await ctx.newPage();
   const card=key=>page.locator('article').filter({has:page.locator(`#se-dashboard-title-${fixture.ids[key]}`)});
+  const website=page.getByRole('link',{name:'Back to website',exact:true});
+  const logo=page.getByRole('link',{name:'Go to website homepage',exact:true});
   const assertDashboard=async()=>{
    await page.goto(fixture.url);assert(await page.getByRole('heading',{name:'My Sprints',exact:true}).isVisible());
+   assert.equal(await website.getAttribute('href'),fixture.cookie.url);
+   assert.equal(await page.locator('main + footer').getByRole('link',{name:'Back to website',exact:true}).count(),1);
    assert.deepEqual(await page.locator('section > h2').allTextContents(),['In Progress','Available','Completed']);
    assert.equal(await page.locator('article').count(),3);assert.equal(await page.getByText('SE013 inaccessible private title').count(),0);assert.equal(await page.getByText('SE013 not launchable').count(),0);
    const html=await page.content();assert(!html.includes(fixture.urls.denied));assert(!html.includes(`se-dashboard-title-${fixture.ids.denied}`));
@@ -24,9 +28,16 @@ const assert=require('node:assert/strict');
    const button=card('active').getByRole('link',{name:'Continue Sprint'});
    assert.equal(await button.evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(72, 32, 112)');
    assert.equal(await button.evaluate(el=>getComputedStyle(el).color),'rgb(255, 255, 255)');
-   assert.equal(await page.locator('.se-runner__logo').count(),1);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-   await page.screenshot({path:`${output}/dashboard-branded-390.png`,fullPage:true});
-   console.log('PASS: Dashboard uses saved primary/primary text/background/surface/text/corner/logo branding at 390px.');
+   assert.equal(await logo.getAttribute('href'),fixture.cookie.url);
+   assert.equal(await logo.locator('.se-runner__logo').count(),1);
+   for(const width of [1440,768,390,320]) {
+    await page.setViewportSize({width,height:1000});
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    const main=await page.locator('main').boundingBox(), footer=await website.boundingBox();
+    assert(footer.y>main.y+main.height&&Math.abs(footer.x+footer.width/2-width/2)<1);
+    await page.screenshot({path:`${output}/dashboard-branded-${width}.png`,fullPage:true});
+   }
+   console.log('PASS: Dashboard branding, linked logo and centred footer at 1440/768/390/320px.');
   } else if(process.argv[3]==='extensions') {
    await assertDashboard();
    const baseline=await page.locator('.se-dashboard__shell').evaluate(el=>el.outerHTML.replace(/>\s+</g,'><'));
@@ -66,6 +77,7 @@ const assert=require('node:assert/strict');
   } else if(process.argv[3]==='read') {
    const anon=await browser.newPage();await anon.goto(fixture.url);assert(anon.url().includes('wp-login.php?redirect_to='));await anon.close();
    await assertDashboard();
+   assert.equal(await logo.count(),0);
    for(const width of [1440,390]) {
     await page.setViewportSize({width,height:1000});
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

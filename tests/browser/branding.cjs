@@ -92,7 +92,11 @@ const assert = require('node:assert/strict');
  const dashboard = await context.newPage();
  await dashboard.goto(await dashboardLink.getAttribute('href'));
  assert.equal(await dashboard.locator('.se-runner__logo').count(),1);
- assert.equal(await dashboard.locator('a:has(.se-runner__logo), .se-runner__footer').count(),0);
+ const dashboardLogo = dashboard.getByRole('link',{name:'Go to website homepage',exact:true});
+ assert.equal(await dashboardLogo.getAttribute('href'),home);
+ assert.equal(await dashboardLogo.locator('img').getAttribute('alt'),'Example organisation');
+ assert.equal(await dashboard.locator('main + footer').getByRole('link',{name:'Back to website',exact:true}).getAttribute('href'),home);
+ assert.equal(await page.locator('.se-website-navigation, #sprint-engine-website-navigation-css').count(),0);
  await dashboard.close();
  const writes=[];
  // Isolate link activation from the host theme's own homepage writes (such as creating a menu).

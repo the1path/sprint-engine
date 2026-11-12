@@ -35,7 +35,7 @@ function sprint_engine_dashboard_html($context) {
     ob_start(); include dirname(__DIR__, 2) . '/templates/dashboard.php'; return ob_get_clean();
 }
 function sprint_engine_dashboard_shell($html) {
-    preg_match('/<div class="se-dashboard__shell">.*?<\/main>\s*<\/div>/s', $html, $match);
+    preg_match('/<div class="se-dashboard__shell">.*?<\/main>.*?<\/div>/s', $html, $match);
     return $match[0] ?? '';
 }
 function sprint_engine_dashboard_request($path) {
@@ -300,6 +300,14 @@ add_filter('query',$failure); $error = $dashboard->resolve(); remove_filter('que
 sprint_engine_dashboard_check(503 === $error['status'] && !isset($error['sections']) && !str_contains(sprint_engine_dashboard_html($error),'Zulu'), 'Canonical read failure gives generic 503 with no guessed actions or partial cards.');
 $deny_all = static function () { return false; }; add_filter('sprint_engine/user_can_access_sprint',$deny_all,99);
 $empty_context = $dashboard->resolve(); $empty = sprint_engine_dashboard_html($empty_context); remove_filter('sprint_engine/user_can_access_sprint',$deny_all,99);
+$website_footer = '/<\/main>\s*<footer class="se-website-navigation">\s*<a[^>]+href="' . preg_quote( esc_url( home_url( '/' ) ), '/' ) . '"/';
+sprint_engine_dashboard_check(1 === preg_match($website_footer, sprint_engine_dashboard_html($error)) && 1 === preg_match($website_footer, $empty), 'Empty and error Dashboard renders offer the homepage below main.');
+$brand_option = ThePath\SprintEngine\Settings\RunnerBranding::OPTION;
+$original_brand = get_option($brand_option);
+update_option($brand_option, array('logo_id' => $image));
+$website_logo = '<a class="se-website-navigation__logo" href="' . esc_url(home_url('/')) . '" aria-label="Go to website homepage">';
+sprint_engine_dashboard_check(str_contains(sprint_engine_dashboard_html($empty_context), $website_logo) && str_contains(sprint_engine_dashboard_html($error), $website_logo) && !str_contains($empty, $website_logo), 'Branded empty and error Dashboards link the logo; unbranded Dashboard omits it.');
+if (false === $original_brand) { delete_option($brand_option); } else { update_option($brand_option, $original_brand); }
 sprint_engine_dashboard_check(str_contains($empty,'No Sprints are available to you yet.') && !str_contains($empty,'<section'), 'Useful empty state omits empty sections and counts.');
 $empty_snapshot = sprint_engine_dashboard_rows();
 add_action('sprint_engine/dashboard_before_sprint_sections', $section_listener, 10, 99);

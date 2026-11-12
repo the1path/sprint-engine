@@ -1,0 +1,15 @@
+/* Shared by standalone Core and Pro templates. Page styles own logo sizing. */
+a.se-website-navigation__logo { display: block; width: fit-content; max-width: 100%; }
+.se-website-navigation__logo img { display: block; }
+.se-website-navigation { margin-top: 1.5rem; text-align: center; font-size: .875rem; }
+.se-website-navigation .se-website-navigation__link {
+	display: inline-block; padding-block: .25rem; color: var(--se-muted, #50645d);
+	overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2em;
+}
+.se-website-navigation .se-website-navigation__link:hover { text-decoration-thickness: 2px; }
+a.se-website-navigation__logo:focus-visible, .se-website-navigation .se-website-navigation__link:focus-visible {
+	outline: 3px solid #245dd1; outline-offset: 4px; box-shadow: 0 0 0 3px #fff, 0 0 0 7px #000;
+}
+@media (forced-colors: active) {
+	a.se-website-navigation__logo:focus-visible, .se-website-navigation .se-website-navigation__link:focus-visible { outline-color: Highlight; }
+}

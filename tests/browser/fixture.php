@@ -67,6 +67,7 @@ foreach ( array( 'Sprint banner', 'Step banner' ) as $alt ) {
     $images[] = $image;
 }
 set_post_thumbnail( $sprint, $images[0] );
+update_option( ThePath\SprintEngine\Settings\RunnerBranding::OPTION, array( 'logo_id' => $images[0] ) );
 $media = <<<'HTML'
 <!-- wp:heading --><h2 class="wp-block-heading">Reflect and prepare</h2><!-- /wp:heading -->
 <!-- wp:list --><ul class="wp-block-list"><li>Notice what worked.</li><li>Choose one change.</li></ul><!-- /wp:list -->
