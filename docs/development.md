@@ -1,11 +1,10 @@
 # Sprint Engine development guide
 
-WordPress.org serves Core **0.2.2**. This guide documents development source
-with version metadata **0.2.3** and schema **2**. The
-[SE-026 release review](validation/se-026-release-0.2.3.md) records the tested
-candidate, changelog and NO-GO recommendation pending a
-decision on the breaking Complete Step and Restart request changes. Publication
-requires separate authorisation.
+WordPress.org serves Core **0.2.2**. This guide documents the **0.3.0** release
+candidate with schema **2**. See the [migration guide](migration-0.3.0.md) for
+the breaking Complete Step and Restart request changes and the
+[SE-026.1 validation record](validation/se-026-1-release-0.3.0.md) for release
+readiness. Publication requires separate authorisation.
 
 Start with the [documentation index](README.md) for architecture and validation
 records. The [contribution guide](../CONTRIBUTING.md) covers focused issues and
@@ -269,7 +268,7 @@ only status to `restarted`; every source ID, timestamp, pointer and Step row sta
 intact. Source transition, replacement insert and first-Step insert commit together
 or all roll back. Supersession emits no Sprint-completed action or completion time.
 
-**SE-019 transport change (unreleased Core 0.2.3):** both Restart and Step Complete
+**SE-019 transport change in the 0.3.0 candidate.** Both Restart and Step Complete
 POST bodies must supply `expected_attempt_id`, a positive integer or decimal string
 from the rendered Runner/Dashboard. This is a precondition, never a client-selected
 new attempt ID or attempt number. The service compares it with the latest owned
@@ -380,10 +379,10 @@ Upgrading a corrected pre-release 0.1.0 installation to 0.2.0 registers both mem
 routes and softly refreshes rewrite rules once after successful installation.
 No Permalinks save or reactivation is required. Failed installation leaves rewrites
 unchanged; ordinary requests do
-not flush them. Core 0.2.3 development retains schema 2 and adds no storage migration.
+not flush them. The 0.3.0 candidate retains schema 2 without a storage migration.
 See [SE-013 validation](validation/se-013.md) for evidence and limitations.
 
-### Dashboard presentation hooks (unreleased Core 0.2.3)
+### Dashboard presentation hooks (Core 0.3.0 candidate)
 
 The built-in template provides these additive presentation hooks inside an
 authenticated, successfully resolved `ready` Dashboard render:
@@ -554,7 +553,7 @@ Callbacks must preserve these boundaries and advertise only content appropriate
 to their independent policy. Core supplies no recommendations or commerce logic.
 See [SE-017 validation and callback examples](validation/se-017.md).
 
-### Post-completion follow-up hook (SE-018, unreleased Core 0.2.3)
+### Post-completion follow-up hook (SE-018, Core 0.3.0 candidate)
 
 `do_action( 'sprint_engine/runner_completed_followup_actions', $completed )` runs
 once per authenticated, authorized completed Runner render, immediately after
@@ -575,11 +574,11 @@ progress writes, and no recommendation logic. Trusted callbacks must escape thei
 output and authorize linked destinations independently, and can access the member
 through `get_current_user_id()`. Action return values are ignored. Template
 overrides own their hook placement. Dashboard and access-denied hooks are unchanged.
-See [SE-018 validation](validation/se-018.md). Development source metadata remains
-0.2.3/schema 2 with this unreleased feature; published Core 0.2.2 excludes SE-018.
-The development version allows version-based integrations to select this hook.
-The [SE-026 release review](validation/se-026-release-0.2.3.md) covers the
-candidate package and the decision pending before publication.
+See [SE-018 validation](validation/se-018.md). The hook first appeared in
+development source during the 0.2.3 cycle and is included in the 0.3.0 candidate.
+WordPress.org Core 0.2.2 predates SE-018. The
+[SE-026 release review](validation/se-026-release-0.2.3.md) records the original
+candidate and why it was held.
 
 ## Runner Branding
 
@@ -611,7 +610,7 @@ and extension guidance.
 - Administrators author content using existing `manage_options` capabilities.
   Custom author roles/capabilities are deferred until explicitly specified.
 - Activate per site. Network-wide activation is rejected with an actionable
-  message; automatic multisite provisioning is not included in Core 0.2.3 development.
+  message. Automatic multisite provisioning is outside the 0.3.0 candidate scope.
 - Runner requires pretty permalinks and a published, launchable, valid Sprint.
 - Structure writes require transactional WordPress `posts` and `postmeta` tables
   (InnoDB on MySQL/MariaDB). Unsupported storage engines are rejected before writes;
@@ -634,8 +633,11 @@ php tests/package.php
 php tests/release.php
 ```
 
-The archive is `dist/sprint-engine.zip`. Generated ZIPs, dependencies and disposable
-test installations are ignored and must not be committed.
+The archive is `dist/sprint-engine.zip`. For Core 0.3.0, compare the extracted
+paths and SHA-256 hashes against the
+[candidate manifest](validation/se-026-1-release-0.3.0.md#runtime-package-manifest).
+The ZIP container hash can change with timestamps or compression. Generated ZIPs,
+dependencies and disposable test installations are ignored and must not be committed.
 
 ## Verification
 

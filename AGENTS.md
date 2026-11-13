@@ -178,19 +178,17 @@ Deploy to a development or staging WordPress site first and verify the relevant 
 
 ## 15. Current development target
 
-Published Core is **0.2.2**, successfully published to WordPress.org and updated
-on an existing installation. Development source uses version metadata **0.2.3**,
-schema **2**, with unreleased SE-018 functionality that is not included in the
-published WordPress.org 0.2.2 package. Core **0.2.3** remains under active
-development; this version bump is not release preparation or approval. Further
-changes may accumulate before final release verification and publication.
-The GitHub development readme Stable Tag is 0.2.3 only in source; WordPress.org
-remains at 0.2.2. The next planned public release is **0.2.3**, not yet prepared
-or published. Work from the current ticket/issue
-rather than a historical implementation sequence. Keep changes tightly scoped and use
-the existing implementation and relevant documentation to determine what is
-already supported. Version, schema and release changes require explicit ticket
-authorisation; documentation-only changes must not alter runtime behaviour.
+WordPress.org serves Core **0.2.2**. The SE-026.1 branch prepares the next
+release candidate, **0.3.0**, with schema **2** and a source Stable tag of
+**0.3.0**. This version signals the breaking Complete Step and Restart request
+contract described in the [migration guide](docs/migration-0.3.0.md). See the
+[candidate validation](docs/validation/se-026-1-release-0.3.0.md) for release
+readiness. Publication requires separate authorisation.
+
+Work from the current ticket and use the existing implementation and validation
+records to determine what is supported. Version, schema and release changes
+require explicit ticket authorisation. Documentation-only changes must not
+alter runtime behaviour.
 
 ## 16. Definition of a good change
 
