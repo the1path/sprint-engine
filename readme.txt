@@ -3,7 +3,7 @@ Contributors: thepath
 Tags: lms, membership, onboarding, coaching, training
 Requires at least: 6.0
 Tested up to: 7.1
-Stable tag: 0.2.3
+Stable tag: 0.3.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -155,7 +155,7 @@ Core retains content, settings and progress on deactivation and uninstall. Site 
 
 == Changelog ==
 
-= 0.2.3 =
+= 0.3.0 =
 
 * Preview Steps in the block editor, including draft Steps and Steps in unpublished Sprints.
 * Use your website font, the system default or one of five locally hosted fonts.
@@ -163,7 +163,7 @@ Core retains content, settings and progress on deactivation and uninstall. Site 
 * Restart an in-progress Sprint while preserving previous attempts.
 * Resume at the next incomplete Step when a Sprint's Steps are added, removed or reordered.
 * Add Dashboard and completion hooks for integrations.
-* Integrations that complete Steps or restart Sprints must now submit the attempt ID captured when the participant opened the view.
+* Breaking integration change: Complete Step and Restart now require the displayed attempt ID in custom REST and PHP calls. This protects newer attempts from actions sent by stale tabs.
 * Keep database schema 2. Existing installations require no data migration.
 
 = 0.2.2 =
@@ -196,3 +196,9 @@ Core retains content, settings and progress on deactivation and uninstall. Site 
 * Configure a completion message and optional next-action button.
 * Use Sprint and Step durations and featured images.
 * Retain content, settings and progress on deactivation and uninstall.
+
+== Upgrade Notice ==
+
+= 0.3.0 =
+
+Complete Step and Restart now require the participant's expected attempt ID. Update custom REST and PHP integrations before upgrading. Built-in Sprint Engine interfaces already send this ID.

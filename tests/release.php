@@ -7,8 +7,9 @@ function release_check( $condition, $message ) {
     if ( ! $condition ) { throw new RuntimeException( $message ); }
     echo 'PASS: ' . $message . PHP_EOL;
 }
+$version = '0.3.0';
 $headers = array(
-    'Plugin Name' => 'Sprint Engine', 'Version' => '0.2.3',
+    'Plugin Name' => 'Sprint Engine', 'Version' => $version,
     'Requires at least' => '6.0', 'Requires PHP' => '8.0', 'Author' => 'ThePath',
     'License' => 'GPLv2 or later', 'License URI' => 'https://www.gnu.org/licenses/gpl-2.0.html',
     'Text Domain' => 'sprint-engine',
@@ -16,11 +17,11 @@ $headers = array(
 foreach ( $headers as $key => $value ) {
     release_check( preg_match( '/^ \* ' . preg_quote( $key, '/' ) . ': (.+)$/m', $plugin, $match ) && trim( $match[1] ) === $value, 'Plugin header: ' . $key );
 }
-foreach ( array( 'VERSION' => '0.2.3', 'SCHEMA_VERSION' => '2', 'MIN_PHP' => '8.0', 'MIN_WP' => '6.0' ) as $key => $value ) {
+foreach ( array( 'VERSION' => $version, 'SCHEMA_VERSION' => '2', 'MIN_PHP' => '8.0', 'MIN_WP' => '6.0' ) as $key => $value ) {
     release_check( str_contains( $plugin, "define( 'SPRINT_ENGINE_" . $key . "', '" . $value . "' );" ), 'Runtime constant: ' . $key );
 }
 release_check( str_starts_with( $readme, "=== Sprint Engine ===\n" ), 'Directory readme title.' );
-foreach ( array( 'Contributors' => 'thepath', 'Stable tag' => '0.2.3', 'Tested up to' => '7.1', 'Requires at least' => '6.0', 'Requires PHP' => '8.0', 'License' => $headers['License'], 'License URI' => $headers['License URI'] ) as $key => $value ) {
+foreach ( array( 'Contributors' => 'thepath', 'Stable tag' => $version, 'Tested up to' => '7.1', 'Requires at least' => '6.0', 'Requires PHP' => '8.0', 'License' => $headers['License'], 'License URI' => $headers['License URI'] ) as $key => $value ) {
     release_check( preg_match( '/^' . preg_quote( $key, '/' ) . ': (.+)$/m', $readme, $match ) && trim( $match[1] ) === $value, 'Readme metadata: ' . $key );
 }
 preg_match( '/^Tags: (.+)$/m', $readme, $tags );
@@ -34,7 +35,7 @@ preg_match( '/\n\n([^\n]+)\n\n== Description ==\n/', $readme, $short_description
 $short = $short_description[1] ?? '';
 release_check( '' !== $short && preg_match( '/^.{1,150}$/uD', $short ) && ! preg_match( '/[<>`*\[\]]/', $short ), 'Plain-text short description fits 150 characters.' );
 preg_match_all( '/^== ([^=]+) ==$/m', $readme, $sections );
-foreach ( array( 'Description', 'Installation', 'Frequently Asked Questions', 'Screenshots', 'Privacy and Data', 'Changelog' ) as $section ) {
+foreach ( array( 'Description', 'Installation', 'Frequently Asked Questions', 'Screenshots', 'Privacy and Data', 'Changelog', 'Upgrade Notice' ) as $section ) {
     release_check( 1 === count( array_keys( $sections[1], $section, true ) ), 'Unique readme section: ' . $section );
 }
 preg_match( '/^== Screenshots ==\n(.*?)(?=^== [^=]+ ==|\z)/ms', $readme, $screenshots );
@@ -43,7 +44,12 @@ release_check( $numbers[1] === array( '1', '2', '3', '4', '5' ), 'Five sequentia
 preg_match( '/^== Changelog ==\n(.*?)(?=^== [^=]+ ==|\z)/ms', $readme, $changelog_section );
 preg_match_all( '/^= (\d+\.\d+\.\d+) =$/m', $changelog_section[1] ?? '', $changelog_versions );
 release_check( $changelog_versions[1] === array( $constant_version[1], '0.2.2', '0.2.1', '0.2.0' ), 'Changelog starts with the candidate and preserves the public release history in order.' );
-release_check( preg_match( '/^= 0\.2\.3 =\n\n\* \S/m', $changelog_section[1] ?? '' ), '0.2.3 contains a bulleted release changelog.' );
+$version_pattern = preg_quote( $version, '/' );
+release_check( preg_match( '/^= ' . $version_pattern . ' =\n\n\* \S/m', $changelog_section[1] ?? '' ), $version . ' contains a bulleted release changelog.' );
+preg_match( '/^== Upgrade Notice ==\n\s*= ' . $version_pattern . ' =\n\s*([^\n]+)/m', $readme, $upgrade_notice );
+$notice = $upgrade_notice[1] ?? '';
+release_check( preg_match( '/^.{1,300}$/uD', $notice ), 'Current Upgrade Notice fits within 300 characters.' );
+release_check( str_contains( $notice, 'Complete Step and Restart' ) && str_contains( $notice, 'expected attempt ID' ) && str_contains( $notice, 'REST and PHP integrations' ), 'Upgrade Notice identifies the breaking integration change.' );
 release_check( preg_match( '/^= 0\.2\.0 =\s*\n(.*?)(?=^= [^=]+ =|\z)/ms', $readme, $changelog ), '0.2.0 release changelog.' );
 release_check( preg_match( '/\binitial public release\b/i', $changelog[1] ), '0.2.0 is the initial public release.' );
 release_check( preg_match( '/^= 0\.2\.1 =\s*\n(.*?)(?=^= [^=]+ =|\z)/ms', $readme, $patch_changelog ), '0.2.1 release changelog.' );

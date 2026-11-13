@@ -143,7 +143,7 @@ $before_upgrade = history_rows();
 foreach ( array( '0.2.0', '0.2.1', '0.2.2' ) as $previous_version ) {
 	update_option( 'sprint_engine_version', $previous_version );
 	( new ThePath\SprintEngine\Plugin() )->maybe_upgrade();
-	history_check( '0.2.3' === get_option( 'sprint_engine_version' ) && '2' === get_option( 'sprint_engine_schema_version' ) && $before_upgrade === history_rows(), $previous_version . ' to 0.2.3 upgrade retains schema 2 and every historical progress row.' );
+	history_check( SPRINT_ENGINE_VERSION === get_option( 'sprint_engine_version' ) && '2' === get_option( 'sprint_engine_schema_version' ) && $before_upgrade === history_rows(), $previous_version . ' to ' . SPRINT_ENGINE_VERSION . ' upgrade retains schema 2 and every historical progress row.' );
 }
 foreach ( $users as $id ) {
 	$wpdb->delete( $wpdb->prefix . 'sprint_engine_step_progress', array( 'user_id' => $id ) );
