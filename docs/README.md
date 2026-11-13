@@ -1,12 +1,15 @@
 # Sprint Engine developer documentation
 
-Core **0.2.3** is under active development, not yet prepared or published;
-**0.2.2** remains the published WordPress.org release and excludes SE-018. The root
-[README](../README.md) introduces the product and installation; this directory
-preserves technical guidance and validation evidence.
+Core **0.2.2** is the published WordPress.org release. See the
+[0.3.0 candidate validation](validation/se-026-1-release-0.3.0.md) for release
+readiness. The root [README](../README.md)
+introduces the product and installation. This directory preserves technical
+guidance and validation evidence.
 
 - [Development guide](development.md): authoring, service boundaries, attempts,
   Dashboard, REST integration, branding, installation and test commands.
+- [0.3.0 migration guide](migration-0.3.0.md) for Complete Step, Restart and
+  attempt history integrations.
 - [v0.1 architecture specification](specifications/sprint-engine-v0.1.md): the
   original linear architecture and acceptance criteria. It is a baseline, not a
   current feature list or a commitment to future release versions.
@@ -41,3 +44,5 @@ have been generalised without changing the recorded test outcomes.
 | Core 0.2.2 release preparation | [Release 0.2.2](validation/release-0.2.2.md) |
 | Post-completion follow-up hook (unreleased) | [SE-018](validation/se-018.md) |
 | Core 0.2.3 development version (not release preparation) | [SE-018.1](validation/se-018-1.md) |
+| Core 0.2.3 release review and candidate package | [SE-026](validation/se-026-release-0.2.3.md) |
+| Core 0.3.0 release candidate and publication decision | [SE-026.1](validation/se-026-1-release-0.3.0.md) |

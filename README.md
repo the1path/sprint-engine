@@ -45,10 +45,9 @@ Install the released plugin from the
 for **Sprint Engine** in **Plugins → Add New** in your WordPress administration area.
 Activate it, then open **Sprints** to create your first journey.
 
-Current Core development source **0.2.3** requires WordPress **6.0+** and PHP **8.0+**;
-the published WordPress.org release remains **0.2.2** and excludes SE-018.
-Core 0.2.3 is under active development, not yet prepared or published; further
-changes may be made before release. Participants need a
+The **0.3.0** release candidate requires WordPress **6.0+** and PHP **8.0+**.
+WordPress.org serves **0.2.2**. Custom Complete Step and Restart integrations
+need the [0.3.0 migration guide](docs/migration-0.3.0.md). Participants need a
 WordPress account; the Runner requires pretty permalinks and JavaScript for progress
 actions. Publish every Step, save the order, then publish and mark the Sprint
 **Launchable**. Use its **Runner URL** to try the journey.
