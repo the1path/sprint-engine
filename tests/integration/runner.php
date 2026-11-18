@@ -52,6 +52,40 @@ function sprint_engine_runner_shell( $html ) {
 function sprint_engine_runner_has_website_footer( $html ) {
 	return 1 === preg_match( '/<\/main>\s*<footer class="se-website-navigation">\s*<a[^>]+href="' . preg_quote( esc_url( home_url( '/' ) ), '/' ) . '"[^>]*>[^\n]*Back to website<\/a>/', $html );
 }
+function sprint_engine_runner_step_hook( $context, $expected ) {
+	$calls = array(); $events = array(); $queries = array();
+	$marker = '<p class="se028-marker">' . esc_html( 'AFTER STEP <safe> & separate' ) . '</p>';
+	$listener = static function ( ...$args ) use ( &$calls, $marker ) { $calls[] = $args; echo $marker; };
+	$event = static function () use ( &$events ) { $events[] = current_filter(); };
+	$query = static function ( $sql ) use ( &$queries ) { $queries[] = $sql; return $sql; };
+	$hooks = array( 'sprint_engine/sprint_started', 'sprint_engine/step_started', 'sprint_engine/step_completed', 'sprint_engine/sprint_completed' );
+	$before = sprint_engine_runner_rows( get_current_user_id(), $expected['sprint_id'] );
+	$meta = array( get_post_meta( $expected['sprint_id'] ), get_post_meta( $expected['step_id'] ) );
+	// Warm WordPress rendering caches before comparing queries with/without a callback.
+	sprint_engine_runner_html( $context );
+	foreach ( $hooks as $hook ) { add_action( $hook, $event ); }
+	add_action( 'sprint_engine/runner_after_step_content', $listener );
+	add_filter( 'query', $query );
+	try {
+		$html = sprint_engine_runner_html( $context );
+		$listener_queries = $queries; $queries = array();
+		remove_action( 'sprint_engine/runner_after_step_content', $listener );
+		$plain = sprint_engine_runner_html( $context );
+	} finally {
+		remove_filter( 'query', $query );
+		remove_action( 'sprint_engine/runner_after_step_content', $listener );
+		foreach ( $hooks as $hook ) { remove_action( $hook, $event ); }
+	}
+	sprint_engine_runner_check( array( array( $expected ) ) === $calls && 4 === count( array_filter( $calls[0][0], static fn( $id ) => is_int( $id ) && $id > 0 ) ), 'After-Step action fires exactly once with one allowlisted four-positive-integer canonical identity: Step ' . $expected['step_id'] . ', attempt ' . $expected['attempt_number'] );
+	sprint_engine_runner_check( 1 === substr_count( $html, $marker ) && preg_match( '~</article>\s*' . preg_quote( $marker, '~' ) . '\s*<div class="se-runner__actions">~', $html ) && strpos( $html, $marker ) < strpos( $html, 'id="se-runner-action"' ), 'After-Step output is a separate sibling immediately after all authored content and before Core completion controls.' );
+	$previous_errors = libxml_use_internal_errors( true );
+	$document = new DOMDocument(); $document->loadHTML( $html );
+	libxml_clear_errors(); libxml_use_internal_errors( $previous_errors );
+	$xpath = new DOMXPath( $document );
+	sprint_engine_runner_check( 1 === $xpath->query( '//main/article/following-sibling::*[1][self::p[@class="se028-marker"]]' )->length && 0 === $xpath->query( '//*[@class="se028-marker"]//*[@href or @tabindex or self::button or self::input or self::textarea or self::select]' )->length && str_contains( $html, 'AFTER STEP &lt;safe&gt; &amp; separate' ), 'Escaped listener text preserves document structure and adds no focus target.' );
+	sprint_engine_runner_check( sprint_engine_runner_shell( str_replace( $marker, '', $html ) ) === sprint_engine_runner_shell( $plain ) && ! str_contains( $plain, 'se028-marker' ), 'Removing the listener leaves identical Core shell/actions, with no empty extension placeholder.' );
+	sprint_engine_runner_check( $listener_queries === $queries && ! array_filter( $listener_queries, static fn( $sql ) => preg_match( '/^\s*(INSERT|UPDATE|DELETE|REPLACE|ALTER|CREATE|DROP)\b/i', $sql ) ) && array() === $events && $before === sprint_engine_runner_rows( get_current_user_id(), $expected['sprint_id'] ) && $meta === array( get_post_meta( $expected['sprint_id'] ), get_post_meta( $expected['step_id'] ) ), 'After-Step rendering adds no queries, mutations, lifecycle events or changes to progress/timestamps and Core metadata.' );
+}
 function sprint_engine_runner_rows( $user, $sprint ) {
 	global $wpdb;
 	return array(
@@ -71,11 +105,11 @@ function sprint_engine_runner_request( $path ) {
 	$wp->matched_query = '';
 	$wp->parse_request();
 }
-function sprint_engine_runner_http( $path, $user = 0 ) {
+function sprint_engine_runner_http( $path, $user = 0, $cookie = '' ) {
 	$base = getenv( 'SE_TEST_HTTP_BASE' );
 	if ( ! $base || ! in_array( wp_parse_url( $base, PHP_URL_HOST ), array( '127.0.0.1', 'localhost' ), true ) ) { throw new RuntimeException( 'HTTP tests require a loopback server.' ); }
 	$headers = array();
-	if ( $user ) { $headers['Cookie'] = LOGGED_IN_COOKIE . '=' . wp_generate_auth_cookie( $user, time() + 3600, 'logged_in' ); }
+	if ( $user ) { $headers['Cookie'] = LOGGED_IN_COOKIE . '=' . ( $cookie ?: wp_generate_auth_cookie( $user, time() + 3600, 'logged_in' ) ); }
 	$response = wp_remote_get( rtrim( $base, '/' ) . $path, array( 'redirection' => 0, 'headers' => $headers, 'timeout' => 30 ) );
 	if ( is_wp_error( $response ) ) { throw new RuntimeException( 'Loopback request failed: ' . $response->get_error_message() ); }
 	return $response;
@@ -245,9 +279,12 @@ sprint_engine_runner_request( '/sprint/' . $slug . '/?sprint_engine_sprint_slug=
 sprint_engine_runner_check( $slug === Routes::slug() && ! isset( $wp->query_vars['feed'], $wp->query_vars['p'] ) && array( 0 ) === $wp->query_vars['post__in'], 'Path capture wins over slug/feed/post tampering and suppresses unrelated query content.' );
 $_REQUEST = array( 'user_id' => $outsider, 'step_id' => $foreign );
 $service->start_sprint( $user, $sprint );
+$_GET = $_POST = $_REQUEST = array( 'user_id' => $outsider, 'sprint_id' => $other, 'step_id' => $foreign, 'attempt_id' => 999999, 'attempt_number' => 99, 'expected_attempt_id' => 999999 );
 $context = $runner->resolve( $slug );
 sprint_engine_runner_check( 'in_progress' === $context['state'] && $steps[0] === $context['step']['id'], 'Runner resumes ProgressService current Step despite request-supplied IDs.' );
 sprint_engine_runner_check( $service->get_progress( $user, $sprint ) === $context['progress'], 'Runner progress values are the unmodified service projection.' );
+sprint_engine_runner_step_hook( $context, array( 'sprint_id' => $sprint, 'step_id' => $steps[0], 'attempt_id' => test_attempt_id( $user, $sprint ), 'attempt_number' => 1 ) );
+$_GET = $_POST = $_REQUEST = array();
 $html = sprint_engine_runner_html( $context );
 sprint_engine_runner_check( str_contains( $html, 'STEP SECRET CONTENT 1' ) && ! str_contains( $html, 'STEP SECRET CONTENT 2' ) && ! str_contains( $html, 'FOREIGN SECRET' ), 'Exactly the current Step is rendered.' );
 sprint_engine_runner_check( str_contains( $html, '<audio controls' ) && str_contains( $html, 'wp-block-audio' ) && str_contains( $html, 'CONTENT FILTER RAN' ), 'Native Audio and paragraph blocks render through standard content filters.' );
@@ -370,6 +407,7 @@ if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
 
 foreach ( array_slice( $steps, 1 ) as $step ) {
 	$active = $runner->resolve( $slug );
+	sprint_engine_runner_step_hook( $active, array( 'sprint_id' => $sprint, 'step_id' => $step, 'attempt_id' => test_attempt_id( $user, $sprint ), 'attempt_number' => 1 ) );
 	sprint_engine_runner_check( ( $step === $steps[4] ) === $active['step']['is_terminal'], 'is_terminal still identifies only the validated explicit terminal link.' );
 	if ( $step === $steps[4] ) {
 		sprint_engine_runner_check( str_contains( sprint_engine_runner_html( $active ), '>Complete Sprint</button>' ), 'Terminal Step offers Complete Sprint using the existing action ID.' );
@@ -484,6 +522,7 @@ $completed_calls = array(); $followup_calls = array(); add_action( 'sprint_engin
 add_action( 'sprint_engine/runner_completed_followup_actions', $followup_listener );
 sprint_engine_runner_html( $runner->resolve( $slug ) );
 sprint_engine_runner_check( 2 === $restarted['attempt_number'] && array() === $completed_calls && array() === $followup_calls, 'Restarted attempt in progress never fires completion action for its historical completed attempt.' );
+sprint_engine_runner_step_hook( $runner->resolve( $slug ), array( 'sprint_id' => $sprint, 'step_id' => $steps[0], 'attempt_id' => $restarted['attempt_id'], 'attempt_number' => 2 ) );
 foreach ( $steps as $step ) { $service->complete_step( $user, $sprint, $step, test_attempt_id( $user, $sprint ) ); }
 sprint_engine_runner_html( $runner->resolve( $slug ) );
 sprint_engine_runner_check( array( array( 'sprint_id' => $sprint, 'attempt_id' => $restarted['attempt_id'], 'attempt_number' => 2 ) ) === $completed_calls && $first_attempt !== $restarted['attempt_id'], 'New completion context selects canonical Attempt 2 rather than the historical completed attempt.' );
@@ -506,6 +545,82 @@ sprint_engine_runner_check( $member_attempts[0] !== $member_attempts[1], 'Two in
 $_GET = $_REQUEST = array(); wp_set_current_user( $user );
 remove_action( 'sprint_engine/runner_completed_actions', $completed_listener );
 remove_action( 'sprint_engine/runner_completed_followup_actions', $followup_listener );
+$before = sprint_engine_runner_rows( $user, $sprint );
+
+// SE-028 negative states use actual authorized/resolved contexts, never a simulated member preview.
+$after_step_calls = array();
+$after_step_listener = static function ( ...$args ) use ( &$after_step_calls ) { $after_step_calls[] = $args; };
+add_action( 'sprint_engine/runner_after_step_content', $after_step_listener );
+foreach ( array( $runner->resolve( get_post_field( 'post_name', $other ) ), $runner->resolve( $slug ), $runner->resolve( 'missing-sprint' ), $error_context ) as $negative ) {
+	sprint_engine_runner_html( $negative );
+}
+add_filter( 'sprint_engine/user_can_access_sprint', $deny );
+sprint_engine_runner_html( $runner->resolve( $slug ) );
+remove_filter( 'sprint_engine/user_can_access_sprint', $deny );
+wp_set_current_user( 0 );
+sprint_engine_runner_check( 'login' === $runner->resolve( $slug )['state'], 'Anonymous Runner still selects login before rendering any Step hook.' );
+$gate_value = true; add_filter( 'sprint_engine/runner_show_public_access_gate', $gate_filter, 10, 2 );
+sprint_engine_runner_html( $runner->resolve( $slug ) );
+remove_filter( 'sprint_engine/runner_show_public_access_gate', $gate_filter );
+// A previously resolved active context also cannot emit the member action after logout.
+sprint_engine_runner_html( $active );
+wp_set_current_user( $user );
+sprint_engine_runner_check( array() === $after_step_calls && $before === sprint_engine_runner_rows( $user, $sprint ), 'After-Step hook excludes Ready, completed, unavailable, persistence error, denied, anonymous gateway and logged-out active rendering without progress changes.' );
+remove_action( 'sprint_engine/runner_after_step_content', $after_step_listener );
+
+if ( getenv( 'SE_TEST_HTTP_BASE' ) ) {
+	// The callback must be loaded by the real WordPress HTTP worker as well as CLI.
+	if ( ! is_dir( WPMU_PLUGIN_DIR ) ) { mkdir( WPMU_PLUGIN_DIR, 0755, true ); }
+	$fixture_file = WPMU_PLUGIN_DIR . '/se028-presentation-' . wp_generate_password( 12, false ) . '.php';
+	$fixture_code = '<?php add_action("sprint_engine/runner_after_step_content", static function ($identity) { echo "<p class=\"se028-http\">" . esc_html(wp_json_encode($identity)) . "</p>"; });';
+	file_put_contents( $fixture_file, $fixture_code );
+	try {
+		$http_attempt = $service->restart_sprint( $user, $sprint, test_attempt_id( $user, $sprint ) );
+		foreach ( $steps as $index => $step ) {
+			$expected = array( 'sprint_id' => $sprint, 'step_id' => $step, 'attempt_id' => $http_attempt['attempt_id'], 'attempt_number' => $http_attempt['attempt_number'] );
+			$marker = '<p class="se028-http">' . esc_html( wp_json_encode( $expected ) ) . '</p>';
+			$response = sprint_engine_runner_http( '/sprint/' . $slug . '/?sprint_id=' . $other . '&step_id=' . $foreign . '&attempt_id=999999&attempt_number=99&user_id=' . $outsider, $user );
+			$body = wp_remote_retrieve_body( $response );
+			sprint_engine_runner_check( 200 === wp_remote_retrieve_response_code( $response ) && 1 === substr_count( $body, $marker ) && preg_match( '~</article>\s*' . preg_quote( $marker, '~' ) . '\s*<div class="se-runner__actions">~', $body ) && str_contains( $body, $index === count( $steps ) - 1 ? '>Complete Sprint</button>' : '>Complete &amp; Continue</button>' ), 'HTTP after-Step hook follows canonical advancement/restart, ignores query IDs and precedes the correct control: Step ' . ( $index + 1 ) );
+			sprint_engine_runner_check( str_contains( wp_remote_retrieve_header( $response, 'cache-control' ), 'private' ) && str_contains( wp_remote_retrieve_header( $response, 'cache-control' ), 'no-store' ) && 'noindex, nofollow' === wp_remote_retrieve_header( $response, 'x-robots-tag' ), 'HTTP after-Step output retains private/no-store and noindex headers.' );
+			if ( 0 === $index ) {
+				unlink( $fixture_file );
+				$plain = wp_remote_retrieve_body( sprint_engine_runner_http( '/sprint/' . $slug . '/', $user ) );
+				sprint_engine_runner_check( sprint_engine_runner_shell( str_replace( $marker, '', $body ) ) === sprint_engine_runner_shell( $plain ), 'HTTP without a listener preserves the same Runner shell and controls with no placeholder.' );
+				file_put_contents( $fixture_file, $fixture_code );
+			}
+			$service->complete_step( $user, $sprint, $step, $http_attempt['attempt_id'] );
+		}
+		foreach ( array( array( '/sprint/' . $slug . '/', $user, 200 ), array( '/sprint/' . get_post_field( 'post_name', $other ) . '/', $user, 200 ), array( '/sprint/' . $slug . '/', 0, 302 ), array( '/sprint/missing-sprint/', $user, 404 ) ) as $case ) {
+			$response = sprint_engine_runner_http( $case[0], $case[1] );
+			sprint_engine_runner_check( $case[2] === wp_remote_retrieve_response_code( $response ) && ! str_contains( wp_remote_retrieve_body( $response ), 'se028-http' ), 'HTTP after-Step hook excludes completed, Ready, login and unavailable states: ' . $case[0] . '/' . $case[1] );
+		}
+		file_put_contents( $fixture_file, $fixture_code . ' add_filter("sprint_engine/user_can_access_sprint", "__return_false"); add_filter("sprint_engine/runner_show_public_access_gate", "__return_true");' );
+		foreach ( array( $user, 0 ) as $member ) {
+			$response = sprint_engine_runner_http( '/sprint/' . $slug . '/', $member );
+			sprint_engine_runner_check( 403 === wp_remote_retrieve_response_code( $response ) && ! str_contains( wp_remote_retrieve_body( $response ), 'se028-http' ), 'HTTP after-Step hook excludes authenticated denial and anonymous public gateway: ' . $member );
+		}
+		file_put_contents( $fixture_file, $fixture_code );
+		wp_set_current_user( 1 );
+		$preview_cookie = wp_generate_auth_cookie( 1, time() + 3600, 'logged_in' );
+		$_COOKIE[LOGGED_IN_COOKIE] = $preview_cookie;
+		require_once ABSPATH . 'wp-admin/includes/post.php';
+		$preview_before = array( sprint_engine_runner_rows( 1, $sprint ), sprint_engine_runner_rows( $user, $sprint ) );
+		$preview_path = '/?sprint_engine_step_preview=' . $steps[0] . '&_wpnonce=' . wp_create_nonce( 'sprint_engine_step_preview_' . $steps[0] );
+		$response = sprint_engine_runner_http( $preview_path, 1, $preview_cookie );
+		sprint_engine_runner_check( 200 === wp_remote_retrieve_response_code( $response ) && str_contains( wp_remote_retrieve_body( $response ), 'STEP SECRET CONTENT 1' ) && str_contains( wp_remote_retrieve_body( $response ), 'Preview Mode' ) && ! str_contains( wp_remote_retrieve_body( $response ), 'se028-http' ), 'HTTP saved administrator Step Preview renders real instructional content without the member hook.' );
+		$autosave = wp_create_post_autosave( array( 'post_ID' => $steps[0], 'post_type' => 'sprint_engine_step', 'post_title' => 'SE028 autosave', 'content' => '<p>SE028 AUTOSAVED CONTENT</p>', 'post_excerpt' => '' ) );
+		sprint_engine_runner_check( is_int( $autosave ) && $autosave > 0, 'Administrator-owned autosave fixture was created.' );
+		$response = sprint_engine_runner_http( $preview_path . '&sprint_engine_preview_autosave=' . $autosave, 1, $preview_cookie );
+		sprint_engine_runner_check( 200 === wp_remote_retrieve_response_code( $response ) && str_contains( wp_remote_retrieve_body( $response ), 'SE028 AUTOSAVED CONTENT' ) && str_contains( wp_remote_retrieve_body( $response ), 'Preview Mode' ) && ! str_contains( wp_remote_retrieve_body( $response ), 'se028-http' ) && $preview_before === array( sprint_engine_runner_rows( 1, $sprint ), sprint_engine_runner_rows( $user, $sprint ) ), 'HTTP administrator autosave Preview excludes the member hook and preserves exact participant rows/timestamps.' );
+	} finally {
+		if ( is_file( $fixture_file ) ) { unlink( $fixture_file ); }
+		unset( $_COOKIE[LOGGED_IN_COOKIE] );
+		wp_set_current_user( $user );
+	}
+} else {
+	echo "SKIP: SE-028 HTTP listener/negative states and saved/autosave Preview; set SE_TEST_HTTP_BASE.\n";
+}
 $before = sprint_engine_runner_rows( $user, $sprint );
 
 wp_set_current_user( 1 );

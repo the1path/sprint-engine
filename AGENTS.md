@@ -5,7 +5,7 @@ This file contains standing engineering instructions for Codex and any other cod
 ## 1. Project identity
 
 - Product name: **Sprint Engine**.
-- Sprint Engine Core is the **open-source WordPress plugin**; the published stable version is **0.2.2**.
+- Sprint Engine Core is the **open-source WordPress plugin**; [WordPress.org](https://wordpress.org/plugins/sprint-engine/) lists stable **0.3.0** as of 18 November 2026.
 - Sprint Engine is a standalone WordPress plugin and must not contain customer-specific business logic, branding, copy, URLs, payment logic, or assumptions unless a ticket explicitly requires an integration layer.
 - Core is independently packageable. Keep customer-specific integrations and commercial extension logic separate from Core unless the current ticket explicitly defines an integration boundary.
 
@@ -110,6 +110,7 @@ Where implemented by the current ticket/specification, preserve the documented p
 - `sprint_engine/sprint_completed`
 - `sprint_engine/user_can_access_sprint`
 - `sprint_engine/runner_template`
+- `sprint_engine/runner_after_step_content`
 - `sprint_engine/runner_completed_actions`
 - `sprint_engine/runner_completed_followup_actions`
 - `sprint_engine/dashboard_completed_card_actions`
@@ -178,12 +179,13 @@ Deploy to a development or staging WordPress site first and verify the relevant 
 
 ## 15. Current development target
 
-WordPress.org serves Core **0.2.2**. The SE-026.1 branch prepares the next
-release candidate, **0.3.0**, with schema **2** and a source Stable tag of
+WordPress.org serves Core **0.3.0**, with schema **2** and a source Stable tag of
 **0.3.0**. This version signals the breaking Complete Step and Restart request
 contract described in the [migration guide](docs/migration-0.3.0.md). See the
-[candidate validation](docs/validation/se-026-1-release-0.3.0.md) for release
-readiness. Publication requires separate authorisation.
+[historical candidate validation](docs/validation/se-026-1-release-0.3.0.md).
+SE-028 adds an after-Step presentation action in development source only;
+published 0.3.0 does not include it. A subsequent patch release and publication
+require separate authorisation. See [SE-028 validation](docs/validation/se-028-runner-step-content-hook.md).
 
 Work from the current ticket and use the existing implementation and validation
 records to determine what is supported. Version, schema and release changes
