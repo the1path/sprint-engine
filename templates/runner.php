@@ -107,6 +107,24 @@ $sprint_engine_is_preview = 'preview' === $sprint_engine_context['state'];
 				<?php endif; ?>
 				<div class="se-runner__content"><?php echo $sprint_engine_context['step']['content']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Authorized current Step rendered through normal WordPress content filters. ?></div>
 			</article>
+			<?php if ( 'in_progress' === $sprint_engine_context['state'] && is_user_logged_in() ) : ?>
+				<?php
+				$sprint_engine_step_identity = array(
+					'sprint_id'      => (int) $sprint_engine_context['sprint_id'],
+					'step_id'        => (int) $sprint_engine_context['step']['id'],
+					'attempt_id'     => (int) $sprint_engine_context['progress']['attempt_id'],
+					'attempt_number' => (int) $sprint_engine_context['progress']['attempt_number'],
+				);
+				/**
+				 * Render a separate region after the authorized member's current Step.
+				 *
+				 * Presentation identity is not authorization to read or write extension data.
+				 *
+				 * @param array $step_identity Positive integer Sprint, Step and canonical attempt identity.
+				 */
+				do_action( 'sprint_engine/runner_after_step_content', $sprint_engine_step_identity ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Intentional presentation seam; trusted callbacks escape their own output.
+				?>
+			<?php endif; ?>
 		<?php elseif ( 'completed' === $sprint_engine_context['state'] ) : ?>
 			<div class="se-runner__completion">
 				<p class="se-runner__label"><?php esc_html_e( 'All Steps complete', 'sprint-engine' ); ?></p>

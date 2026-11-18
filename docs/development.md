@@ -1,10 +1,11 @@
 # Sprint Engine development guide
 
-WordPress.org serves Core **0.2.2**. This guide documents the **0.3.0** release
-candidate with schema **2**. See the [migration guide](migration-0.3.0.md) for
+As of 18 November 2026, [WordPress.org](https://wordpress.org/plugins/sprint-engine/)
+serves Core **0.3.0** with schema **2**. See the [migration guide](migration-0.3.0.md) for
 the breaking Complete Step and Restart request changes and the
-[SE-026.1 validation record](validation/se-026-1-release-0.3.0.md) for release
-readiness. Publication requires separate authorisation.
+[historical SE-026.1 validation record](validation/se-026-1-release-0.3.0.md).
+The SE-028 after-Step action below is an unreleased source addition; published
+0.3.0 does not include it. A subsequent patch release requires separate authorisation.
 
 Start with the [documentation index](README.md) for architecture and validation
 records. The [contribution guide](../CONTRIBUTING.md) covers focused issues and
@@ -480,6 +481,54 @@ Access integrations can supply an `AccessProvider` to `AccessManager` or use
 `sprint_engine/runner_template` receives the default path and authorized context;
 replacements must be readable PHP files under installed plugin/theme directories.
 See [se-004 validation](validation/se-004.md) for the context/API contract and remaining checks.
+
+### After-Step content action (SE-028, unreleased)
+
+`do_action( 'sprint_engine/runner_after_step_content', $step_identity )` fires
+exactly once per eligible built-in Runner render, immediately after the Step's
+closing `</article>` and before `.se-runner__actions` and its Complete & Continue
+or Complete Sprint control. Callback output is a separate sibling region after
+all authored, normally rendered Step content. The action applies to every authored
+Step, including the first and final, in both Content and Task modes.
+
+Eligibility requires the authenticated, authorized member's `in_progress` Runner
+with a real canonical current Step and attempt. Ready to start, completed, login,
+denied/public gateway, unavailable/error and administrator Step Preview (saved or
+autosaved content) never invoke it. Preview remains independent of member attempts.
+
+Core constructs one new allowlisted array solely from its already-resolved Runner
+context, containing exactly these positive integer values:
+
+| Key | Core source |
+| --- | --- |
+| `sprint_id` | Resolved Sprint ID |
+| `step_id` | Canonical current Step ID |
+| `attempt_id` | Canonical current attempt ID |
+| `attempt_number` | Canonical current attempt number |
+
+Request/query/body IDs do not select these values. No full presentation context,
+instructional HTML, user data or participant responses are passed. The authenticated
+member is available through `get_current_user_id()`.
+
+This is a read/presentation action, not a lifecycle event or an authorization
+token. It fires again on each eligible render. Emission adds no database query,
+progress transition, attempt creation, state repair or metadata write. Runner's
+existing resume/recovery operation remains separate and unchanged. Extensions must
+independently reauthorize member access, ownership, current Step/attempt, nonce
+and transaction safety before reading or writing private extension data. Trusted
+callbacks must escape their own HTML, preserve document structure/accessibility
+and keep rendering read-only; action return values are ignored.
+
+With no listener, Core emits no wrapper, placeholder or new focusable element;
+existing Step markup, actions, navigation and private-cache handling are unchanged.
+Template overrides own placement of this hook. Existing completion/follow-up hooks
+retain their placement and payloads. Core provides no extension UI or storage.
+
+Published Core 0.3.0 predates this action; version `0.3.0` alone does not establish
+support. A separately approved patch release must version and publish the hook
+before public consumers can rely on it. Consumers must decide their own
+compatibility/capability handling after that release strategy is settled.
+See [SE-028 validation](validation/se-028-runner-step-content-hook.md).
 
 ### Administrator Step preview (SE-023)
 
