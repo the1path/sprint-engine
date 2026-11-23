@@ -1,8 +1,9 @@
 # Sprint Engine developer documentation
 
-Core **0.2.2** is the published WordPress.org release. See the
-[0.3.0 candidate validation](validation/se-026-1-release-0.3.0.md) for release
-readiness. The root [README](../README.md)
+Core **0.3.0** is the published WordPress.org release. See the
+[historical candidate validation](validation/se-026-1-release-0.3.0.md).
+SE-028 and SE-029 are unreleased source changes and require separate publication
+authorisation. The root [README](../README.md)
 introduces the product and installation. This directory preserves technical
 guidance and validation evidence.
 
@@ -32,6 +33,7 @@ have been generalised without changing the recorded test outcomes.
 | REST writes and Runner UX | [SE-005](validation/se-005.md), [SE-006](validation/se-006.md) |
 | Hardening and acceptance matrix | [SE-007](validation/se-007.md) |
 | Runner branding | [SE-008](validation/se-008.md) |
+| Runner headings and Gutenberg block compatibility (unreleased) | [SE-029](validation/se-029-runner-heading-accordion-styles.md) |
 | Completion message and CTA | [SE-009](validation/se-009.md) |
 | Authoring and validation | [SE-010](validation/se-010.md), [SE-010.1](validation/se-010-1.md), [SE-010.2](validation/se-010-2.md) |
 | Directory review and identifiers | [SE-011](validation/se-011.md), [review](validation/wporg-review-001.md), [inventory](validation/wporg-review-001-inventory.md) |
