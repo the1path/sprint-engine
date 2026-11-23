@@ -37,8 +37,8 @@ body.se-runner {
 .se-runner .se-runner__header { padding: 0 clamp(0rem, 2vw, 1rem) 2rem; }
 .se-runner .se-runner__main { padding: clamp(1.25rem, 5vw, 3rem); background: var(--se-surface); border: 1px solid var(--se-border); border-radius: var(--se-radius); }
 .se-runner .se-runner__featured-image { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 7; object-fit: cover; border-radius: var(--se-radius); margin-bottom: 1.5rem; }
-.se-runner h1, .se-runner h2, .se-runner h3, .se-runner h4 { color: inherit; line-height: 1.25; overflow-wrap: anywhere; }
-.se-runner :where(h1, h2, h3, h4) { font-family: inherit; }
+.se-runner h1, .se-runner h2, .se-runner h3, .se-runner h4, .se-runner h5, .se-runner h6 { color: inherit; line-height: 1.25; overflow-wrap: anywhere; }
+.se-runner :where(h1, h2, h3, h4, h5, h6) { font-family: inherit; }
 .se-runner h1 { margin: 0 0 .5rem; font-size: clamp(1.4rem, 4vw, 1.85rem); font-weight: 650; }
 .se-runner h2 { margin: 0 0 1.5rem; font-size: clamp(1.65rem, 5vw, 2.25rem); letter-spacing: -.025em; }
 .se-runner p, .se-runner figure { margin: 0 0 1.25rem; }
@@ -82,8 +82,56 @@ body.se-runner {
 .se-runner .se-runner__completion { padding-block: 1rem; }
 .se-runner .se-runner__content { overflow-wrap: anywhere; display: flow-root; }
 .se-runner .se-runner__content > :first-child { margin-top: 0; }
-.se-runner .se-runner__content h2, .se-runner .se-runner__content h3 { margin-top: 2rem; margin-bottom: 1rem; }
-.se-runner .se-runner__content h2 { font-size: 1.5rem; }
+/* Content hierarchy is separate from the Sprint/Step titles. Preset classes and
+ * inline Gutenberg typography/spacing still take precedence over these defaults. */
+.se-runner .se-runner__content :where(h2, h3, h4, h5, h6) { margin-block: 2rem 1rem; }
+.se-runner .se-runner__content :where(h2) { font-size: clamp(1.5rem, 2vw + 1rem, 1.75rem); }
+.se-runner .se-runner__content :where(h3) { font-size: clamp(1.3rem, 1vw + 1rem, 1.5rem); }
+.se-runner .se-runner__content :where(h4) { font-size: 1.2rem; }
+.se-runner .se-runner__content :where(h5) { font-size: 1.1rem; }
+.se-runner .se-runner__content :where(h6) { font-size: 1rem; }
+/* Native Accordion owns its markup, icon order/rotation and interaction state.
+ * Inherit authored heading/group styles; isolate only its toggle from theme
+ * button resets, including sticky :focus colours after pointer activation. */
+.se-runner .se-runner__content :where([class*="-font-size"], [style*="font-size"]) .wp-block-accordion-heading { font-size: inherit; }
+.se-runner .se-runner__content .wp-block-accordion-heading__toggle {
+	appearance: none;
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: .75em;
+	width: 100%;
+	min-height: 48px;
+	max-width: 100%;
+	padding: .75em;
+	border: 0;
+	border-inline-start: 3px solid transparent;
+	border-radius: var(--se-control-radius);
+	font: inherit;
+	letter-spacing: inherit;
+	text-transform: inherit;
+	text-align: inherit;
+	text-decoration: inherit;
+	white-space: normal;
+	overflow: visible;
+	cursor: pointer;
+	box-shadow: none;
+}
+.se-runner .se-runner__content .wp-block-accordion-heading__toggle,
+.se-runner .se-runner__content .wp-block-accordion-heading__toggle:is(:hover, :focus, :active, [aria-expanded="true"]) {
+	color: inherit;
+	background: transparent;
+}
+.se-runner .se-runner__content .wp-block-accordion-heading__toggle:is(:hover, [aria-expanded="true"]):not(:where(.has-background *)) { background: var(--se-secondary); }
+.se-runner .se-runner__content .wp-block-accordion-heading__toggle:active:not(:where(.has-background *)) { background: var(--se-secondary-hover); }
+.se-runner .se-runner__content .wp-block-accordion-heading__toggle[aria-expanded="true"] { border-inline-start-color: var(--se-primary); }
+.se-runner .se-runner__content .wp-block-accordion-heading__toggle:focus-visible {
+	outline: 3px solid #245dd1;
+	outline-offset: 4px;
+	box-shadow: 0 0 0 3px #fff, 0 0 0 7px #000;
+}
+.se-runner .se-runner__content .wp-block-accordion-heading__toggle-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.se-runner .se-runner__content .wp-block-accordion-heading__toggle-icon { flex: 0 0 1.2em; }
 .se-runner .se-runner__content ul, .se-runner .se-runner__content ol { padding-inline-start: 1.5rem; }
 .se-runner .se-runner__content li + li { margin-top: .5rem; }
 .se-runner .se-runner__content blockquote { margin: 1.5rem 0; padding: .5rem 1.25rem; border-inline-start: 3px solid var(--se-quote); color: var(--se-muted); }

@@ -482,6 +482,46 @@ Access integrations can supply an `AccessProvider` to `AccessManager` or use
 replacements must be readable PHP files under installed plugin/theme directories.
 See [se-004 validation](validation/se-004.md) for the context/API contract and remaining checks.
 
+### Authored block presentation (SE-029, unreleased)
+
+The built-in Runner and administrator Step Preview share scoped H2–H6 defaults
+inside Step and Welcome content. The default sizes descend at mobile and desktop
+widths; Sprint and Step application titles retain their existing sizes. Gutenberg
+font-size presets, custom/fluid typography, colours and explicit spacing take
+precedence. An intentional authored size can therefore change the default order.
+
+Native WordPress Accordion toggles inherit their heading typography and colours.
+Uncustomised toggles use Runner brand variables for hover/active/expanded states;
+expanded state has an inline-start border independently of focus. Keyboard focus
+retains the two-tone Runner ring. Authored backgrounds remain visible, and native
+icon order, rotation, ARIA state and Interactivity API behaviour stay with WordPress.
+Details keeps its native summary/disclosure marker and needs no additional CSS.
+
+Accordion requires WordPress 6.9+; Details requires 6.3+. Core's WordPress 6.0
+minimum is unchanged, and Core does not polyfill blocks absent from WordPress.
+This source change is unreleased, independently of the SE-028 hook below; neither
+is established by an installed plugin reporting version 0.3.0 alone.
+
+For the finite block compatibility matrix, use a fresh disposable loopback
+WordPress install with Twenty Twenty-Five (or Twenty Twenty-Two), the current
+plugin activated, `SE_TEST_WP_ROOT`, `SE_TEST_DISPOSABLE=yes`, and
+`SE_TEST_HTTP_BASE` pointing to its running server. The fixture creates test
+Sprints, Steps, a member, sessions and branding; never run it on a real site.
+
+```sh
+php tests/browser/blocks-fixture.php > blocks.json
+node tests/browser/blocks.cjs blocks.json
+php tests/browser/blocks-fixture.php verify blocks.json
+```
+
+Install Playwright and its Firefox/WebKit engines for all three engines; Chromium
+defaults to installed Chrome (`SE_BROWSER_CHANNEL` can override it).
+`SE_BROWSER_ENGINES=chromium,firefox,webkit` selects the matrix, and
+`SE_BROWSER_OUTPUT` selects its ignored screenshot/computed-style report directory
+(default `.tools/se029-browser`). Keep the private cookie/nonce fixture JSON out
+of Git. See [SE-029 validation](validation/se-029-runner-heading-accordion-styles.md)
+for exact environments, outcomes, limitations and owner staging checks.
+
 ### After-Step content action (SE-028, unreleased)
 
 `do_action( 'sprint_engine/runner_after_step_content', $step_identity )` fires
