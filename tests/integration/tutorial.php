@@ -130,21 +130,42 @@ tutorial_check( is_int( $tutorial_id ) && $tutorial_id === $tutorial_ids[1] && $
 tutorial_check( $tutorial_id === ( new Installer() )->install() && 7 === count( tutorial_posts() ), 'Refresh, repeat click and retry reuse the same tutorial unchanged.' );
 tutorial_check( '' === Availability::reason( get_post( $tutorial_id ) ) && Marker::canonical( $tutorial_id ) && StructureManager::is_linear( $tutorial_id ), 'Tutorial is published, passwordless, Launchable and structurally ready.' );
 $steps = Meta::steps( $tutorial_id );
-$original_word_limits = array( 134, 171, 166, 221, 208, 232 );
+$task_counts = array( 3, 5, 4, 4, 5, 4 );
+$journey_instructions = array(
+	array( 'Write down', 'three small actions', 'Open WordPress admin' ),
+	array( 'Start screen', 'directly beneath the title', 'Meta Boxes', 'Sprint setup', 'Set featured image', '1600 × 700', 'Save draft', 'Runner URL' ),
+	array( 'New Step title', 'Add Step', 'Save order', 'first Step', 'Leave its editor open' ),
+	array( 'Step mode', 'Task', 'Content', 'Publish', '← Back to Sprint', 'next Step', 'final Step' ),
+	array( 'Completion screen', 'Completion message', 'CTA button label', 'CTA URL', 'Launchable', 'Publish', 'Slug', 'save and reload', 'View Runner' ),
+	array( 'focused, step-by-step experience', 'Start Sprint', 'Complete &amp; Continue', 'Save &amp; Exit', 'My Sprints', 'Completion screen', 'Complete Sprint' ),
+);
 foreach ( $steps as $index => $step ) {
 	$definition = Content::steps()[$index];
 	$blocks = array_values( array_filter( parse_blocks( $step->post_content ), static function ( $block ) { return null !== $block['blockName']; } ) );
 	$expected = array( 'core/paragraph', 'core/heading', 'core/list', 'core/heading', 'core/paragraph' );
-	if ( $index >= 3 ) { $expected[] = 'core/paragraph'; }
-	tutorial_check( 'publish' === $step->post_status && '' === $step->post_password && $definition['body'] === $step->post_content && $expected === array_column( $blocks, 'blockName' ), 'Step ' . ( $index + 1 ) . ' uses a published native purpose/task/outcome structure with optional supporting paragraph.' );
+	tutorial_check( 'publish' === $step->post_status && '' === $step->post_password && $definition['body'] === $step->post_content && $expected === array_column( $blocks, 'blockName' ), 'Step ' . ( $index + 1 ) . ' uses the published native purpose/task/outcome structure.' );
 	$headings = array( $blocks[1], $blocks[3] );
 	tutorial_check( array( 3, 3 ) === array_column( array_column( $headings, 'attrs' ), 'level' ) && 'Your task' === wp_strip_all_tags( $headings[0]['innerHTML'] ) && 'You’re ready to continue when…' === wp_strip_all_tags( $headings[1]['innerHTML'] ) && '' !== trim( wp_strip_all_tags( $blocks[0]['innerHTML'] ) ) && '' !== trim( wp_strip_all_tags( $blocks[4]['innerHTML'] ) ), 'Step headings sit below the Runner Step title and separate a real purpose, task and readiness outcome.' );
 	$task_list = $blocks[2];
 	$child_types = array_values( array_unique( array_column( $task_list['innerBlocks'], 'blockName' ) ) );
-	tutorial_check( true === $task_list['attrs']['ordered'] && ( array() === $child_types || array( 'core/list-item' ) === $child_types ) && ( 0 === $index ? 3 : 4 ) === substr_count( render_block( $task_list ), '<li>' ), 'Task instructions form one numbered native List, compatible with inline and child List items.' );
-	$words = str_word_count( html_entity_decode( wp_strip_all_tags( str_replace( '><', '> <', $step->post_content ) ) ) );
-	tutorial_check( $words <= $original_word_limits[$index], 'Step ' . ( $index + 1 ) . ' stays within its original English word count, including the new headings.' );
+	tutorial_check( true === $task_list['attrs']['ordered'] && ( array() === $child_types || array( 'core/list-item' ) === $child_types ) && $task_counts[$index] === substr_count( render_block( $task_list ), '<li>' ), 'Task instructions form the approved numbered native List, compatible with inline and child List items.' );
+	foreach ( $journey_instructions[$index] as $instruction ) {
+		tutorial_check( str_contains( $step->post_content, $instruction ), 'Step ' . ( $index + 1 ) . ' preserves the author action: ' . $instruction );
+	}
+	tutorial_check( ! preg_match( '/\b(?:members?|quick add|next-Step links|IDs|Task mode|separate|in your notes|test member|restart|QA|Workspace|Workbook)\b/i', wp_strip_all_tags( $step->post_content ) ), 'Tutorial teaching stays with the first-build journey and actual control labels.' );
 }
+tutorial_check( Content::completion() === get_post_meta( $tutorial_id, '_sprint_engine_completion_message', true ) && 3 === substr_count( Content::completion(), "\n\n" ) && false === strpos( Content::completion(), '<' ) && str_contains( Content::completion(), 'Coming soon: Sprint Engine Pro' ) && '' === get_post_meta( $tutorial_id, '_sprint_engine_completion_cta_url', true ), 'Tutorial-only completion celebrates the finished Sprint and stores the modest Coming Soon note as plain paragraphs without a promotional link.' );
+
+// The saved links follow WordPress's installed admin path, independently of home.
+$site_path = static function ( $url, $path ) { return 'https://portable.invalid/wordpress/' . ltrim( $path, '/' ); };
+$home_path = static function ( $url, $path ) { return 'https://portable.invalid/academy/' . ltrim( $path, '/' ); };
+add_filter( 'site_url', $site_path, 10, 2 ); add_filter( 'home_url', $home_path, 10, 2 );
+try {
+	$portable = implode( '', array_column( Content::steps(), 'body' ) );
+	preg_match_all( '~<a href="([^"]+)" target="_blank" rel="noopener noreferrer">([^<]+)</a>~', $portable, $links, PREG_SET_ORDER );
+	tutorial_check( array( '/wordpress/wp-admin/', '/wordpress/wp-admin/post-new.php?post_type=sprint_engine_sprint', '/academy/sprint-engine/dashboard/' ) === array_column( $links, 1 ), 'Bundled links are site-relative and use the actual admin installation path and Core Dashboard route.' );
+	tutorial_check( 3 === count( $links ) && 3 === substr_count( implode( '', array_column( $links, 2 ) ), '(opens in a new tab)' ) && ! str_contains( $portable, 'portable.invalid' ), 'All tutorial links disclose their safe new-tab behavior and contain no saved domain.' );
+} finally { remove_filter( 'site_url', $site_path, 10 ); remove_filter( 'home_url', $home_path, 10 ); }
 $slug = get_post_field( 'post_name', $tutorial_id );
 tutorial_check( 'not_started' === ( new Runner() )->resolve( $slug )['state'] && str_contains( Routes::url( $slug ), '/sprint/' ), 'Administrator can open the actual canonical Runner before starting.' );
 
@@ -216,7 +237,7 @@ $saved = tutorial_posts(); $rows = tutorial_rows();
 deactivate_plugins( 'sprint-engine/sprint-engine.php' ); activate_plugin( 'sprint-engine/sprint-engine.php' );
 $reused = ( new Installer() )->install();
 tutorial_check( $tutorial_id === $reused && Marker::canonical( $tutorial_id ), 'Rename, editor saves, upgrade and reactivation preserve tutorial identity: ' . ( is_wp_error( $reused ) ? $reused->get_error_code() : $reused ) );
-tutorial_check( $saved === tutorial_posts(), 'Repeated opt-in and upgrades never overwrite authored tutorial edits.' );
+tutorial_check( $saved === tutorial_posts() && 'My edited finish' === get_post_meta( $tutorial_id, '_sprint_engine_completion_message', true ), 'Repeated opt-in and upgrades never overwrite authored tutorial or completion edits.' );
 tutorial_check( $rows === tutorial_rows(), 'Upgrade and reactivation retain every administrator and member attempt.' );
 ob_start(); Onboarding::panel(); $panel = ob_get_clean();
 tutorial_check( str_contains( $panel, Routes::url( 'renamed-example' ) ) && str_contains( $panel, 'Open Tutorial Sprint' ), 'Settings Open link follows the current saved slug.' );

@@ -25,11 +25,15 @@ prompt. The per-site choice survives reactivation and updates.
 
 **Sprints → Settings → Tutorial Sprint** also provides explicit opt-in after a
 skip, **Open Tutorial Sprint** using its current canonical Runner URL, and an
-editor link. The installed example contains six original native-block Steps:
-choose an outcome, create a separate Sprint, add/order Steps, author actionable
-content, publish/enable Launchable, and test start/save/resume/completion. Keep
-the tutorial in one tab while building a different Sprint in another. Completing
-the tutorial does not programmatically validate that other Sprint.
+editor link. SE-030.1's six original native-block Steps take one person from an
+outcome and three planned actions to their own published Sprint: create its Start
+screen, add and write the Steps, choose its completion message, publish/enable
+Launchable, and experience the result. Keep the tutorial in one tab while building
+the new Sprint in another. Numbered tasks use actual editor labels and safe,
+site-relative admin/Create Sprint/My Sprints links that explicitly open new tabs.
+The tutorial completion celebrates the finished Sprint, followed by a modest Pro
+Coming Soon paragraph; ordinary Sprint completion stays unchanged. Completing
+the tutorial does not programmatically validate the Sprint being built.
 
 The supplied Sprint and Steps are published/passwordless and pass normal
 StructureManager, Meta and Availability validation. Only a signed-in user with
@@ -57,6 +61,12 @@ draft/unready example is linked for editing rather than overwritten. Permanently
 deleting the Sprint permits a new explicit install; normal Core retention keeps
 its separately authored Step posts and historical attempts. Manage those old
 Steps in the native Sprint Steps list if they are no longer wanted.
+
+Bundled copy changes apply only to a newly installed tutorial. Updating Core does
+not replace an installed tutorial's introduction, Steps or completion message.
+Test SE-030.1 on a fresh disposable site, or follow the backed-up, explicit
+deletion/reinstall instructions in the validation record. There is no copy-update
+migration.
 
 See [SE-030 validation](validation/se-030-first-install-tutorial.md) for failure
 guarantees, reproducible checks, limitations and the owner staging checklist.

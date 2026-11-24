@@ -20,125 +20,161 @@ final class Content {
 	public static function overview() {
 		return self::blocks(
 			array(
-				__( 'Build your own first Sprint while following this working example. You will choose an outcome, create a different Sprint, add useful Steps and test it as a participant.', 'sprint-engine' ),
-				__( 'Keep this tutorial open in one tab and WordPress admin in another. Build a separate Sprint there; you do not need to change this tutorial. Allow about 30 minutes, or leave and return when you are ready.', 'sprint-engine' ),
-				__( 'Complete & Continue saves your place in this tutorial. It does not check the work in your other Sprint. Only WordPress administrators can run this example; your own Sprints follow your site’s normal access rules.', 'sprint-engine' ),
+				__( 'Welcome! In this tutorial you\'ll turn one simple idea into a working Sprint. You\'ll plan an outcome, create your Sprint in WordPress, add three Steps, publish it and experience it yourself.', 'sprint-engine' ),
+				__( 'Keep this tutorial open in one browser tab as you work in WordPress admin in another. Take your time — your place is saved when you complete each tutorial Step, so you can return later.', 'sprint-engine' ),
+				__( 'This tutorial is available only to WordPress administrators. The Sprint you build is your own and uses the usual access settings for your site.', 'sprint-engine' ),
 			)
 		);
 	}
 
 	/**
-	 * Six concrete actions, using controls available in standalone Core.
+	 * Tutorial-only plain text for the normal Core completion presentation.
+	 *
+	 * @return string
+	 */
+	public static function completion() {
+		return implode(
+			"\n\n",
+			array(
+				__( 'You\'ve built your first Sprint — congratulations!', 'sprint-engine' ),
+				__( 'You started with a goal, turned it into three practical Steps, published your Sprint and experienced the finished journey. Your Sprint is ready for you to keep developing and share with the people it\'s intended for.', 'sprint-engine' ),
+				__( 'Keep this tutorial as a reference for as long as it helps, or remove it when you\'re ready.', 'sprint-engine' ),
+				__( 'Coming soon: Sprint Engine Pro will add more ways to capture participants\' responses, build Workbooks and create richer journeys.', 'sprint-engine' ),
+			)
+		);
+	}
+
+	/**
+	 * Guide one person from an idea to experiencing their own published Sprint.
 	 *
 	 * @return array
 	 */
 	public static function steps() {
 		return array(
 			array(
-				'title' => __( 'Choose one useful outcome', 'sprint-engine' ),
+				'title' => __( 'Decide what your Sprint will achieve', 'sprint-engine' ),
 				'stage' => __( 'Plan', 'sprint-engine' ),
 				'body'  => self::step(
-					__( 'A useful Sprint turns one result into manageable actions. Plan yours here, then build a separate Sprint while keeping this tutorial open.', 'sprint-engine' ),
+					__( 'Every good Sprint leads to a clear result. Start by choosing what someone should be able to do or create by the end.', 'sprint-engine' ),
 					array(
-						__( 'Choose a small outcome. In your notes, finish: “By the end of this Sprint, I will have…” For example: “a weekly plan with three priorities and time reserved for the first one.”', 'sprint-engine' ),
-						__( 'Write three Step titles that lead to that result. For the weekly plan: list your commitments, choose three priorities, then reserve time for the first priority. Give each Step one manageable action.', 'sprint-engine' ),
-						__( 'Open WordPress admin in a second tab. Keep this tutorial here as your guide; you will create a different Sprint there.', 'sprint-engine' ),
+						__( 'Write down the words “By the end of this Sprint, I will have…” and finish the sentence. For example: “a plan for next week with three clear priorities.”', 'sprint-engine' ),
+						__( 'Think of three small actions that lead to that result. For our example: list what needs doing, choose three priorities, and make time for the first priority. Write down a short Step title for each action.', 'sprint-engine' ),
+						/* translators: %s: WordPress administration link with an explicit new-tab label. */
+						sprintf( __( 'Keep this tutorial open. Select %s to open your site\'s administration area.', 'sprint-engine' ), self::link( admin_url(), __( 'Open WordPress admin (opens in a new tab)', 'sprint-engine' ) ) ),
 					),
-					__( 'You have one outcome sentence, three Step titles and WordPress admin open in another tab.', 'sprint-engine' )
+					__( 'You have one clear outcome and three Step titles, with WordPress admin open in another tab.', 'sprint-engine' )
 				),
 			),
 			array(
-				'title' => __( 'Create your own Sprint', 'sprint-engine' ),
+				'title' => __( 'Create your Sprint and its Start screen', 'sprint-engine' ),
 				'stage' => __( 'Build', 'sprint-engine' ),
 				'body'  => self::step(
-					__( 'Give your new Sprint a clear starting point. Its introduction tells people who it is for, what they will achieve and what they need before starting.', 'sprint-engine' ),
+					__( 'Your Start screen introduces your Sprint before someone selects Start Sprint. Let\'s create it now.', 'sprint-engine' ),
 					array(
-						__( 'In your admin tab, open Sprints → Add Sprint. Give your separate Sprint a title, such as “Plan a focused week”. Leave this Tutorial Sprint as your reference.', 'sprint-engine' ),
-						__( 'Write a short introduction in the main block editor. It appears before Start Sprint; the first Step will contain the first action, without another welcome.', 'sprint-engine' ),
-						__( 'Leave the excerpt blank for now: adding one replaces the introduction on the start screen. A featured image and estimated duration are optional.', 'sprint-engine' ),
-						__( 'Choose Save draft to unlock Sprint structure. If setup panels are hidden, check panel preferences in the editor’s Options menu or scroll below the content.', 'sprint-engine' ),
+						/* translators: %s: direct Add New Sprint link with an explicit new-tab label. */
+						sprintf( __( 'In your admin tab, go to Sprints → Add New Sprint (Add Sprint in some WordPress versions), or select %s here.', 'sprint-engine' ), self::link( admin_url( 'post-new.php?post_type=sprint_engine_sprint' ), __( 'Create a new Sprint (opens in a new tab)', 'sprint-engine' ) ) ),
+						__( 'Close WordPress\'s welcome guide if it appears, then give your new Sprint a title. In the main block editor directly beneath the title, write a short introduction: who it\'s for, what they\'ll achieve and anything they need to get started. You can add other useful blocks here, such as a video or audio, if they help.', 'sprint-engine' ),
+						__( 'Find the panels below the editor. If Meta Boxes is shown and closed, expand it first. Open Sprint setup to see the Start screen guidance, and explore the optional settings. Sprint structure is where you\'ll add Steps; its Completion screen area is where you\'ll choose what happens at the end. We\'ll return to those as we build. If a panel is collapsed, expand its heading.', 'sprint-engine' ),
+						__( 'Optional: in the editor’s Sprint settings sidebar, select Set featured image (open Featured image first if it is collapsed). A wide image around 1600 × 700 px (16:7) is a useful starting point. Keep the important part centred because the Runner crops differently on smaller screens.', 'sprint-engine' ),
+						__( 'Choose Save draft. The Runner URL panel below the editor is where you\'ll find your Sprint\'s link once it\'s published. You can customise the Slug later if you wish.', 'sprint-engine' ),
 					),
-					__( 'Your separate Sprint is saved as a draft with a clear introduction. Return here and choose Complete & Continue.', 'sprint-engine' )
+					__( 'Your new Sprint is saved as a draft with a title and Start screen introduction.', 'sprint-engine' )
 				),
 			),
 			array(
-				'title' => __( 'Add and order your Steps', 'sprint-engine' ),
+				'title' => __( 'Add and arrange your three Steps', 'sprint-engine' ),
 				'stage' => __( 'Build', 'sprint-engine' ),
 				'body'  => self::step(
-					__( 'Turn your plan into a clear path. Sprint structure saves the order and calculates the next-Step links for you.', 'sprint-engine' ),
+					__( 'Your Sprint needs a clear path. The order you choose here is the order people will follow.', 'sprint-engine' ),
 					array(
-						__( 'In your saved Sprint editor, find Sprint structure. Enter a title and choose Add Step. Repeat for all three planned titles. Quick Add attaches each new draft Step to your Sprint.', 'sprint-engine' ),
-						__( 'Arrange the Steps with the drag handles or Move Step up/down controls, then choose Save order. Save pending order changes before adding or trashing another Step.', 'sprint-engine' ),
-						__( 'Check that Start marks the first row and Final the last. Positions and next-Step links are calculated together; you do not need to enter IDs or connect them yourself.', 'sprint-engine' ),
-						__( 'Choose the first Step’s Edit link to open its block editor. After saving, Back to Sprint returns to the parent editor. Find and filter Steps by Sprint in Sprints → Sprint Steps.', 'sprint-engine' ),
+						__( 'Return to your new Sprint editor. Below the editor, open Sprint structure, expanding Meta Boxes first if it is shown. Expand any collapsed section.', 'sprint-engine' ),
+						__( 'Under New Step title, enter the first title you planned and select Add Step. Repeat for the other two titles. You now have three draft Steps attached to your Sprint.', 'sprint-engine' ),
+						__( 'If needed, drag the Steps into the order you want and select Save order.', 'sprint-engine' ),
+						__( 'Select Edit beside your first Step. Leave its editor open — that\'s where you\'ll start the next part.', 'sprint-engine' ),
 					),
-					__( 'Your Sprint has three Steps in a saved order, and its first Step is open for editing.', 'sprint-engine' )
+					__( 'Your three draft Steps appear in the right order, and you\'re looking at the editor for Step 1.', 'sprint-engine' )
 				),
 			),
 			array(
-				'title' => __( 'Write content people can act on', 'sprint-engine' ),
+				'title' => __( 'Write and publish your Steps', 'sprint-engine' ),
 				'stage' => __( 'Author', 'sprint-engine' ),
 				'body'  => self::step(
-					__( 'Make every Step easy to act on: explain why it matters, give a small task and describe the finished result. Use this tutorial’s headings and numbered instructions as a model.', 'sprint-engine' ),
+					__( 'You\'re now editing the first Step. Each Step should make one action easy to understand and complete.', 'sprint-engine' ),
 					array(
-						__( 'Write your first action with Paragraph, Heading and List blocks. Keep headings descriptive and in a logical order. For the weekly plan, ask people to list commitments in their own notes, separate fixed appointments from flexible work and finish with one usable list.', 'sprint-engine' ),
-						__( 'Choose Task mode for action or Content for reading. Optionally add a Stage Label such as “Plan” and estimated minutes as a positive whole number. Neither mode completes a Step automatically.', 'sprint-engine' ),
-						__( 'Add native Image or Audio blocks only when useful. Provide image alternative text and a written equivalent for essential audio instructions. Playing audio does not complete the Step; no third-party service is needed.', 'sprint-engine' ),
-						__( 'Save content, metadata and images, then use View → Preview Step (or Options → Preview Step). Use Back to Sprint and write the remaining Steps.', 'sprint-engine' ),
+						__( 'Under your Step title, write a short explanation of what to do. If Meta Boxes covers the writing area, collapse it while you write. Use a heading or a short numbered list if helpful, and finish with a clear description of what “done” looks like. Use the three actions you planned in Step 1.', 'sprint-engine' ),
+						__( 'Below the editor, expand Meta Boxes if it is shown and find Step mode. Choose Task when the Step asks someone to take action, or Content when it\'s mainly something to read. Stage label and Estimated minutes are optional.', 'sprint-engine' ),
+						__( 'When the first Step is ready, choose Publish and confirm if prompted. Then select ← Back to Sprint to return to your main Sprint editor.', 'sprint-engine' ),
+						__( 'Open the next Step from Sprint structure. Write and publish it too, then repeat for the final Step.', 'sprint-engine' ),
 					),
-					__( 'Each Step gives a concrete action and a clear finish condition. Review the work yourself; this tutorial does not inspect or validate it.', 'sprint-engine' ),
-					__( 'Ask people to use their own notes when needed. Core does not collect those notes or include Workspace or Workbook fields.', 'sprint-engine' )
+					__( 'All three Steps contain useful instructions and have been published.', 'sprint-engine' )
 				),
 			),
 			array(
-				'title' => __( 'Publish a ready, Launchable Sprint', 'sprint-engine' ),
+				'title' => __( 'Finish the setup and launch your Sprint', 'sprint-engine' ),
 				'stage' => __( 'Prepare', 'sprint-engine' ),
 				'body'  => self::step(
-					__( 'Make your Sprint ready for the Runner. Both the Sprint and every Step must be Published, passwordless and connected in a valid saved order.', 'sprint-engine' ),
+					__( 'Your Steps are ready. Now choose what people see at the end and make your Sprint available to run.', 'sprint-engine' ),
 					array(
-						__( 'Review each Step and choose Publish. Draft, Pending, Private and Scheduled Steps prevent member access.', 'sprint-engine' ),
-						__( 'Return to Sprint structure. Check all three Steps show Published, with the intended Start, Final and next-Step links. Save order after any sequence change and resolve setup warnings.', 'sprint-engine' ),
-						__( 'Optionally add a message in Completion screen. A next-action button needs both a label and a full HTTP or HTTPS URL; leave both empty if there is no useful next action.', 'sprint-engine' ),
-						__( 'Enable Launchable and publish your Sprint. If Launchable is rejected, read the notice, fix the problem and save again. Locate the Runner URL in the Sprint editor.', 'sprint-engine' ),
+						__( 'Return to your Sprint editor and expand Meta Boxes if it is shown. In Sprint structure, check that all three Steps show as published and appear in the order you want.', 'sprint-engine' ),
+						__( 'Find Completion screen within Sprint structure. Write a short Completion message that recognises what someone has achieved — for example: “You\'ve created your weekly plan. You\'re ready to put it into action!”', 'sprint-engine' ),
+						__( 'If you\'d like to offer a next action, add both a CTA button label and a CTA URL. For example, link to your website or another helpful page. This button is optional; leave both fields blank if you don\'t need it.', 'sprint-engine' ),
+						__( 'Check Launchable and Publish your Sprint, confirming if prompted. If WordPress shows a warning, follow the message and save again once it\'s resolved.', 'sprint-engine' ),
+						__( 'After publishing, reload the editor. In Runner URL, review the automatically generated link. You can change the Slug if you\'d like a different address — save and reload to update the link. When everything is ready, the View Runner button will be available.', 'sprint-engine' ),
 					),
-					__( 'Your own Sprint is Published and Launchable with no readiness warning, and you have its Runner URL.', 'sprint-engine' ),
-					__( 'Your Sprint does not inherit this tutorial’s administrator-only rule. Standalone Core admits signed-in WordPress users to ready Sprints; access extensions may apply other rules. Learn on a test site if your site already has members.', 'sprint-engine' )
+					__( 'Your Sprint is Published and Launchable, and you can select View Runner.', 'sprint-engine' )
 				),
 			),
 			array(
-				'title' => __( 'Test the journey and make it yours', 'sprint-engine' ),
-				'stage' => __( 'Test', 'sprint-engine' ),
+				'title' => __( 'Experience the Sprint you\'ve built', 'sprint-engine' ),
+				'stage' => __( 'Experience', 'sprint-engine' ),
 				'body'  => self::step(
-					__( 'Try the journey as a participant. Testing your own Sprint reveals whether each instruction, saved position and completion screen works as intended.', 'sprint-engine' ),
+					__( 'You\'ve built your first Sprint! Now go through it yourself and see how your content guides someone from beginning to end.', 'sprint-engine' ),
 					array(
-						__( 'Open your Sprint’s Runner URL in another tab while signed in. Review the introduction and choose Start Sprint. If unavailable, check Runner status and Settings → Permalinks: the Runner needs pretty permalinks.', 'sprint-engine' ),
-						__( 'Do the first action and choose Complete & Continue. Viewing, scrolling or audio playback never completes a Step. Leave, open My Sprints at /sprint-engine/dashboard/ and resume to check your saved position.', 'sprint-engine' ),
-						__( 'Complete the remaining Steps and review the final screen. Try Restart Sprint: it creates a new attempt and retains previous progress. Test a narrow screen and keyboard navigation too.', 'sprint-engine' ),
-						__( 'Save and retest any changes to the sequence or finish conditions. A signed-in test member can check your Sprint’s normal access; they cannot run this administrator-only tutorial.', 'sprint-engine' ),
+						__( 'From your Sprint editor, select View Runner. The Runner is the focused, step-by-step experience people use to follow your Sprint. Read the Start screen you created and select Start Sprint.', 'sprint-engine' ),
+						__( 'Follow the instructions in your first Step. When you\'re done, select Complete & Continue. Continue through the other Steps in the same way.', 'sprint-engine' ),
+						/* translators: %s: same-site My Sprints link with an explicit new-tab label. */
+						sprintf( __( 'If you need to stop partway through, select Save & Exit at the top of the Runner. You can return through the same Runner URL or %s and carry on where you stopped.', 'sprint-engine' ), self::link( \ThePath\SprintEngine\Dashboard\Routes::url(), __( 'My Sprints (opens in a new tab)', 'sprint-engine' ) ) ),
+						__( 'Complete your last Step and read the Completion screen you created. If anything you\'d like to improve comes to mind, you can edit your Sprint later — that\'s part of making it your own.', 'sprint-engine' ),
 					),
-					__( 'You have tested start, explicit completion, leave/resume and the final screen in your separate Sprint. Choose Complete Sprint here to save this tutorial’s completion too.', 'sprint-engine' ),
-					__( 'Keep this example for reference: Sprints → Settings → Open Tutorial Sprint. You can inspect, edit or delete it later; plugin updates do not replace your tutorial edits.', 'sprint-engine' )
+					__( 'You\'ve run all the way through the Sprint you created and reached its completion screen. Select Complete Sprint on this tutorial Step to finish the tutorial too.', 'sprint-engine' )
 				),
 			),
 		);
 	}
 
 	/**
+	 * Escape a trusted site URL as a portable, explicitly labelled new-tab link.
+	 *
+	 * @param string $url URL generated by WordPress or Core Routes.
+	 * @param string $label Visible label including the new-tab indication.
+	 * @return string
+	 */
+	private static function link( $url, $label ) {
+		return '<a href="' . esc_url( wp_make_link_relative( $url ) ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $label ) . '</a>';
+	}
+
+	/**
 	 * A short purpose, numbered task and observable outcome in native text blocks.
 	 *
 	 * @param string   $introduction Purpose of the Step.
-	 * @param string[] $tasks Ordered actions.
+	 * @param string[] $tasks Ordered actions with allowlisted links.
 	 * @param string   $outcome Ready-to-continue outcome.
-	 * @param string   $note Optional supporting guidance.
 	 * @return string
 	 */
-	private static function step( $introduction, $tasks, $outcome, $note = '' ) {
+	private static function step( $introduction, $tasks, $outcome ) {
 		$registry = \WP_Block_Type_Registry::get_instance();
 		$heading  = block_has_support( $registry->get_registered( 'core/heading' ), 'className', true ) ? ' class="wp-block-heading"' : '';
 		$list     = block_has_support( $registry->get_registered( 'core/list' ), 'className', true ) ? ' class="wp-block-list"' : '';
 		$items    = array_map(
 			static function ( $task ) use ( $registry ) {
-				$item = '<li>' . esc_html( $task ) . '</li>';
+				$allowed = array(
+					'a' => array(
+						'href'   => true,
+						'target' => true,
+						'rel'    => true,
+					),
+				);
+				$item    = '<li>' . wp_kses( $task, $allowed ) . '</li>';
 				// WordPress 6.0 uses inline list items; newer native editors use child blocks.
 				return $registry->is_registered( 'core/list-item' ) ? '<!-- wp:list-item -->' . $item . '<!-- /wp:list-item -->' : $item;
 			},
@@ -148,7 +184,7 @@ final class Content {
 			'<!-- wp:heading {"level":3} --><h3' . $heading . '>' . esc_html__( 'Your task', 'sprint-engine' ) . '</h3><!-- /wp:heading -->' . "\n\n" .
 			'<!-- wp:list {"ordered":true} --><ol' . $list . '>' . implode( '', $items ) . '</ol><!-- /wp:list -->' . "\n\n" .
 			'<!-- wp:heading {"level":3} --><h3' . $heading . '>' . esc_html__( 'You’re ready to continue when…', 'sprint-engine' ) . '</h3><!-- /wp:heading -->' . "\n\n" .
-			self::blocks( array( $outcome ) ) . ( $note ? "\n\n" . self::blocks( array( $note ) ) : '' );
+			self::blocks( array( $outcome ) );
 	}
 
 	/**

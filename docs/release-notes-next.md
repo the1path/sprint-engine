@@ -16,6 +16,10 @@ Current published metadata remains **0.3.0**, schema **2**.
   authored edits. The published example is accessible only to signed-in WordPress
   administrators, even with external entitlement grants. See
   [validation and staging checklist](validation/se-030-first-install-tutorial.md).
+- SE-030.1: rewrite the bundled tutorial around building, publishing and
+  experiencing a first three-Step Sprint, with verified native editor navigation,
+  portable new-tab links and a tutorial-only celebratory completion. Existing
+  installed tutorials retain their copy; use a fresh disposable site for review.
 
 For release preparation, adapt these bullets into `readme.txt` only after release
 approval; retain the public 0.3.0 changelog until then. No schema migration is
