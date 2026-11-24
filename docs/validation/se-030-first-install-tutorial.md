@@ -34,7 +34,8 @@ deployment, WordPress.org/SVN publication or version bump forms part of this wor
 - Six original, bundled native Gutenberg Steps guide the administrator to define
   an outcome, create a **different** Sprint, add/order its Steps, author actionable
   content, publish/enable Launchable, and test the Runner. Each provides concrete
-  WordPress instructions and a finish condition. The copy distinguishes the
+  WordPress instructions in a short purpose / numbered task / readiness outcome
+  format, using native Paragraph, Heading and List blocks. The copy distinguishes the
   Sprint introduction from Step work, describes Core's notes/media limits, and
   makes no promise to validate the other Sprint. No external content, screenshot,
   hard-coded site URL/ID, Pro block or commerce dependency is shipped.
@@ -96,7 +97,7 @@ progress under the existing data-retention policy. Reinstallation does not reuse
 those historical attempts or silently delete old Steps. Native Sprint Steps can
 be used to manage retained content. Trash restoration retains the original Steps.
 
-## Executed checks
+## Initial implementation checks
 
 All database tests used explicitly disposable installations and non-default table
 prefixes. Warnings/notices in integration suites are promoted to exceptions.
@@ -160,7 +161,73 @@ Browser fixture update transients prevent unrelated WordPress update-check traff
 in the offline sandbox. No update behavior is changed in shipped Core code.
 
 Reviewed screenshots: [native Welcome choices](images/se-030/welcome.png) and
-[tutorial Step at 320px](images/se-030/tutorial-step-mobile.png).
+[tutorial Step at 320px](images/se-030/tutorial-step-mobile.png) (updated by the
+instructional-design pass below).
+
+## Instructional-design polish — 24 November 2026
+
+Owner-requested follow-up on the same feature branch and PR #22. Runtime changes
+are limited to `src/Tutorial/Content.php`: installation, access, transactions,
+schema, metadata, routes, templates, styles, versions and the marker contract are
+unchanged. Existing installed tutorial posts and administrator edits are not
+overwritten; the revised bundled copy is used for new explicit installations.
+
+Every Step now starts with a brief purpose, followed by **Your task** and one
+numbered native List, then **You’re ready to continue when…** and an observable
+outcome. The first Step has three actions; the others have four. Optional short
+supporting paragraphs retain the Core notes/media limits, ordinary Sprint access
+rules and later tutorial reference instructions. All six Steps still guide the
+administrator to build a separate Sprint from scratch in another tab. There is no
+automatic assessment, new block, tutorial framework, external asset or Pro feature.
+
+H3 section headings sit below the normal Runner's H2 Step title. List semantics,
+reading order and heading hierarchy do not rely on colour or bold text alone.
+There are no authored font, colour or spacing overrides: normal Runner branding
+and native content styles supply the presentation. Content serialization uses the
+installed native block capabilities for default classes and list-item structure:
+WordPress 6.0 gets its inline List items, while current WordPress gets native
+`core/list-item` children. Both formats are verified in their actual editors.
+
+The copy is shorter in every Step, including the new headings. English word counts
+use tag-separated, decoded text and PHP `str_word_count()`; test budgets preserve
+the original upper bounds.
+
+| Step | Previous | Polished |
+| --- | ---: | ---: |
+| Choose one useful outcome | 134 | 130 |
+| Create your own Sprint | 171 | 153 |
+| Add and order your Steps | 166 | 163 |
+| Write content people can act on | 221 | 213 |
+| Publish a ready, Launchable Sprint | 208 | 186 |
+| Test the journey and make it yours | 232 | 203 |
+| Total | 1,132 | 1,048 |
+
+The integration assertions now check the published native block sequence, purpose
+and outcome text, H3 section labels, ordered List/item counts and each Step's
+original length budget. The existing lifecycle/access/rollback assertions still
+run. Browser checks cover all six Steps at four widths, list bounds, heading
+hierarchy/colour inheritance and 44px Runner controls; every Step is opened,
+saved through the native editor and reopened with valid Paragraph/Heading/List
+blocks and the same structure. Resize measurements wait two animation frames
+for browser layout to settle; Settings initialization requests finish before
+refresh/navigation so the test does not abort native Media Library requests.
+
+| Follow-up check | Result |
+| --- | --- |
+| PHPCS, PHP lint for changed PHP, browser JavaScript syntax | PASS |
+| Existing JavaScript regressions | PASS, 39 tests |
+| Existing PHP regression matrix, WordPress 7.1.4 / PHP 8.3.35 / SQLite | PASS, 19 isolated suites, 1,851 assertions, no skips; includes authoring, Runner (305), REST, Dashboard, structure and release/asset checks |
+| Expanded tutorial suite on current WordPress/PHP | PASS, 122 assertions |
+| Expanded tutorial suite on WordPress 6.0 / PHP 8.0.30 / MariaDB 10.11.11 InnoDB | PASS, 122 assertions |
+| WordPress 6.0 / PHP 8.0 Chromium editor and Runner journey | PASS, all six native editor save/reopen checks and four-width Runner checks |
+| Current WordPress Chromium/Firefox/WebKit editor and Runner journeys | PASS, all six Steps at 1440/768/390/320px, list bounds and heading/branding checks; valid native editor save/reopen for every Step in all three engines |
+| Local runtime package and exact allowlist verification | PASS, 75 files; no new runtime asset or dependency |
+
+Reviewed Runner evidence: [desktop at 1440px](images/se-030/tutorial-step-desktop.png)
+and [mobile at 320px](images/se-030/tutorial-step-mobile.png).
+The owner-hosting, real-commerce, screen-reader and physical-device acceptance
+limitations below remain. This content-only pass does not change PRO-018's separate
+public-discovery integration responsibility or authorise merge/deploy/release.
 
 ## Files and implementation boundaries
 

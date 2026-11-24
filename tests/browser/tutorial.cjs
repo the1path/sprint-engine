@@ -9,7 +9,9 @@ fs.mkdirSync(output, {recursive: true});
 (async () => {
     const report = [];
     let runnerUrl, sprintId;
-    for (const [index, [name, engine]] of Object.entries({chromium, firefox, webkit}).entries()) {
+    const engines = Object.entries({chromium, firefox, webkit}).filter(([name]) => !process.env.SE_BROWSER_ENGINES || process.env.SE_BROWSER_ENGINES.split(',').includes(name));
+    assert(engines.length > 0, 'Select at least one supported browser engine');
+    for (const [index, [name, engine]] of engines.entries()) {
         const browser = await engine.launch(name === 'chromium' ? {channel: process.env.SE_BROWSER_CHANNEL || 'chrome', headless: true} : {headless: true});
         try {
             const context = await browser.newContext({viewport: {width: 1440, height: 1000}});
@@ -25,8 +27,12 @@ fs.mkdirSync(output, {recursive: true});
                 assert.equal(await page.getByRole('button', {name: 'I know how to use Sprint Engine', exact: true}).count(), 0);
                 await Promise.all([page.waitForNavigation(), page.getByRole('button', {name: 'Install Tutorial Sprint', exact: true}).click()]);
             } else { await page.goto(fixture.settings); }
+            // Settings loads native Media Library REST requests after document load.
+            // Let them finish before refresh/navigation instead of aborting initialization.
+            await page.waitForLoadState('networkidle');
             runnerUrl = await page.getByRole('link', {name: 'Open Tutorial Sprint', exact: true}).getAttribute('href');
             await page.reload();
+            await page.waitForLoadState('networkidle');
             assert.equal(await page.getByRole('button', {name: 'Install Tutorial Sprint', exact: true}).count(), 0);
             await page.getByRole('link', {name: 'Edit Tutorial Sprint', exact: true}).click();
             await page.waitForFunction(() => window.wp?.data?.select('core/editor')?.getCurrentPostId());
@@ -34,7 +40,7 @@ fs.mkdirSync(output, {recursive: true});
             await page.waitForFunction(() => wp.data.select('core/notices').getNotices().some(n => n.id === 'sprint-engine-tutorial-admin-only'));
             await page.locator('.components-notice__content').filter({hasText: 'This is the Sprint Engine Tutorial Sprint — administrators only'}).waitFor({state: 'visible'});
             const guide = page.getByRole('dialog').filter({hasText: 'Welcome to the editor'});
-            if (await guide.count()) { await guide.getByRole('button', {name: 'Close', exact: true}).click(); }
+            if (await guide.count()) { await guide.getByRole('button', {name: 'Close', exact: true}).click(); await guide.waitFor({state: 'hidden'}); }
             assert.equal(await page.evaluate(() => wp.data.select('core/notices').getNotices().find(n => n.id === 'sprint-engine-tutorial-admin-only').isDismissible), false);
             assert(await page.evaluate(() => wp.data.select('core/block-editor').getBlocks().every(b => b.isValid)));
             await page.screenshot({path: `${output}/${name}-editor.png`, fullPage: true});
@@ -44,14 +50,29 @@ fs.mkdirSync(output, {recursive: true});
             const steps = [];
             for (let step = 1; step <= 6; ++step) {
                 assert(await page.getByText(`Step ${step} of 6`, {exact: true}).isVisible());
-                assert(await page.getByText(step === 6 ? 'Before completing this tutorial:' : 'Before continuing:', {exact: false}).isVisible());
+                const content = page.locator('.se-runner__content');
+                assert.deepEqual(await content.locator('h3').allTextContents(), ['Your task', 'You’re ready to continue when…']);
+                assert.equal(await content.locator('ol').count(), 1);
+                assert.equal(await content.locator('ol > li').count(), step === 1 ? 3 : 4);
+                assert(await content.locator('p').first().isVisible());
+                assert(await content.locator('h3 + p').isVisible());
+                assert.equal(await content.locator('[style], [class*="has-"]').count(), 0, 'Tutorial must inherit normal Runner branding');
                 const endpoint = await page.evaluate(() => sprintEngineRunner.endpoint);
                 steps.push(Number(endpoint.match(/steps\/(\d+)/)[1]));
                 for (const width of [1440, 768, 390, 320]) {
                     await page.setViewportSize({width, height: 1000});
+                    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
                     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name} Step ${step} overflow at ${width}`);
+                    for (const item of await content.locator('ol > li').all()) {
+                        const box = await item.boundingBox();
+                        assert(box.x >= 0 && box.x + box.width <= width + 1, `${name} Step ${step} task list overflow at ${width}`);
+                    }
+                    const sizes = await page.locator('#se-step-title, .se-runner__content h3').evaluateAll(elements => elements.map(el => parseFloat(getComputedStyle(el).fontSize)));
+                    assert(sizes[0] > sizes[1] && sizes[1] === sizes[2], 'Section headings must remain below the Step title');
+                    assert.equal(await content.locator('h3').first().evaluate(el => getComputedStyle(el).color), await content.locator('p').first().evaluate(el => getComputedStyle(el).color));
                     const action = await page.locator('#se-runner-action').boundingBox();
                     assert(action.width >= 44 && action.height >= 44);
+                    if (step === 1 && [1440, 320].includes(width)) { await page.screenshot({path: `${output}/${name}-step-${width}.png`, fullPage: true}); }
                 }
                 if (step === 1) {
                     await page.screenshot({path: `${output}/${name}-mobile.png`, fullPage: true});
@@ -69,11 +90,32 @@ fs.mkdirSync(output, {recursive: true});
             await Promise.all([page.waitForNavigation(), page.locator('#se-runner-action').click()]);
             assert(await page.getByText('Step 1 of 6', {exact: true}).isVisible());
             await page.setViewportSize({width: 1440, height: 1000});
-            await page.goto(new URL(`wp-admin/post.php?post=${steps[0]}&action=edit`, fixture.home).href);
-            await page.waitForFunction(() => window.wp?.data?.select('core/block-editor')?.getBlocks().length > 0);
-            assert(await page.evaluate(() => wp.data.select('core/block-editor').getBlocks().every(b => b.isValid)));
-            assert.equal(await page.getByText('This block contains unexpected or invalid content.').count(), 0);
-            assert.equal(await page.evaluate(() => wp.data.select('core/notices').getNotices().filter(n => n.id === 'sprint-engine-tutorial-admin-only').length), 0);
+            for (const stepId of steps) {
+                const editor = new URL(`wp-admin/post.php?post=${stepId}&action=edit`, fixture.home).href;
+                await page.goto(editor);
+                await page.waitForFunction(id => window.wp?.data?.select('core/editor')?.getCurrentPostId() === id && wp.data.select('core/block-editor').getBlocks().length >= 5, stepId);
+                const inspect = () => page.evaluate(() => {
+                    const blocks = wp.data.select('core/block-editor').getBlocks();
+                    const valid = items => items.every(b => b.isValid && valid(b.innerBlocks || []));
+                    return {valid: valid(blocks), types: blocks.map(b => b.name), headings: blocks.filter(b => b.name === 'core/heading').map(b => ({level: b.attributes.level, text: String(b.attributes.content)}))};
+                });
+                const before = await inspect();
+                assert(before.valid);
+                assert.deepEqual(before.types.slice(0, 5), ['core/paragraph', 'core/heading', 'core/list', 'core/heading', 'core/paragraph']);
+                assert.deepEqual(before.headings, [{level: 3, text: 'Your task'}, {level: 3, text: 'You’re ready to continue when…'}]);
+                // Exercise the native editor's save path, then reopen the stored blocks.
+                await page.evaluate(async () => {
+                    const title = wp.data.select('core/editor').getEditedPostAttribute('title');
+                    wp.data.dispatch('core/editor').editPost({title: `${title} — reviewed`});
+                    await wp.data.dispatch('core/editor').savePost();
+                    if (wp.data.select('core/editor').isEditedPostDirty()) throw new Error('Native Step save did not finish');
+                });
+                await page.goto(editor);
+                await page.waitForFunction(id => window.wp?.data?.select('core/editor')?.getCurrentPostId() === id && wp.data.select('core/block-editor').getBlocks().length >= 5, stepId);
+                assert.deepEqual(await inspect(), before);
+                assert.equal(await page.getByText('This block contains unexpected or invalid content.').count(), 0);
+                assert.equal(await page.evaluate(() => wp.data.select('core/notices').getNotices().filter(n => n.id === 'sprint-engine-tutorial-admin-only').length), 0);
+            }
 
             const member = await browser.newContext(); await member.addCookies([fixture.member.cookie]);
             const denied = await member.newPage();

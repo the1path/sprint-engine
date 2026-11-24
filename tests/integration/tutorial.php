@@ -130,10 +130,20 @@ tutorial_check( is_int( $tutorial_id ) && $tutorial_id === $tutorial_ids[1] && $
 tutorial_check( $tutorial_id === ( new Installer() )->install() && 7 === count( tutorial_posts() ), 'Refresh, repeat click and retry reuse the same tutorial unchanged.' );
 tutorial_check( '' === Availability::reason( get_post( $tutorial_id ) ) && Marker::canonical( $tutorial_id ) && StructureManager::is_linear( $tutorial_id ), 'Tutorial is published, passwordless, Launchable and structurally ready.' );
 $steps = Meta::steps( $tutorial_id );
+$original_word_limits = array( 134, 171, 166, 221, 208, 232 );
 foreach ( $steps as $index => $step ) {
 	$definition = Content::steps()[$index];
-	$blocks = array_filter( parse_blocks( $step->post_content ), static function ( $block ) { return null !== $block['blockName']; } );
-	tutorial_check( 'publish' === $step->post_status && '' === $step->post_password && $definition['body'] === $step->post_content && count( $blocks ) >= 4 && array( 'core/paragraph' ) === array_values( array_unique( array_column( $blocks, 'blockName' ) ) ), 'Original Step ' . ( $index + 1 ) . ' is complete, published native Gutenberg content.' );
+	$blocks = array_values( array_filter( parse_blocks( $step->post_content ), static function ( $block ) { return null !== $block['blockName']; } ) );
+	$expected = array( 'core/paragraph', 'core/heading', 'core/list', 'core/heading', 'core/paragraph' );
+	if ( $index >= 3 ) { $expected[] = 'core/paragraph'; }
+	tutorial_check( 'publish' === $step->post_status && '' === $step->post_password && $definition['body'] === $step->post_content && $expected === array_column( $blocks, 'blockName' ), 'Step ' . ( $index + 1 ) . ' uses a published native purpose/task/outcome structure with optional supporting paragraph.' );
+	$headings = array( $blocks[1], $blocks[3] );
+	tutorial_check( array( 3, 3 ) === array_column( array_column( $headings, 'attrs' ), 'level' ) && 'Your task' === wp_strip_all_tags( $headings[0]['innerHTML'] ) && 'You’re ready to continue when…' === wp_strip_all_tags( $headings[1]['innerHTML'] ) && '' !== trim( wp_strip_all_tags( $blocks[0]['innerHTML'] ) ) && '' !== trim( wp_strip_all_tags( $blocks[4]['innerHTML'] ) ), 'Step headings sit below the Runner Step title and separate a real purpose, task and readiness outcome.' );
+	$task_list = $blocks[2];
+	$child_types = array_values( array_unique( array_column( $task_list['innerBlocks'], 'blockName' ) ) );
+	tutorial_check( true === $task_list['attrs']['ordered'] && ( array() === $child_types || array( 'core/list-item' ) === $child_types ) && ( 0 === $index ? 3 : 4 ) === substr_count( render_block( $task_list ), '<li>' ), 'Task instructions form one numbered native List, compatible with inline and child List items.' );
+	$words = str_word_count( html_entity_decode( wp_strip_all_tags( str_replace( '><', '> <', $step->post_content ) ) ) );
+	tutorial_check( $words <= $original_word_limits[$index], 'Step ' . ( $index + 1 ) . ' stays within its original English word count, including the new headings.' );
 }
 $slug = get_post_field( 'post_name', $tutorial_id );
 tutorial_check( 'not_started' === ( new Runner() )->resolve( $slug )['state'] && str_contains( Routes::url( $slug ), '/sprint/' ), 'Administrator can open the actual canonical Runner before starting.' );
