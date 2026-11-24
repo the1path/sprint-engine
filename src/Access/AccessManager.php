@@ -38,6 +38,10 @@ final class AccessManager {
 	 */
 	public function can_access( $user_id, $sprint_id ) {
 		$allowed = $this->provider->can_access( $user_id, $sprint_id );
-		return (bool) apply_filters( 'sprint_engine/user_can_access_sprint', $allowed, $user_id, $sprint_id ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Public hook spelling required by the specification.
+		$allowed = (bool) apply_filters( 'sprint_engine/user_can_access_sprint', $allowed, $user_id, $sprint_id ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Public hook spelling required by the specification.
+		if ( \ThePath\SprintEngine\Tutorial\Marker::exists( $sprint_id ) ) {
+			return is_int( $user_id ) && $user_id > 0 && get_current_user_id() === $user_id && user_can( $user_id, 'manage_options' );
+		}
+		return $allowed;
 	}
 }

@@ -14,6 +14,55 @@ historical package evidence and the WordPress.org SVN manifest.
 
 ## Author a linear Sprint
 
+### Optional Tutorial Sprint (SE-030, unreleased)
+
+After the first successful site-level installation, administrators get a compact
+notice linking to **Sprints → Welcome**. Choose **Install Tutorial Sprint** or
+**I know how to use Sprint Engine**. Activation, upgrades and page views never
+create sample content. An existing installation is detected from version/schema
+options, existing Sprint/Step content or owned tables; an upgrade gets no welcome
+prompt. The per-site choice survives reactivation and updates.
+
+**Sprints → Settings → Tutorial Sprint** also provides explicit opt-in after a
+skip, **Open Tutorial Sprint** using its current canonical Runner URL, and an
+editor link. The installed example contains six original native-block Steps:
+choose an outcome, create a separate Sprint, add/order Steps, author actionable
+content, publish/enable Launchable, and test start/save/resume/completion. Keep
+the tutorial in one tab while building a different Sprint in another. Completing
+the tutorial does not programmatically validate that other Sprint.
+
+The supplied Sprint and Steps are published/passwordless and pass normal
+StructureManager, Meta and Availability validation. Only a signed-in user with
+effective `manage_options` can run the tutorial. Core applies that special policy
+after external access filters, including Pro grants/denials; ordinary Sprints
+keep their normal access rules. A persistent editor notice and native Sprint-list
+label identify the example. Its protected marker is independent of its name/slug
+and is never an editable authoring field. See the
+[Core/PRO-018 marker contract](tutorial-marker-contract.md).
+
+Repeated/concurrent installs reuse the same identity. Installation composes normal
+Quick Add and metadata operations inside one content transaction, with a locked
+non-autoloaded option row serializing requests. WordPress `posts`, `postmeta` and
+`options` must support transactions (InnoDB on MySQL/MariaDB). Ordinary structure
+operations retain their existing `posts`/`postmeta` requirement. No table/schema
+change or lease timeout is introduced. Do not call this internal installer from
+an already-open external/progress transaction.
+
+A failure rolls back authored posts, metadata and the installation decision. Retry
+from Settings; the lock row may remain at zero but is not an installed tutorial.
+Existing canonical marked content is reused without replacing edits; ambiguous
+markers/identity are refused. Trash restoration is explicit and reuses content
+and Steps, restoring prior publication when appropriate. An intentionally edited
+draft/unready example is linked for editing rather than overwritten. Permanently
+deleting the Sprint permits a new explicit install; normal Core retention keeps
+its separately authored Step posts and historical attempts. Manage those old
+Steps in the native Sprint Steps list if they are no longer wanted.
+
+See [SE-030 validation](validation/se-030-first-install-tutorial.md) for failure
+guarantees, reproducible checks, limitations and the owner staging checklist.
+
+### Native authoring workflow
+
 The main Sprint editor content is the introduction shown **before Start Sprint**;
 an excerpt, when supplied, takes precedence. Your first Step normally contains
 the first piece of work, not another welcome. **Sprint setup** explains this and
@@ -747,6 +796,7 @@ its plugins directory, but leave it inactive. Then run:
 
 ```sh
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/foundation.php
+SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/tutorial.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/authoring.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/structure.php
 SE_TEST_WP_ROOT=/path/to/wordpress SE_TEST_DISPOSABLE=yes php tests/integration/progress.php
@@ -784,6 +834,12 @@ parent changes, read-only controls and editor asset scoping. The progress suite
 covers repositories, the complete linear lifecycle, idempotency, UTC, stale-state
 recovery, rollback, hooks and duplicate requests from independent PHP processes.
 It requires PHP CLI `proc_open` for the concurrency checks.
+
+`composer test:tutorial` is separate because it requires an initially inactive
+Core plugin with no previous Sprint installation evidence. Use a fresh disposable
+database for that suite; do not run it after foundation against the same database.
+It covers failed first activation, explicit choices, transaction rollback,
+independent concurrent installers, tutorial content, access and reinstallation.
 
 The Runner suite covers routing, access, state coordination, content rendering,
 template validation, assets and lifecycle retention. Optionally set

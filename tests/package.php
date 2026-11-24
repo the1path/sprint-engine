@@ -32,8 +32,8 @@ foreach ( $expected as $name ) {
     if ( preg_match( '/disposable-test-only|SE_TEST_WP_ROOT|github_pat_|ghp_[a-zA-Z0-9]{20}/', $bytes ) ) { throw new RuntimeException( 'Development or credential marker: ' . $name ); }
     if ( preg_match( '~(?:[A-Z]:[\\\\/]Users[\\\\/]|wp-config\.php.*DB_PASSWORD|-----BEGIN .*PRIVATE KEY)~', $bytes ) ) { throw new RuntimeException( 'Local path or secret marker: ' . $name ); }
 }
-foreach (array('src/Dashboard/Routes.php','src/Dashboard/Dashboard.php','templates/dashboard.php','assets/css/dashboard.css','assets/js/dashboard.js') as $file) {
-    if (!in_array($file,$expected,true)) { throw new RuntimeException('Missing Dashboard runtime file: ' . $file); }
+foreach (array('src/Dashboard/Routes.php','src/Dashboard/Dashboard.php','templates/dashboard.php','assets/css/dashboard.css','assets/js/dashboard.js','src/Tutorial/Content.php','src/Tutorial/Installer.php','src/Tutorial/Marker.php','src/Tutorial/Onboarding.php','src/Content/Transaction.php','assets/js/tutorial-editor.js') as $file) {
+    if (!in_array($file,$expected,true)) { throw new RuntimeException('Missing required runtime file: ' . $file); }
 }
 $zip->close();
 echo 'PASS: ' . count( $expected ) . " exact runtime files; no extra archive entries, local user paths or private-key markers.\n";

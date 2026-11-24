@@ -341,49 +341,34 @@ final class StructureManager {
 				return self::error( __( 'You cannot manage this Sprint. Save it as a draft first.', 'sprint-engine' ), 403 );
 			}
 		}
-		$tables = $wpdb->get_results( $wpdb->prepare( 'SHOW TABLE STATUS WHERE Name IN (%s, %s)', $wpdb->posts, $wpdb->postmeta ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Verify rollback support before structural writes.
-		if ( ! is_array( $tables ) || 2 !== count( $tables ) || array_filter(
-			$tables,
-			static function ( $table ) {
-				return 'innodb' !== strtolower( $table['Engine'] ?? '' );
-			}
-		) ) {
-			return self::error( __( 'Structure changes require transactional WordPress content tables. Ask your site administrator to check the database storage engine.', 'sprint-engine' ), 500 );
-		}
-		if ( false === $wpdb->query( 'START TRANSACTION' ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			return $this->write_error();
-		}
 		$this->touched = $sprints;
 		sort( $sprints, SORT_NUMERIC );
-		try {
-			foreach ( $sprints as $sprint ) {
-				// A no-op write acquires a row lock on MySQL and a write lock on SQLite.
-				if ( false === $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET ID = ID WHERE ID = %d", $sprint ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-					throw new \RuntimeException();
+		$result = ( new Transaction() )->run(
+			function () use ( $sprints, $operation, $wpdb ) {
+				foreach ( $sprints as $sprint ) {
+					// A no-op write acquires a row lock on MySQL and a write lock on SQLite.
+					if ( false === $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET ID = ID WHERE ID = %d", $sprint ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+						throw new \RuntimeException();
+					}
+					clean_post_cache( $sprint );
+					if ( ! Meta::valid_post( $sprint, 'sprint_engine_sprint' ) ) {
+						throw new \RuntimeException();
+					}
+					foreach ( Meta::steps( $sprint ) as $step ) {
+						clean_post_cache( $step->ID );
+					}
 				}
-				clean_post_cache( $sprint );
-				if ( ! Meta::valid_post( $sprint, 'sprint_engine_sprint' ) ) {
-					throw new \RuntimeException();
-				}
-				foreach ( Meta::steps( $sprint ) as $step ) {
-					clean_post_cache( $step->ID );
-				}
+				return $operation();
 			}
-			$result = $operation();
-			if ( ! is_wp_error( $result ) && false === $wpdb->query( 'COMMIT' ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-				$result = $this->write_error();
-			}
-		} catch ( \Throwable $exception ) {
-			$result = $this->write_error();
-		}
-		if ( is_wp_error( $result ) ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		}
+		);
 		foreach ( array_unique( $this->touched ) as $id ) {
 			clean_post_cache( $id );
 			wp_cache_delete( $id, 'post_meta' );
 		}
 		wp_cache_set_posts_last_changed();
+		if ( is_wp_error( $result ) && 'sprint_engine_content_transaction' === $result->get_error_code() ) {
+			return self::error( $result->get_error_message(), 500 );
+		}
 		return $result;
 	}
 
