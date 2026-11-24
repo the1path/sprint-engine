@@ -29,6 +29,7 @@ final class Installer {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		$previous = $wpdb->suppress_errors( true );
 		try {
+			\ThePath\SprintEngine\Tutorial\Onboarding::prepare_install();
 			foreach ( Migrations::version_two() as $table => $sql ) {
 				dbDelta( $sql );
 				if ( $wpdb->last_error ) {
@@ -75,6 +76,7 @@ final class Installer {
 		update_option( 'sprint_engine_schema_version', SPRINT_ENGINE_SCHEMA_VERSION, false );
 		update_option( 'sprint_engine_version', SPRINT_ENGINE_VERSION, false );
 		delete_option( 'sprint_engine_installation_failed' );
+		\ThePath\SprintEngine\Tutorial\Onboarding::finish_install();
 		return true;
 	}
 

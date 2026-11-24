@@ -2,7 +2,7 @@
 
 Core **0.3.0** is the published WordPress.org release. See the
 [historical candidate validation](validation/se-026-1-release-0.3.0.md).
-SE-028 and SE-029 are unreleased source changes and require separate publication
+SE-028, SE-029 and SE-030 are unreleased source changes and require separate publication
 authorisation. The root [README](../README.md)
 introduces the product and installation. This directory preserves technical
 guidance and validation evidence.
@@ -15,6 +15,8 @@ guidance and validation evidence.
   original linear architecture and acceptance criteria. It is a baseline, not a
   current feature list or a commitment to future release versions.
 - [AGENTS.md](../AGENTS.md): engineering conventions and ticket workflow.
+- [Tutorial marker contract](tutorial-marker-contract.md): Core/PRO-018 access and discovery rules.
+- [Planned release notes](release-notes-next.md): source changes awaiting release approval.
 - [Contributing](../CONTRIBUTING.md) and [security reporting](../SECURITY.md).
 
 ## Implementation and validation records
@@ -27,6 +29,7 @@ have been generalised without changing the recorded test outcomes.
 | Topic | Records |
 | --- | --- |
 | Foundation and lifecycle | [SE-001](validation/se-001.md) |
+| Optional first-install Tutorial Sprint (unreleased) | [SE-030](validation/se-030-first-install-tutorial.md) |
 | Content and ordered structure | [SE-002](validation/se-002.md), [SE-002.1](validation/se-002-1.md) |
 | Progress and recovery | [SE-003](validation/se-003.md) |
 | Runner and access | [SE-004](validation/se-004.md), [SE-004.1](validation/se-004-1.md) |

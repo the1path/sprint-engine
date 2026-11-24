@@ -30,6 +30,7 @@ final class Plugin {
 		( new RunnerAdmin() )->register_hooks();
 		( new \ThePath\SprintEngine\Content\StepListAdmin() )->register_hooks();
 		( new \ThePath\SprintEngine\Settings\SettingsPage() )->register_hooks();
+		( new \ThePath\SprintEngine\Tutorial\Onboarding() )->register_hooks();
 		( new Routes() )->register_hooks();
 		( new \ThePath\SprintEngine\Dashboard\Routes() )->register_hooks();
 		( new \ThePath\SprintEngine\Dashboard\Dashboard() )->register_hooks();

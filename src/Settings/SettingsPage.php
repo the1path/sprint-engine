@@ -111,6 +111,7 @@ final class SettingsPage {
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Sprint Engine Settings', 'sprint-engine' ); ?></h1>
 			<?php settings_errors(); ?>
+			<?php \ThePath\SprintEngine\Tutorial\Onboarding::panel(); ?>
 			<section aria-labelledby="se-dashboard-settings-title">
 				<h2 id="se-dashboard-settings-title"><?php esc_html_e( 'Member Dashboard', 'sprint-engine' ); ?></h2>
 				<p><?php esc_html_e( 'Your member Dashboard is available at:', 'sprint-engine' ); ?> <a href="<?php echo esc_url( \ThePath\SprintEngine\Dashboard\Routes::url() ); ?>"><?php echo esc_html( \ThePath\SprintEngine\Dashboard\Routes::url() ); ?></a></p>

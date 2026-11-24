@@ -61,6 +61,13 @@ Sprint Engine Core is a standalone WordPress plugin. PHP classes live in `src/`,
 templates in `templates/`, and frontend assets in `assets/`. Runtime installation
 requires no Composer dependencies.
 
+Development source includes an optional, administrator-only six-Step Tutorial
+Sprint for first-install onboarding (SE-030). Activation creates no sample content;
+administrators explicitly install it from Welcome or Sprints → Settings. This
+addition awaits a separately authorised release. See the
+[tutorial validation and staging checklist](docs/validation/se-030-first-install-tutorial.md)
+and [planned release notes](docs/release-notes-next.md).
+
 With PHP, Composer and Node.js available, the existing development checks are:
 
 ```sh

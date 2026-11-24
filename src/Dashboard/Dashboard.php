@@ -123,6 +123,9 @@ final class Dashboard {
 			'completed'   => array(),
 		);
 		foreach ( $items as $item ) {
+			if ( \ThePath\SprintEngine\Tutorial\Marker::exists( $item['sprint_id'] ) && ! $this->access->can_access( $user, $item['sprint_id'] ) ) {
+				continue;
+			}
 			$sections[ $item['state'] ][] = $item;
 		}
 		foreach ( $sections as $state => &$section ) {
