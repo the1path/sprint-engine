@@ -39,8 +39,8 @@ fs.mkdirSync(output, {recursive: true});
             sprintId = await page.evaluate(() => wp.data.select('core/editor').getCurrentPostId());
             await page.waitForFunction(() => wp.data.select('core/notices').getNotices().some(n => n.id === 'sprint-engine-tutorial-admin-only'));
             await page.locator('.components-notice__content').filter({hasText: 'This is the Sprint Engine Tutorial Sprint — administrators only'}).waitFor({state: 'visible'});
-            const guide = page.getByRole('dialog').filter({hasText: 'Welcome to the editor'});
-            if (await guide.count()) { await guide.getByRole('button', {name: 'Close', exact: true}).click(); await guide.waitFor({state: 'hidden'}); }
+            const guide = page.getByRole('dialog').filter({hasText: /Welcome to (the editor|the block editor)/});
+            if (await guide.count()) { await guide.getByRole('button', {name: /^Close( dialog)?$/}).click(); await guide.waitFor({state: 'hidden'}); }
             assert.equal(await page.evaluate(() => wp.data.select('core/notices').getNotices().find(n => n.id === 'sprint-engine-tutorial-admin-only').isDismissible), false);
             assert(await page.evaluate(() => wp.data.select('core/block-editor').getBlocks().every(b => b.isValid)));
             await page.screenshot({path: `${output}/${name}-editor.png`, fullPage: true});
@@ -53,12 +53,41 @@ fs.mkdirSync(output, {recursive: true});
                 const content = page.locator('.se-runner__content');
                 assert.deepEqual(await content.locator('h3').allTextContents(), ['Your task', 'You’re ready to continue when…']);
                 assert.equal(await content.locator('ol').count(), 1);
-                assert.equal(await content.locator('ol > li').count(), step === 1 ? 3 : 4);
+                assert.equal(await content.locator('ol > li').count(), [3, 5, 4, 4, 5, 4][step - 1]);
                 assert(await content.locator('p').first().isVisible());
                 assert(await content.locator('h3 + p').isVisible());
                 assert.equal(await content.locator('[style], [class*="has-"]').count(), 0, 'Tutorial must inherit normal Runner branding');
                 const endpoint = await page.evaluate(() => sprintEngineRunner.endpoint);
                 steps.push(Number(endpoint.match(/steps\/(\d+)/)[1]));
+                const links = content.locator('a');
+                if ([1, 2, 6].includes(step)) {
+                    assert.equal(await links.count(), 1);
+                    const link = links.first();
+                    assert.equal(await link.getAttribute('target'), '_blank');
+                    assert.equal(await link.getAttribute('rel'), 'noopener noreferrer');
+                    assert((await link.innerText()).includes('(opens in a new tab)'));
+                    const href = await link.getAttribute('href');
+                    assert(href.startsWith('/') && !href.startsWith('//'));
+                    const expectedPath = new URL(step === 1 ? 'wp-admin/' : step === 2 ? 'wp-admin/post-new.php?post_type=sprint_engine_sprint' : 'sprint-engine/dashboard/', fixture.home);
+                    assert.equal(new URL(href, fixture.home).href, expectedPath.href);
+                    const originalUrl = page.url();
+                    const [opened] = await Promise.all([context.waitForEvent('page'), link.click()]);
+                    await opened.waitForLoadState('load');
+                    assert.equal(opened.url(), expectedPath.href);
+                    assert.equal(page.url(), originalUrl, 'The tutorial tab must stay open');
+                    if (step === 1) await opened.getByRole('heading', {name:'Dashboard',exact:true}).waitFor();
+                    if (step === 2) {
+                        await opened.waitForFunction(() => window.wp?.data?.select('core/editor')?.getCurrentPostId());
+                        await opened.waitForLoadState('networkidle');
+                        const welcome = opened.getByRole('dialog').filter({hasText: /Welcome to (the editor|the block editor)/});
+                        if (await welcome.count()) await welcome.getByRole('button', {name: /^Close( dialog)?$/}).click();
+                        // Check the usable writing canvas after native welcome initialization.
+                        const canvas = await opened.locator('.editor-post-title__input').count() ? opened : opened.frameLocator('iframe[name="editor-canvas"]');
+                        await canvas.getByRole('textbox', {name:'Add title',exact:true}).waitFor();
+                    }
+                    if (step === 6) await opened.getByRole('heading', {name:'My Sprints',exact:true}).waitFor();
+                    await opened.close();
+                } else { assert.equal(await links.count(), 0); }
                 for (const width of [1440, 768, 390, 320]) {
                     await page.setViewportSize({width, height: 1000});
                     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -86,6 +115,8 @@ fs.mkdirSync(output, {recursive: true});
                 await Promise.all([page.waitForNavigation(), page.locator('#se-runner-action').press('Enter')]);
             }
             assert(await page.getByText('Sprint complete', {exact: true}).isVisible());
+            assert(await page.getByText("You've built your first Sprint — congratulations!", {exact:true}).isVisible());
+            assert(await page.getByText('Coming soon: Sprint Engine Pro', {exact:false}).isVisible());
             page.once('dialog', dialog => dialog.accept());
             await Promise.all([page.waitForNavigation(), page.locator('#se-runner-action').click()]);
             assert(await page.getByText('Step 1 of 6', {exact: true}).isVisible());
@@ -121,7 +152,7 @@ fs.mkdirSync(output, {recursive: true});
             const denied = await member.newPage();
             const response = await denied.goto(runnerUrl); assert.equal(response.status(), 403);
             assert.equal(await denied.locator('#se-runner-action').count(), 0);
-            assert(! (await denied.locator('body').innerText()).includes('Choose one useful outcome'));
+            assert(! (await denied.locator('body').innerText()).includes('Decide what your Sprint will achieve'));
             await denied.goto(new URL('sprint-engine/dashboard/', fixture.home).href);
             assert.equal(await denied.getByText('Build your first Sprint — Tutorial', {exact: true}).count(), 0);
             for (const [resource, id, action] of [['sprints', sprintId, 'start'], ['sprints', sprintId, 'restart'], ['steps', steps[0], 'complete']]) {

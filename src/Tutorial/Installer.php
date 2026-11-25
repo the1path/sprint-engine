@@ -181,7 +181,7 @@ final class Installer {
 			$id,
 			array(
 				'_sprint_engine_launchable'         => true,
-				'_sprint_engine_completion_message' => __( 'You have followed the tutorial and built your own first Sprint. Keep this example for reference, and continue improving the journey you created.', 'sprint-engine' ),
+				'_sprint_engine_completion_message' => Content::completion(),
 			)
 		);
 		if ( is_wp_error( $saved ) || is_wp_error(

@@ -229,7 +229,166 @@ The owner-hosting, real-commerce, screen-reader and physical-device acceptance
 limitations below remain. This content-only pass does not change PRO-018's separate
 public-discovery integration responsibility or authorise merge/deploy/release.
 
-## Files and implementation boundaries
+## SE-030.1 — owner feedback correction, 24 November 2026
+
+SE-030 merged in [PR #22](https://github.com/the1path/sprint-engine/pull/22) at
+`1fde529ec9a4332d7f3bd999eae08cd97e3a62d3`; its first-install functionality was tested
+and accepted. The owner then found the instructional journey inadequate in real
+use. The earlier technical and word-count checks above established block validity,
+access and Runner behavior; **they did not establish instructional quality or that
+a first-time administrator could finish their own Sprint without extra help**.
+
+This follow-up uses the owner's supplied conversation attachment,
+`SE-030-1-tutorial-journey-rewrite.md`, as its specification. It is not a repository
+ticket file. Work started from latest fetched `main` at the merge above on the
+normal branch `codex/se-030-1-tutorial-journey-rewrite`, without a worktree.
+
+### Delivered journey and scope
+
+The approved welcome, six purposes/numbered tasks/outcomes and completion copy
+replace the earlier bundled wording. One person plans an outcome, creates their
+own Start screen, adds three draft Steps, opens the first Step and writes/publishes
+all three, sets completion, publishes/marks Launchable, then experiences the
+finished Sprint. The final tutorial Step explains Save & Exit and returning through
+the Runner URL or My Sprints. The copy uses “Write down” and actual control labels;
+it omits permission tests, restart, internal links/IDs and other QA objectives.
+
+Each Step keeps the native Paragraph / H3 Heading / numbered List / H3 Heading /
+Paragraph sequence. Task counts are 3/5/4/4/5/4. Links are generated from `admin_url()`
+and Core Dashboard Routes, saved site-relative, escaped, and restricted to normal
+anchor markup. Each has an explicit “opens in a new tab” label, `_blank` and
+`noopener noreferrer`. No asset, Pro block, tutorial framework or branding override
+is added. The four plain-text completion paragraphs celebrate the author's Sprint
+before the understated Pro Coming Soon sentence, with no promotional button/link.
+
+Only `src/Tutorial/Content.php` and the installed completion value in
+`src/Tutorial/Installer.php` change at runtime. The latter replaces the old literal
+with `Content::completion()`; the install sequence, transaction, identity, access,
+onboarding, schema, progress and Core/PRO-018 marker contract are unchanged.
+Plugin version/Stable tag stay **0.3.0**, schema **2**. Supporting changes are the
+focused integration/browser tests, development/source-only release notes and this
+existing validation record/evidence. No Core ticket Markdown file is added.
+
+### Verified native navigation and minimal wording corrections
+
+- Current WordPress 7.1.4/PHP 8.3.35 has a native **Meta Boxes** disclosure, initially
+  closed for the new test administrator. Expanding it reveals **Sprint setup**,
+  **Sprint structure** and **Runner URL**; it can cover the writing canvas and be
+  collapsed while writing. WordPress 6.0/PHP 8.0.30 displays these panels directly
+  below the editor, without that parent disclosure. The wording handles both.
+- The menu is **Add New Sprint** on current WordPress and **Add Sprint** at the
+  minimum; both use the verified `post-new.php?post_type=sprint_engine_sprint` route.
+  WordPress's own welcome guide can cover a first editor visit; close it to write.
+- The introduction goes beneath the title in the main block editor.
+  **Start screen / Sprint introduction** is guidance in **Sprint setup**;
+  **Completion screen** is inside **Sprint structure**. The native sidebar offers
+  **Set featured image**, within **Featured image** when that panel is collapsed.
+  No Excerpt instructions or mandatory image upload are needed.
+- **New Step title → Add Step → Save order → Edit** leaves the author in Step 1's
+  editor. **Step mode** offers **Content / Task**, with optional **Stage label** and
+  **Estimated minutes**. **Publish** can require WordPress's second confirmation;
+  **← Back to Sprint** returns to the parent's structure after each Step.
+- A first saved draft can retain an empty **Slug**, and the server-rendered Runner
+  URL panel can still ask for a save. The copy therefore promises the link after
+  publication, with an explicit editor reload. After publishing/Launchable and
+  reloading, **View Runner** is available. Saving/reloading after a slug edit is
+  retained. No URL-generation behavior was changed to fit the prose.
+- The optional 1600 × 700 (16:7) recommendation matches the unchanged Runner's
+  computed 16:7 desktop / 16:10 mobile banner ratios and `object-fit: cover`.
+  Keeping the subject centred is appropriate; the complete first build omits an
+  image successfully.
+
+### Journey evidence and automated validation
+
+A manual browser walkthrough on WordPress 6.0/PHP 8.0 used a new administrator,
+installed the tutorial explicitly, and kept it open while creating **Plan my next
+week** in another tab. The author wrote the Start screen, added **List what needs
+doing**, **Choose three priorities**, and **Make time for the first priority**,
+saved their order and opened the first Step before continuing to tutorial Step 4.
+Each Step received practical instructions, Task mode and publication through the
+native confirmation. The author returned through Back to Sprint, wrote the
+completion message, left both CTA fields empty, selected Launchable and published.
+Reloading exposed View Runner. The finished Sprint showed the authored Start
+screen, all three actions in order, saved/exited after the first action, resumed
+at action 2 from My Sprints and reached its own completion message at 100%. Only
+then was tutorial Step 6 completed, showing the new tutorial congratulations and
+Coming Soon paragraphs. This demonstrates the actual new Sprint, beyond merely
+advancing the tutorial's progress.
+
+Current-version manual inspection verified the panels, sidebar, link opening,
+first save, Step creation/order and opening the first editor. The in-app browser's
+current Gutenberg iframe then appeared blank while surrounding controls worked;
+that manual run did not complete. Standalone browser-driven native UI authoring
+provides the full current-version evidence below; no product workaround was added.
+The new `tutorial-build.cjs` performs all authoring through native controls and
+checks the resulting Runner content/completion, including exit/resume. It uses
+read-only editor state to wait for saves, rather than pre-creating the result via
+REST or editor dispatches. Native editor initialization/welcome overlays are
+awaited and dismissed before interacting.
+
+| SE-030.1 check | Result |
+| --- | --- |
+| Existing PHP regressions, WordPress 7.1.4 / PHP 8.3.35 / SQLite, non-default prefix | PASS, 19 isolated suites / 1,851 assertions / no skips; includes authoring, structure, Runner (305), REST, Dashboard, progress/attempts, migration, branding and release/assets |
+| Tutorial integration, current WordPress/PHP | PASS, 164 assertions; journey controls, native blocks/order, portable admin/home paths, plain completion, install choices/rollback/concurrency, access and retained authored completion |
+| Tutorial integration, WordPress 6.0 / PHP 8.0.30 / MariaDB 10.11.11 InnoDB | PASS, 164 assertions |
+| Core plus unchanged Pro policy | PASS, 6 assertions: real Pro entitlement cannot bypass tutorial access, REST or Core Dashboard privacy; administrator still allowed |
+| Manual new-administrator build on minimum WordPress/PHP | PASS, published and completed the authored three-Step Sprint alongside the tutorial |
+| Current native UI new-administrator builds | PASS, Chromium 158 / Firefox 153 / WebKit 26.5 each authored, published, resumed and completed a real three-Step Sprint; initially closed Meta Boxes were opened, and no image was required |
+| Current Chromium 158 / Firefox 153 / WebKit 26.5 tutorial editor/Runner | PASS, all six Steps save/reopen as valid native blocks, four widths (1440/768/390/320), keyboard, normal branding, resume/restart and guest/non-admin privacy |
+| Minimum WordPress/PHP Chromium editor/Runner | PASS, all six native Step editor save/reopen checks, four-width Runner journey, live links, resume/restart and guest/non-admin privacy |
+| Actual `/academy/` WordPress installation, Chromium | PASS, admin/Create Sprint/My Sprints links open the correct subdirectory destination in a new tab and retain the tutorial tab; native block save/reopen and four-width journey checks also pass |
+| Existing Runner browser regression | PASS, eight states/four widths, computed image crop/ratios, keyboard/focus/touch targets, native completion/CTA, independent users, exit/resume/restart |
+| PHPCS, changed PHP lint, browser JS syntax | PASS |
+| Existing JavaScript regression tests | PASS, 39 tests |
+| Local package / exact runtime allowlist | PASS, 75 files; artifact stays ignored/local and is not published |
+
+Revised-content visual evidence: [desktop](images/se-030-1/tutorial-step-desktop.png),
+[320px mobile](images/se-030-1/tutorial-step-mobile.png),
+[the authored Start screen](images/se-030-1/own-sprint-start.png),
+[its completion](images/se-030-1/own-sprint-completion.png), and
+[tutorial completion](images/se-030-1/tutorial-completion.png).
+
+### Safe owner testing and human acceptance checklist
+
+**Updating the plugin alone must not overwrite the tutorial already installed on
+sprintenginepro.com.** There is no overwrite migration. Existing copy, authored
+edits, completion, separately authored Steps and historical attempts remain owned
+by the site. The owner site has not been changed by this work.
+
+Prefer a fresh disposable WordPress site/database with the reviewed Core source.
+Activate Core, follow Welcome and explicitly install the tutorial. To test on an
+existing backed-up disposable/staging copy, first preserve a restorable database
+backup and any authored tutorial content. Trash/restore reuses the old copy; it
+does not load new bundled text. To get the replacement copy there, **explicitly
+permanently delete the marked tutorial Sprint**, then choose Install Tutorial
+Sprint in Settings. Existing policy retains its old Step posts and historical
+attempts; do not expect those to disappear or silently delete/reassign them.
+Review retained old Steps separately in Sprint Steps. Do not perform this test on
+the owner's live site as part of this PR.
+
+Owner acceptance remains a human decision; use the new tutorial alone:
+
+1. Start as a first-time administrator. Read the welcome and write down one
+   outcome and three action titles. Open WordPress admin using the tutorial link;
+   the tutorial must remain open in its original tab.
+2. Use Create a new Sprint or the native Sprints menu. Close the native welcome
+   guide if shown. Write the title and introduction beneath it, find/open the
+   panels and save a draft. Skip the optional image without being blocked.
+3. Add the three planned titles in Sprint structure, save their order and select
+   Edit beside the first Step. Remain in that editor when continuing the tutorial.
+4. Write actionable content and what done looks like, choose Task or Content,
+   publish/confirm and use Back to Sprint. Repeat until all three are published.
+5. Set a meaningful completion message; leave the optional CTA fields blank or
+   supply both. Select Launchable, publish/confirm, reload and find View Runner.
+6. Experience the authored Start screen and actions. Save & Exit partway through,
+   return from My Sprints, finish and recognise the completion message you wrote.
+   Complete the tutorial only after this result; its final message should fit.
+7. Record where extra explanation was needed, if anywhere. Confirm root and
+   subdirectory links, narrow-screen readability and normal site Runner branding.
+   Owner acceptance, actual hosting/plugin-stack checks, screen-reader and physical
+   mobile-device testing remain outstanding; no release or rollout is authorised.
+
+## Original SE-030 files and implementation boundaries
 
 | Files | Change |
 | --- | --- |
@@ -275,6 +434,8 @@ set `SE_TEST_HTTP_BASE`, activate Core only, and run:
 ```sh
 php tests/browser/tutorial-fixture.php > tutorial-fixture.json
 node tests/browser/tutorial.cjs tutorial-fixture.json
+# Use another fresh activated database/manifest for the new-administrator build.
+node tests/browser/tutorial-build.cjs tutorial-build-fixture.json
 ```
 
 Set `NODE_PATH` to a local Playwright install and `SE_BROWSER_OUTPUT` to an ignored
@@ -291,9 +452,10 @@ SE-029's heading/Accordion matrix without changing content or progress.
   not implemented or certified in this Core ticket.
 - Actual WooCommerce purchase/subscription/membership transactions. Core's final
   veto is tested with actual Pro policy and a deterministic entitlement provider.
-- A human building their own subject-specific Sprint entirely by hand, assistive
-  technology/screen-reader review, and native mobile-device testing. Automated
-  authoring/Runner/native-block and desktop-engine responsive evidence is separate.
+- Owner-led subject-specific tutorial acceptance, assistive technology/screen-reader
+  review and native mobile-device testing. SE-030.1's manual first-build walkthrough
+  and automated native authoring evidence are recorded above; they do not replace
+  the owner's acceptance on the intended hosting/plugin stack.
 - A complete Core regression/browser matrix on every PHP/WordPress combination.
   The floor pair ran SE-030's full acceptance suite on real InnoDB; the full matrix
   and three-browser presentation/journey checks ran on WordPress 7.1.4/PHP 8.3.
