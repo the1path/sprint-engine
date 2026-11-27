@@ -88,6 +88,17 @@ final class Runner {
 			 * @param int  $sprint_id Resolved published, passwordless, ready Sprint ID.
 			 */
 			$show_gate = apply_filters( 'sprint_engine/runner_show_public_access_gate', false, $sprint->ID ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Intentional public presentation seam.
+			$config    = \ThePath\SprintEngine\Settings\ParticipantAccounts::get();
+			if ( '' !== $config['mode'] && ! \ThePath\SprintEngine\Tutorial\Marker::exists( $sprint->ID ) ) {
+				// Retain the exact-true gate's 403 marker and denial action, even when open.
+				$context          = true === $show_gate ? $this->access_denied( $sprint->ID ) : array(
+					'state'  => 'guest',
+					'status' => 200,
+				);
+				$context['title'] = __( 'Your next step starts here', 'sprint-engine' );
+				$context['guest'] = GuestAccess::context( $sprint, $this->access->participant_access_kind( $sprint->ID ) );
+				return $context;
+			}
 			if ( true === $show_gate ) {
 				$context              = $this->access_denied( $sprint->ID );
 				$context['login_url'] = $login_url;

@@ -22,8 +22,9 @@ security tradeoffs and proposed implementation tickets. It recommends a branded
 access screen with native/existing account handoffs first; embedded password signup
 and immediate login require a separate security spike and owner decision. This is
 discovery only: participant modes, settings, notices, forms and classification hooks
-described there do not exist in runtime. Existing login, access, tutorial and
-progress behaviour remains as documented below. Feature freeze otherwise remains.
+were discovery proposals at that point. SE-031.2 below implements the first narrow
+settings/presentation slice; account creation remains deferred. Feature freeze
+otherwise remains.
 
 The subsequent [SE-031.1 disposable registration spike](discovery/se-031-1-registration-spike.md)
 demonstrated chosen-password WP registration, fresh-request authentication, native
@@ -32,6 +33,34 @@ WooCommerce compatibility checks. It recommends a small explicitly enabled flow
 only on supported, secured single-site stacks. Native signup endpoint protection,
 hosting/security-provider acceptance and implementation review remain gates. This
 is experimental evidence, not a shipped registration feature or release approval.
+
+### Participant Accounts and guest screens (SE-031.2, unreleased)
+
+**Sprints → Settings → Participant Accounts** now saves explicit built-in (pending),
+existing-provider or invitation-only preferences. Unset preserves the existing
+native redirect/public gate. Scoped administrator notices report unset, invalid
+and implementation-pending states without blocking Tutorial. Valid configured
+ordinary guest routes use the existing branded Runner shell, native sign-in/reset
+and strictly validated same-site provider links. Only explicitly known-open policy
+can advertise a working external registration destination; member authority stays
+unchanged. Existing Pro without a classifier gets neutral sign-in and needs no update.
+
+There is no Core account form/endpoint, new authentication handler or active native
+registration interception. The native-form checkbox saves a visibly dormant
+preference; native GET/POST registration remains available under WP policy until
+SE-031.3 supplies a working replacement. The owner now requires first **and** last
+names in that future form, replacing the spike's optional-names recommendation.
+See [administrator/participant guidance, option lifecycle and integration contract](participant-accounts.md),
+the [archived issue](discovery/se-031-2-issue.md), and
+[validation/remaining gates](validation/se-031-2-participant-access.md).
+
+Provider return hints encode the canonical Runner URL as a query value, following
+native WordPress login behaviour; decoding `redirect_to` once retains the exact
+stored percent-encoded slug and home subdirectory. Existing provider parameters
+and the direct original-Sprint fallback are preserved. The pre-existing broader
+Pro History retention/table-definition failure remains an **outstanding SE-031.4
+release acceptance investigation**, including its unchanged-main reproduction;
+it is not a passing full History regression. No Pro assertion is suppressed.
 
 ### Optional Tutorial Sprint (SE-030, unreleased)
 
