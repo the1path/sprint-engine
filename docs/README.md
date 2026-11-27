@@ -17,6 +17,9 @@ guidance and validation evidence.
 - [AGENTS.md](../AGENTS.md): engineering conventions and ticket workflow.
 - [Tutorial marker contract](tutorial-marker-contract.md): Core/PRO-018 access and discovery rules.
 - [Planned release notes](release-notes-next.md): source changes awaiting release approval.
+- [SE-031 participant registration discovery](discovery/se-031-participant-registration.md):
+  account/access journey research and proposed tickets for owner review; no runtime
+  implementation or release authorisation. Includes the archived issue specification.
 - [Contributing](../CONTRIBUTING.md) and [security reporting](../SECURITY.md).
 
 ## Implementation and validation records

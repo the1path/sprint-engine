@@ -14,6 +14,17 @@ historical package evidence and the WordPress.org SVN manifest.
 
 ## Author a linear Sprint
 
+### Participant account journey discovery (SE-031)
+
+The [SE-031 discovery report](discovery/se-031-participant-registration.md) records
+current Runner/account boundaries, WordPress and WooCommerce source findings,
+security tradeoffs and proposed implementation tickets. It recommends a branded
+access screen with native/existing account handoffs first; embedded password signup
+and immediate login require a separate security spike and owner decision. This is
+discovery only: participant modes, settings, notices, forms and classification hooks
+described there do not exist in runtime. Existing login, access, tutorial and
+progress behaviour remains as documented below. Feature freeze otherwise remains.
+
 ### Optional Tutorial Sprint (SE-030, unreleased)
 
 After the first successful site-level installation, administrators get a compact

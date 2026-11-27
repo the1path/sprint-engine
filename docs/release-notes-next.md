@@ -5,6 +5,11 @@ does not bump the plugin version, source Stable tag or schema, and does not
 authorise packaging for publication, merging, deployment or WordPress.org upload.
 Current published metadata remains **0.3.0**, schema **2**.
 
+SE-031 is [completed discovery awaiting owner review](discovery/se-031-participant-registration.md),
+not an implemented feature or an addition to this patch's release scope. Account
+forms, registration settings and authentication changes require separate approval;
+the feature freeze otherwise remains in effect.
+
 - SE-028: add the presentation-only after-Step content action for an authorized
   in-progress Runner. See [its contract and validation](validation/se-028-runner-step-content-hook.md).
 - SE-029: correct Runner heading hierarchy and native Gutenberg Accordion styling,
