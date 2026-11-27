@@ -20,6 +20,9 @@ guidance and validation evidence.
 - [SE-031 participant registration discovery](discovery/se-031-participant-registration.md):
   account/access journey research and proposed tickets for owner review; no runtime
   implementation or release authorisation. Includes the archived issue specification.
+- [SE-031.1 registration security spike](discovery/se-031-1-registration-spike.md):
+  disposable current/floor account, security, MFA, Pro and real WooCommerce evidence;
+  conditional implementation recommendation only, awaiting owner review.
 - [Contributing](../CONTRIBUTING.md) and [security reporting](../SECURITY.md).
 
 ## Implementation and validation records

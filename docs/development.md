@@ -25,6 +25,14 @@ discovery only: participant modes, settings, notices, forms and classification h
 described there do not exist in runtime. Existing login, access, tutorial and
 progress behaviour remains as documented below. Feature freeze otherwise remains.
 
+The subsequent [SE-031.1 disposable registration spike](discovery/se-031-1-registration-spike.md)
+demonstrated chosen-password WP registration, fresh-request authentication, native
+recovery and a completed actual MFA journey, with current/floor and focused Pro/
+WooCommerce compatibility checks. It recommends a small explicitly enabled flow
+only on supported, secured single-site stacks. Native signup endpoint protection,
+hosting/security-provider acceptance and implementation review remain gates. This
+is experimental evidence, not a shipped registration feature or release approval.
+
 ### Optional Tutorial Sprint (SE-030, unreleased)
 
 After the first successful site-level installation, administrators get a compact
