@@ -10,6 +10,11 @@ not an implemented feature or an addition to this patch's release scope. Account
 forms, registration settings and authentication changes require separate approval;
 the feature freeze otherwise remains in effect.
 
+SE-031.1's [disposable security/feasibility evidence](discovery/se-031-1-registration-spike.md)
+is also documentation only. Its conditional recommendation does not add account
+registration to this release scope; implementation, complete regression, owner
+staging acceptance and separate release preparation remain required.
+
 - SE-028: add the presentation-only after-Step content action for an authorized
   in-progress Runner. See [its contract and validation](validation/se-028-runner-step-content-hook.md).
 - SE-029: correct Runner heading hierarchy and native Gutenberg Accordion styling,

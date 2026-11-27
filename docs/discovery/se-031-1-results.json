@@ -1,0 +1,329 @@
+{
+  "issue": 26,
+  "date": "2026-11-27",
+  "base": "4ec50f5745fa59a91d30c861bbd8b4c5353eb231",
+  "scope": "Disposable spike; no shipping runtime changes",
+  "lanes": [
+    {
+      "wp": "7.1.5",
+      "php": "8.3.36",
+      "database": "MariaDB 10.11.11 InnoDB",
+      "pro": "existing unmodified integration",
+      "woocommerce": "11.3.1 HPOS",
+      "mfa": "Two Factor 0.17.0"
+    },
+    {
+      "wp": "6.0",
+      "php": "8.0.30",
+      "database": "MariaDB 10.11.11 InnoDB",
+      "pro": false,
+      "woocommerce": false,
+      "mfa": false
+    }
+  ],
+  "groups": [
+    {
+      "name": "current-accounts",
+      "checks": 62,
+      "passed": [
+        "guest form private/no-store",
+        "no private content on guest form",
+        "browser cookie HttpOnly/SameSite",
+        "native creation redirects exact canonical Sprint",
+        "fresh request authenticated Ready to Start",
+        "one new identity; no attempt before explicit Start",
+        "native password hashes and Subscriber only",
+        "consumed submission replay refused",
+        "replay no duplicate identity",
+        "already authenticated never switched or recreated",
+        "native existing-account email sign-in",
+        "native login canonical return supported",
+        "role injection status 400",
+        "role injection no account",
+        "existing ID injection status 400",
+        "existing ID injection no account",
+        "redirect injection status 400",
+        "redirect injection no account",
+        "invalid email status 400",
+        "invalid email no account",
+        "overlong email status 400",
+        "overlong email no account",
+        "short password status 400",
+        "short password no account",
+        "overlong password status 400",
+        "overlong password no account",
+        "honeypot status 400",
+        "honeypot no account",
+        "cross-Origin registration/login CSRF status 403",
+        "cross-Origin registration/login CSRF no account",
+        "cross-site metadata status 403",
+        "cross-site metadata no account",
+        "malformed CSRF status 403",
+        "malformed CSRF no account",
+        "attacker token with victim browser rejected",
+        "missing guest cookie rejected",
+        "array input rejected",
+        "registration_deny denies before creation",
+        "register_post_deny denies before creation",
+        "auth_deny retains partial account",
+        "auth_deny no authenticated content",
+        "cookie suppression can still return WP_User",
+        "cookie suppression detected by fresh-request auth gate",
+        "mail failure does not recreate/remove successful account",
+        "storage_fail denies before creation",
+        "sso_delegate retains partial account",
+        "sso_delegate no authenticated content",
+        "users_can_register disabled delegates native",
+        "sp_mode disabled delegates native",
+        "unsafe Subscriber capabilities refuse embedded form",
+        "unsafe WP default role refuses form",
+        "restricted no signup promise",
+        "unknown no signup promise",
+        "tutorial no signup promise",
+        "draft no signup promise",
+        "independent-worker same-email submission creates at most one account",
+        "parallel identical token creates once",
+        "bounded store saturation fails closed",
+        "fixed one-row store remains bounded",
+        "expired state cleaned synchronously without WP-Cron",
+        "actual Two Factor 0.17.0 interrupts into challenge",
+        "actual MFA pending cannot reach Ready"
+      ]
+    },
+    {
+      "name": "floor-accounts",
+      "checks": 60,
+      "passed": [
+        "guest form private/no-store",
+        "no private content on guest form",
+        "browser cookie HttpOnly/SameSite",
+        "native creation redirects exact canonical Sprint",
+        "fresh request authenticated Ready to Start",
+        "one new identity; no attempt before explicit Start",
+        "native password hashes and Subscriber only",
+        "consumed submission replay refused",
+        "replay no duplicate identity",
+        "already authenticated never switched or recreated",
+        "native existing-account email sign-in",
+        "native login canonical return supported",
+        "role injection status 400",
+        "role injection no account",
+        "existing ID injection status 400",
+        "existing ID injection no account",
+        "redirect injection status 400",
+        "redirect injection no account",
+        "invalid email status 400",
+        "invalid email no account",
+        "overlong email status 400",
+        "overlong email no account",
+        "short password status 400",
+        "short password no account",
+        "overlong password status 400",
+        "overlong password no account",
+        "honeypot status 400",
+        "honeypot no account",
+        "cross-Origin registration/login CSRF status 403",
+        "cross-Origin registration/login CSRF no account",
+        "cross-site metadata status 403",
+        "cross-site metadata no account",
+        "malformed CSRF status 403",
+        "malformed CSRF no account",
+        "attacker token with victim browser rejected",
+        "missing guest cookie rejected",
+        "array input rejected",
+        "registration_deny denies before creation",
+        "register_post_deny denies before creation",
+        "auth_deny retains partial account",
+        "auth_deny no authenticated content",
+        "cookie suppression can still return WP_User",
+        "cookie suppression detected by fresh-request auth gate",
+        "mail failure does not recreate/remove successful account",
+        "storage_fail denies before creation",
+        "sso_delegate retains partial account",
+        "sso_delegate no authenticated content",
+        "users_can_register disabled delegates native",
+        "sp_mode disabled delegates native",
+        "unsafe Subscriber capabilities refuse embedded form",
+        "unsafe WP default role refuses form",
+        "restricted no signup promise",
+        "unknown no signup promise",
+        "tutorial no signup promise",
+        "draft no signup promise",
+        "independent-worker same-email submission creates at most one account",
+        "parallel identical token creates once",
+        "bounded store saturation fails closed",
+        "fixed one-row store remains bounded",
+        "expired state cleaned synchronously without WP-Cron"
+      ]
+    },
+    {
+      "name": "extended",
+      "checks": 8,
+      "passed": [
+        "signed but expired form refused",
+        "timing mechanism rejects early submission (10-second diagnostic setting)",
+        "shared peer IP bounded; forged forwarding headers cannot reset limit",
+        "Chromium 390px no-JS registration reaches Ready",
+        "no sensitive client storage",
+        "MFA preserves server-owned canonical return hint",
+        "actual MFA completion returns exact Sprint",
+        "fresh request after MFA actually authenticated"
+      ]
+    },
+    {
+      "name": "boundary-results",
+      "checks": 6,
+      "passed": [
+        "null Origin never substitutes for browser-bound CSRF",
+        "null Origin with external Referer rejected",
+        "valid form cannot select a different Sprint",
+        "protocol-relative redirect input rejected",
+        "availability rechecked on POST",
+        "query selector cannot invent Runner route"
+      ]
+    },
+    {
+      "name": "pro-compatibility",
+      "checks": 56,
+      "passed": [
+        "current/core_first unmodified Pro loads; no proposed Core classification API",
+        "current/core_first missing classifier delegates normal sign-in",
+        "current/core_first public restricted gate preserved without content/signup",
+        "current/core_first hidden safe guest fallback",
+        "current/core_first unknown safe guest fallback",
+        "current/core_first tutorial safe guest fallback",
+        "current/core_first draft safe guest fallback",
+        "current/core_first registration works with test-only explicit open classifier",
+        "current/core_first new account reaches Ready without entitlement grant",
+        "current/core_first authenticated restriction remains authoritative",
+        "current/core_first administrator tutorial remains denied to participant",
+        "current/core_first hidden discovery is distinct from direct member access",
+        "current/core_first existing progress, responses, Notes and user identity unchanged",
+        "current/core_first Directory component identical for guest/member after registration",
+        "current/pro_first unmodified Pro loads; no proposed Core classification API",
+        "current/pro_first missing classifier delegates normal sign-in",
+        "current/pro_first public restricted gate preserved without content/signup",
+        "current/pro_first hidden safe guest fallback",
+        "current/pro_first unknown safe guest fallback",
+        "current/pro_first tutorial safe guest fallback",
+        "current/pro_first draft safe guest fallback",
+        "current/pro_first registration works with test-only explicit open classifier",
+        "current/pro_first new account reaches Ready without entitlement grant",
+        "current/pro_first authenticated restriction remains authoritative",
+        "current/pro_first administrator tutorial remains denied to participant",
+        "current/pro_first hidden discovery is distinct from direct member access",
+        "current/pro_first existing progress, responses, Notes and user identity unchanged",
+        "current/pro_first Directory component identical for guest/member after registration",
+        "old/core_first unmodified Pro loads; no proposed Core classification API",
+        "old/core_first missing classifier delegates normal sign-in",
+        "old/core_first public restricted gate preserved without content/signup",
+        "old/core_first hidden safe guest fallback",
+        "old/core_first unknown safe guest fallback",
+        "old/core_first tutorial safe guest fallback",
+        "old/core_first draft safe guest fallback",
+        "old/core_first registration works with test-only explicit open classifier",
+        "old/core_first new account reaches Ready without entitlement grant",
+        "old/core_first authenticated restriction remains authoritative",
+        "old/core_first administrator tutorial remains denied to participant",
+        "old/core_first hidden discovery is distinct from direct member access",
+        "old/core_first existing progress, responses, Notes and user identity unchanged",
+        "old/core_first Directory component identical for guest/member after registration",
+        "old/pro_first unmodified Pro loads; no proposed Core classification API",
+        "old/pro_first missing classifier delegates normal sign-in",
+        "old/pro_first public restricted gate preserved without content/signup",
+        "old/pro_first hidden safe guest fallback",
+        "old/pro_first unknown safe guest fallback",
+        "old/pro_first tutorial safe guest fallback",
+        "old/pro_first draft safe guest fallback",
+        "old/pro_first registration works with test-only explicit open classifier",
+        "old/pro_first new account reaches Ready without entitlement grant",
+        "old/pro_first authenticated restriction remains authoritative",
+        "old/pro_first administrator tutorial remains denied to participant",
+        "old/pro_first hidden discovery is distinct from direct member access",
+        "old/pro_first existing progress, responses, Notes and user identity unchanged",
+        "old/pro_first Directory component identical for guest/member after registration"
+      ]
+    },
+    {
+      "name": "preservation-results",
+      "checks": 2,
+      "passed": [
+        "native Collection/Journey/resource drafts and metadata retained",
+        "existing member progress/response/Notes rows retained with Woo active"
+      ]
+    },
+    {
+      "name": "checkout-results",
+      "checks": 9,
+      "passed": [
+        "Core-style Subscriber signup succeeds with actual Woo and Pro active",
+        "registration does not attach historic guest order by email",
+        "actual classic checkout creates offline test order on same account",
+        "actual block Store API checkout creates offline test order",
+        "real HPOS orders retain exact existing WordPress user identity",
+        "checkout does not require role conversion",
+        "historic guest order remains unlinked after later checkout",
+        "existing customer role preserved",
+        "unmapped purchases grant no Sprint entitlement"
+      ]
+    },
+    {
+      "name": "recovery-results",
+      "checks": 8,
+      "passed": [
+        "actual lock contention refuses signup without account",
+        "connection shutdown releases lock and safe retry succeeds",
+        "native registration remains independent of prototype limiter (S1 residual)",
+        "partial account authentication rejected",
+        "native password-recovery request accepted for partial account",
+        "native emailed credential resets password without custom recovery",
+        "partial account recovered with normal native email sign-in",
+        "recovered account returns to intended Sprint when explicit native return is supplied"
+      ]
+    }
+  ],
+  "existingProRegression": {
+    "command": "tests/integration/step-change-recovery-pro.php",
+    "checks": 9,
+    "result": "PASS"
+  },
+  "observations": {
+    "nativeUncoordinatedRace": {
+      "independentWorkers": 2,
+      "createdUsersWithSameEmail": 2,
+      "guarantee": "No global native uniqueness guarantee"
+    },
+    "selectedNativeAdminSignupNotifications": 1,
+    "proRuntimeByteComparison": {
+      "files": 158,
+      "mismatches": 0
+    }
+  },
+  "sourceArchives": [
+    {
+      "file": "wordpress-7.1.5.zip",
+      "sha256": "cd44160a3fcce179fe170331132fcfc05e84e2f9284e2aad38df2aea6edaeab1"
+    },
+    {
+      "file": "lifterlms-11.1.1.zip",
+      "sha256": "dea49fa4bc65fca866db7ce30dbeffc7929f709c6d173d715b0e9d57344be8cb"
+    },
+    {
+      "file": "tutor-4.2.1.zip",
+      "sha256": "a6c7ab7fefd41ff4e953aee0d92e3ea7a3bc482957e6fbf00dc39fee11c2b01f"
+    },
+    {
+      "file": "woocommerce-11.3.1.zip",
+      "sha256": "1502600c738840f7f9ebfa2f11e1aaff087221a5fc5a2006c51be2d874ae2a09"
+    },
+    {
+      "file": "two-factor-0.17.0.zip",
+      "sha256": "4d1b0f8e5d82e24876c2b4e86f119122e28a8dbaf76dfde495173226c3356f37"
+    },
+    {
+      "file": "core-0.3.0.zip",
+      "sha256": "3e2cd44c53f71f2a677e198d0c71640e79921090bb84c8662d20bb575562e8bc"
+    }
+  ],
+  "assertionGroupsTotal": 220
+}
