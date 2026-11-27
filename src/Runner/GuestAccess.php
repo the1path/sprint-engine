@@ -61,7 +61,8 @@ final class GuestAccess {
 		if ( strlen( $canonical ) > 2048 ) {
 			return '';
 		}
-		$result = add_query_arg( 'redirect_to', $canonical, $url );
+		// As in wp_login_url(), new query values need encoding before add_query_arg().
+		$result = add_query_arg( 'redirect_to', urlencode( $canonical ), $url ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode -- Match native wp_login_url() query-value encoding.
 		return strlen( $result ) <= 4096 ? $result : '';
 	}
 }

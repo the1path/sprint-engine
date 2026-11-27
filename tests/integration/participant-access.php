@@ -91,6 +91,45 @@ $invalid_home=static fn()=>'/relative-home/';add_filter('home_url',$invalid_home
 $manager=new StructureManager();$id=wp_insert_post(array('post_type'=>'sprint_engine_sprint','post_status'=>'publish','post_title'=>'PRIVATE SPRINT TITLE','post_name'=>'participant-boundary','post_content'=>'PRIVATE OVERVIEW'));
 $step=$manager->quick_add($id,'PRIVATE STEP TITLE');wp_update_post(array('ID'=>$step,'post_status'=>'publish','post_content'=>'PRIVATE STEP BODY'));Meta::save($id,array('_sprint_engine_launchable'=>true));
 $slug=get_post_field('post_name',$id);$canonical=Routes::url($slug);$runner=new Runner();$access=new AccessManager();
+// Provider handoffs must preserve the canonical URL bytes after exactly one query decode.
+// Native option filters exercise root/subdirectory origins without changing site settings.
+foreach(array('https://participant.example.invalid','https://participant.example.invalid/academy') as $return_home){
+ $home_filter=static fn()=> $return_home;add_filter('pre_option_home',$home_filter);
+ try {
+  foreach(array('return-ascii','Café 東京','d%c3%a9j%c3%a0-vu') as $requested_slug){
+   wp_set_current_user(1);wp_update_post(array('ID'=>$id,'post_name'=>$requested_slug));$stored_slug=get_post_field('post_name',$id);$return_url=Routes::url($stored_slug);
+   participant_check($return_url===$return_home.'/sprint/'.$stored_slug.'/','Canonical handoff uses saved slug and complete home subdirectory');
+   foreach(array(array(),array('action'=>'register','campaign'=>'café','source'=>'directory')) as $provider_query){
+    $query=http_build_query($provider_query,'','&',PHP_QUERY_RFC1738);
+    $signup=$return_home.'/accounts/signup'.(''!==$query?'?'.$query:'');$signin=$return_home.'/accounts/signin'.(''!==$query?'?'.$query:'');
+    participant_save(participant_config('external',$signup,$signin));wp_set_current_user(0);$return_context=$runner->resolve($stored_slug);
+    participant_check(isset($return_context['guest'])&&$return_context['guest']['signup_url']&&$return_context['guest']['login_url'],'Ready open Sprint provides both validated external handoffs');
+    $return_html=participant_html($return_context);$xml_errors=libxml_use_internal_errors(true);$document=new DOMDocument();$document->loadHTML($return_html);libxml_clear_errors();libxml_use_internal_errors($xml_errors);$xpath=new DOMXPath($document);
+    foreach(array('Create account'=>$signup,'Sign in'=>$signin) as $label=>$destination){
+     $links=$xpath->query('//a[normalize-space(.)="'.$label.'"]');participant_check(1===$links->length,'Final guest HTML has exactly one '.$label.' handoff');
+     $href=$links->item(0)->getAttribute('href');$expected_query=http_build_query(array_merge($provider_query,array('redirect_to'=>$return_url)),'','&',PHP_QUERY_RFC1738);
+     participant_check($href===explode('?',$destination,2)[0].'?'.$expected_query,'Rendered '.$label.' href has one encoded query value and preserves provider parameters');
+     parse_str(wp_parse_url($href,PHP_URL_QUERY),$decoded);participant_check($decoded===array_merge($provider_query,array('redirect_to'=>$return_url)),'One query decode preserves exact canonical percent-encoded slug in '.$label.' link');
+    }
+    $native_query=wp_parse_url(wp_login_url($return_url),PHP_URL_QUERY);parse_str($native_query,$native_decoded);participant_check($native_decoded['redirect_to']===$return_url,'Native login reference preserves the same canonical return bytes');
+    $original=$xpath->query('//a[normalize-space(.)="Return to this Sprint"]');participant_check(1===$original->length&&$original->item(0)->getAttribute('href')===$return_url,'Original Sprint fallback remains the exact canonical URL, not query-encoded');
+   }
+  }
+ } finally {remove_filter('pre_option_home',$home_filter);}
+}
+// Enforce the existing limits on the actual, encoded handoff URL as well as input.
+foreach(array('canonical_limit','encoded_link_limit') as $limit){
+ $bounded_home='https://participant.example.invalid/'.('canonical_limit'===$limit?str_repeat('a',1990):str_repeat('%e6%9d%b1',130));
+ $home_filter=static fn()=> $bounded_home;add_filter('pre_option_home',$home_filter);
+ try {
+  wp_set_current_user(1);wp_update_post(array('ID'=>$id,'post_name'=>str_repeat('%e6%9d%b1',20)));$bounded_canonical=Routes::url(get_post_field('post_name',$id));$provider=$bounded_home.'/account';
+  if('encoded_link_limit'===$limit)$provider.='?campaign='.str_repeat('a',2040-strlen($provider)-10);
+  participant_check($provider===Accounts::destination($provider)&&strlen($provider)<=2048&&('canonical_limit'===$limit?strlen($bounded_canonical)>2048:strlen($bounded_canonical)<=2048&&strlen($provider)+13+strlen(urlencode($bounded_canonical))>4096),'Bounded handoff fixture has a valid destination and exceeds only the intended return/link limit');
+  participant_save(participant_config('external',$provider,$provider));$bounded=\ThePath\SprintEngine\Runner\GuestAccess::context(get_post($id),'open');
+  participant_check(''===$bounded['signup_url']&&wp_login_url($bounded_canonical)===$bounded['login_url']&&''===$bounded['original_url'],'Oversized canonical/encoded handoff is suppressed with native sign-in fallback');
+ } finally {remove_filter('pre_option_home',$home_filter);}
+}
+wp_set_current_user(1);wp_update_post(array('ID'=>$id,'post_name'=>$slug));delete_option(Accounts::OPTION);
 $progress=new ThePath\SprintEngine\Progress\ProgressService();wp_set_current_user($member);$state=$progress->start_sprint($member,$id);$progress->complete_step($member,$id,$step,$state['attempt_id']);$progress->restart_sprint($member,$id,$state['attempt_id']);wp_set_current_user(0);$before=participant_rows();
 participant_check('open'===$access->participant_access_kind($id),'Unextended Core classified open');
 $member_calls=0;$member_filter=static function($allow)use(&$member_calls){++$member_calls;return $allow;};add_filter('sprint_engine/user_can_access_sprint',$member_filter);

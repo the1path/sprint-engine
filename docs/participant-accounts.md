@@ -47,7 +47,11 @@ login URL independently falls back to native login without hiding valid signup.
 
 The provider receives only a server-derived `redirect_to` hint to the canonical
 Sprint; inbound query parameters cannot select it. Hints are limited to 2,048
-bytes and the generated delegated URL to 4,096 bytes. The provider owns its forms,
+bytes and the generated delegated URL to 4,096 bytes. The canonical URL is encoded
+as one query argument value, preserving existing percent-encoded international
+slugs after one query decode, including subdirectory homes and provider URLs with
+existing query parameters. The original Sprint fallback remains a direct canonical
+link. The provider owns its forms,
 authentication, security policy and final redirect. Configure and test that return.
 Core also shows the original Sprint link when delegating. If the provider ignores
 the hint, participants can use that original link after signing in. Automatic

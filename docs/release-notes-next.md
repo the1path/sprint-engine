@@ -26,6 +26,13 @@ including the registration journey in a release. After approved SE-031.3 and
 SE-031.4 regression/owner staging acceptance, a separate release-preparation ticket
 must review **all** unreleased changes, including Tutorial, metadata and package.
 
+SE-031.2's PR #29 review corrects provider return-value encoding to preserve exact
+canonical Sprint URLs, including percent-encoded international slugs. The existing
+Pro History retention/table-definition assertion failure, also reproduced on the
+unchanged baseline, remains an **outstanding SE-031.4 release acceptance
+investigation**. Baseline reproduction does not satisfy that gate; retain its
+failing assertion and obtain investigation/retest evidence before release acceptance.
+
 - SE-028: add the presentation-only after-Step content action for an authorized
   in-progress Runner. See [its contract and validation](validation/se-028-runner-step-content-hook.md).
 - SE-029: correct Runner heading hierarchy and native Gutenberg Accordion styling,

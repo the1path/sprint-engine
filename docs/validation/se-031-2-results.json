@@ -36,10 +36,10 @@
     "tutorial": 164,
     "step-change-recovery-pro": 9,
     "tutorial-pro": 7,
-    "participant-access": 171
+    "participant-access": 289
   },
   "floor_passed": {
-    "participant-access": 171,
+    "participant-access": 289,
     "runner": 305
   },
   "browser_current": {
@@ -258,7 +258,8 @@
       "assertions_before_failure": 26,
       "baseline_reproduced": true,
       "assertion": "Repeated initialisation preserves retained rows and table definitions",
-      "disposition": "Separate Pro/environment investigation; full release acceptance remains outstanding"
+      "disposition": "Outstanding SE-031.4 release acceptance investigation; baseline reproduction is not a passing full History regression. No Pro source or failing assertion changes.",
+      "release_acceptance_ticket": "SE-031.4"
     }
   },
   "commerce": {
@@ -296,5 +297,92 @@
     "Full Pro History/release acceptance (existing baseline failure recorded separately)",
     "Third-party provider/MFA/SSO/approval/CAPTCHA matrix on this slice",
     "Physical devices, assistive technology, complete locale translations or actual browser 400% zoom"
-  ]
+  ],
+  "encoding_review": {
+    "review_base": "1bf613b8829879a7df7be5b2a4a3d8355606a03f",
+    "confirmed_before_fix": true,
+    "original_failure": "Rendered Create account href has one encoded query value and preserves provider parameters",
+    "participant_current": 289,
+    "participant_floor": 289,
+    "new_assertions_per_lane": 118,
+    "runner_current": 305,
+    "runner_floor": 305,
+    "real_http_current": {
+      "wordpress": "7.1.5",
+      "php": "8.3.36",
+      "home_path": "/wordpress/",
+      "checks": 22,
+      "passed": [
+        "Actual loopback install uses root or WordPress subdirectory",
+        "Real Runner GET is a private no-store guest screen",
+        "Browser DOM Create account href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Create account",
+        "Browser DOM Sign in href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Sign in",
+        "Direct browser fallback keeps canonical URL without query encoding",
+        "Return hints disclose no private content or member write configuration",
+        "Real Runner GET is a private no-store guest screen",
+        "Browser DOM Create account href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Create account",
+        "Browser DOM Sign in href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Sign in",
+        "Direct browser fallback keeps canonical URL without query encoding",
+        "Return hints disclose no private content or member write configuration",
+        "Real Runner GET is a private no-store guest screen",
+        "Browser DOM Create account href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Create account",
+        "Browser DOM Sign in href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Sign in",
+        "Direct browser fallback keeps canonical URL without query encoding",
+        "Return hints disclose no private content or member write configuration"
+      ]
+    },
+    "real_http_floor": {
+      "wordpress": "6.0",
+      "php": "8.0.30",
+      "home_path": "/",
+      "checks": 22,
+      "passed": [
+        "Actual loopback install uses root or WordPress subdirectory",
+        "Real Runner GET is a private no-store guest screen",
+        "Browser DOM Create account href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Create account",
+        "Browser DOM Sign in href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Sign in",
+        "Direct browser fallback keeps canonical URL without query encoding",
+        "Return hints disclose no private content or member write configuration",
+        "Real Runner GET is a private no-store guest screen",
+        "Browser DOM Create account href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Create account",
+        "Browser DOM Sign in href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Sign in",
+        "Direct browser fallback keeps canonical URL without query encoding",
+        "Return hints disclose no private content or member write configuration",
+        "Real Runner GET is a private no-store guest screen",
+        "Browser DOM Create account href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Create account",
+        "Browser DOM Sign in href exactly matches independently encoded provider URL",
+        "One browser query decode retains exact canonical slug and existing action for Sign in",
+        "Direct browser fallback keeps canonical URL without query encoding",
+        "Return hints disclose no private content or member write configuration"
+      ]
+    },
+    "static": {
+      "phpcs": "PASS (documented native urlencode coding-standard exception)",
+      "changed_php_lint": [
+        "8.3.36",
+        "8.0.30"
+      ],
+      "javascript_tests": 39,
+      "release_metadata": "PASS",
+      "asset_assertions": 12,
+      "package_exact_files": 79
+    },
+    "limits_unchanged": {
+      "canonical_bytes": 2048,
+      "encoded_link_bytes": 4096
+    },
+    "pro_history_rerun": false,
+    "pro_source_or_assertions_changed": false
+  }
 }

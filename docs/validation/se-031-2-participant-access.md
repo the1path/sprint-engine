@@ -91,7 +91,7 @@ No failed exploratory run is counted as a complete passing suite.
 
 | Check | Final result |
 | --- | --- |
-| Participant settings/classification/Runner integration | PASS: 171 per lane, current and exact floor |
+| Participant settings/classification/Runner integration | PASS: initially 171 per lane; 289 per lane after PR #29 return-encoding regression coverage |
 | Actual settings/guest/native login/recovery browser journey | PASS: 39 per lane, no JS, including POST/nonce/capabilities and rejected valid-nonce GET |
 | Native registration-control experiments | PASS: 29 per lane, including actual native POST/admin creation and dispatch variants; production remains dormant |
 | Core foundation/authoring/structure/progress | PASS: 46 / 118 / 110 / 145 |
@@ -182,7 +182,8 @@ production. No public enable/bypass hook exists in this implementation.
   tutorial. Current Pro also denies it. The updated test accepts that stronger
   policy and separately proves Core vetoes an explicit final integration grant.
 - Pro History's broader repeated-install retention assertion fails identically on
-  candidate and baseline. It remains a separate Pro/environment investigation;
+  candidate and baseline. It remains an outstanding **SE-031.4 release acceptance
+  investigation** into the Pro/environment cause;
   no assertion was suppressed or Pro/schema code changed to force a pass.
 
 **NOT RUN / not established:** full multisite network install/embedded journey
@@ -197,6 +198,56 @@ tests. Real TLS/mail/cache/CDN/provider redirect acceptance is not established o
 loopback. Native form closure and all account-creation security gates remain future
 implementation work, not enabled protection in this patch.
 
+## PR #29 return-encoding review
+
+Reviewed against `1bf613b8829879a7df7be5b2a4a3d8355606a03f`. Confirmed in the
+installed WordPress 7.1.5 and 6.0 source: `add_query_arg()` re-encodes existing
+query values before adding a new value, but does not encode that newly supplied
+value. Native `wp_login_url()` explicitly calls `urlencode()` on its return URL.
+The old provider handoff could therefore decode a stored `%xx` Sprint slug into
+different canonical bytes. `GuestAccess::hint()` now uses that same native encoding
+step. Configuration URL validation, 2,048-byte canonical bound, 4,096-byte final
+encoded-link bound, native fallback, original-link behaviour and security contracts
+are retained. The `urlencode()` coding-standard exception is narrow and documented
+to match native WordPress query-value encoding; it disables no test assertion.
+
+Added 118 assertions to the committed participant integration suite: native saved
+ASCII, international (`Café 東京`) and already percent-encoded slugs; root and
+subdirectory homes; provider destinations with/without existing query parameters,
+including an international query value; both registration and sign-in. Assertions
+inspect actual template HTML with DOMDocument, compare each final href against
+independent PHP query serialization, decode `redirect_to` exactly once and compare
+it byte-for-byte with the server-generated canonical URL. Existing provider values,
+native login reference and the direct original-Sprint fallback are checked too.
+Both overlong canonical values and encoding-expanded links fail to native fallback
+under the unchanged bounds.
+
+The new test failed on the original source at the rendered Create account href
+assertion. After the fix the full suite passed **289 checks on each lane**. A new
+guarded disposable root/database pair preserved all previous experiment data;
+current WP was installed under actual `/wordpress/` and floor WP at the site root.
+No Pro or commerce plugin was installed for this focused follow-up. Outgoing mail
+and non-loopback WordPress HTTP remained blocked.
+
+Additional no-JS Chrome HTTP checks passed **22 groups per lane**, covering those
+three slug forms through real Runner requests on the root/subdirectory installs.
+They inspect browser DOM hrefs, compare independently serialized provider URLs,
+verify `URLSearchParams` decodes the exact canonical return once, retain provider
+parameters/direct fallback and confirm private/no-store/no-content-disclosure.
+Provider authentication/signup itself was not rerun or claimed by this return-only
+smoke test. The ignored follow-up scaffolding/logs are in `.tools/se0312-review/`;
+the repeatable URL regressions are committed in `tests/integration/participant-access.php`.
+
+Affected reruns: existing Runner suite **305 per lane** (including actual loopback
+HTTP), PHPCS, changed PHP syntax on PHP 8.3/8.0, **39 JS tests**, release metadata,
+**12 asset checks**, **79-file** exact package and documentation/whitespace checks.
+The [sanitised results](se-031-2-results.json) distinguish this follow-up from the
+original wider acceptance runs. Pro History was **not rerun for this encoding fix**;
+its recorded baseline failure remains outstanding for SE-031.4, with Pro source
+and its assertion unchanged. Both follow-up HTTP workers and the new database were
+stopped after verification, with no remaining task listeners; previous artifacts
+and unrelated services were retained.
+
 ## Screenshots and owner review gates
 
 Inspected captured PNGs:
@@ -209,8 +260,11 @@ Inspected captured PNGs:
 Before approving this patch, review mode language, pending/dormant clarity,
 invitation guidance and the required-names decision; test a real provider's signup,
 sign-in/recovery/original-link return; confirm branded guest screens and existing
-Pro member/gate behaviour on staging. Resolve or accept the recorded existing
-History-suite limit explicitly before release acceptance.
+Pro member/gate behaviour on staging. SE-031.4 must investigate the existing
+History retention/table-definition failure, document cause and any separately
+approved remediation, and rerun the assertion with reviewed retention/schema
+evidence before release acceptance. Baseline reproduction alone does not satisfy
+that acceptance gate; do not suppress the assertion.
 
 Recommended next ticket: **SE-031.3 native account creation and active native-form
 control**, with the spike's atomic abuse/CSRF/replay/session/policy requirements,

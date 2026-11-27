@@ -54,6 +54,14 @@ See [administrator/participant guidance, option lifecycle and integration contra
 the [archived issue](discovery/se-031-2-issue.md), and
 [validation/remaining gates](validation/se-031-2-participant-access.md).
 
+Provider return hints encode the canonical Runner URL as a query value, following
+native WordPress login behaviour; decoding `redirect_to` once retains the exact
+stored percent-encoded slug and home subdirectory. Existing provider parameters
+and the direct original-Sprint fallback are preserved. The pre-existing broader
+Pro History retention/table-definition failure remains an **outstanding SE-031.4
+release acceptance investigation**, including its unchanged-main reproduction;
+it is not a passing full History regression. No Pro assertion is suppressed.
+
 ### Optional Tutorial Sprint (SE-030, unreleased)
 
 After the first successful site-level installation, administrators get a compact
