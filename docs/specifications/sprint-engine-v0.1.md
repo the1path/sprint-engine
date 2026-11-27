@@ -430,6 +430,14 @@ Treat progress and Step content as user-specific application data, not ordinary 
 
 - Runner requires a logged-in WordPress user in v0.1.
 
+  **SE-031.2 explicit presentation exception (unreleased):** after independent
+  content readiness, a configured guest may see a generic branded access screen
+  with native/provider links. It contains no private Sprint/Step/member data or
+  progress/write configuration and performs no account, authentication or Start
+  operation. Unset preserves the native login/public-gate path. Authentication and
+  AccessManager remain required before returning member content. See the
+  [participant access contract](../participant-accounts.md).
+
 - Same-origin REST requests use WordPress cookie authentication plus REST nonce.
 
 - Unauthenticated requests receive 401/403 and must not reveal restricted Step content.
@@ -471,6 +479,11 @@ A member always returns to the Sprint URL rather than navigating public Step per
 1.  Resolve Sprint slug to published/launchable sprint_engine_sprint.
 
 2.  Require authentication; redirect to the site's login flow while preserving the return URL if not logged in.
+
+    SE-031.2 may present the configured generic access screen instead of that
+    redirect, after readiness; the strict SE-017 public gate and denial contract
+    remain. Tutorial retains its administrator sign-in path. Re-resolve the saved
+    canonical Sprint and check actual access on the fresh authenticated request.
 
 3.  Ask AccessManager whether the user can access the Sprint.
 

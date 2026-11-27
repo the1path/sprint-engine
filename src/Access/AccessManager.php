@@ -44,4 +44,42 @@ final class AccessManager {
 		}
 		return $allowed;
 	}
+
+	/**
+	 * Classify guest presentation without invoking a member policy with a fake user.
+	 * Availability remains the caller's prerequisite; this never grants access.
+	 * One coordinated classifier is supported; collisions fail to unknown.
+	 *
+	 * @param int $sprint_id Ready Sprint ID.
+	 * @return string open, restricted or unknown.
+	 */
+	public function participant_access_kind( $sprint_id ) {
+		if ( ! is_int( $sprint_id ) || $sprint_id < 1 || ! \ThePath\SprintEngine\Content\Meta::valid_post( $sprint_id, 'sprint_engine_sprint' ) ) {
+			return 'unknown';
+		}
+		if ( \ThePath\SprintEngine\Tutorial\Marker::exists( $sprint_id ) ) {
+			return 'restricted';
+		}
+		$kind = $this->provider instanceof LoggedInAccessProvider && false === has_filter( 'sprint_engine/user_can_access_sprint' ) ? 'open' : 'unknown';
+		global $wp_filter;
+		$hook = $wp_filter['sprint_engine/participant_access_kind'] ?? null;
+		if ( $hook ) {
+			$count = 0;
+			foreach ( $hook->callbacks as $callbacks ) {
+				$count += count( $callbacks );
+			}
+			if ( 1 !== $count ) {
+				return 'unknown';
+			}
+		}
+		/**
+		 * One trusted integration must coordinate all applicable restrictions.
+		 * This assertion concerns signup presentation, never member authorisation.
+		 *
+		 * @param string $kind Core open or unknown baseline.
+		 * @param int    $sprint_id Core-resolved ready Sprint.
+		 */
+		$kind = apply_filters( 'sprint_engine/participant_access_kind', $kind, $sprint_id ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- Additive public presentation seam.
+		return in_array( $kind, array( 'open', 'restricted', 'unknown' ), true ) ? $kind : 'unknown';
+	}
 }

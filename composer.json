@@ -32,6 +32,7 @@
       "php tests/integration/runner-admin.php",
       "php tests/integration/rest.php",
       "php tests/integration/branding.php",
+      "php tests/integration/participant-access.php",
       "php tests/integration/polish.php",
       "php tests/integration/validation.php",
       "php tests/integration/prefixing.php"

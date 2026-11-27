@@ -5,15 +5,26 @@ does not bump the plugin version, source Stable tag or schema, and does not
 authorise packaging for publication, merging, deployment or WordPress.org upload.
 Current published metadata remains **0.3.0**, schema **2**.
 
-SE-031 is [completed discovery awaiting owner review](discovery/se-031-participant-registration.md),
+SE-031 is [completed discovery](discovery/se-031-participant-registration.md),
 not an implemented feature or an addition to this patch's release scope. Account
-forms, registration settings and authentication changes require separate approval;
+forms and authentication changes require separate approval;
 the feature freeze otherwise remains in effect.
 
 SE-031.1's [disposable security/feasibility evidence](discovery/se-031-1-registration-spike.md)
 is also documentation only. Its conditional recommendation does not add account
 registration to this release scope; implementation, complete regression, owner
 staging acceptance and separate release preparation remain required.
+
+SE-031.2 is now an authorised, **unreleased** source slice: Participant Accounts
+settings, scoped setup notices, generic branded guest screens, validated existing-
+provider links and additive presentation classification. Built-in preference and
+native-form checkbox are explicitly pending/dormant; native GET/POST account
+creation is not intercepted. No new Core account/authentication endpoint exists.
+See [guidance/contract](participant-accounts.md) and
+[validation](validation/se-031-2-participant-access.md). This does not approve
+including the registration journey in a release. After approved SE-031.3 and
+SE-031.4 regression/owner staging acceptance, a separate release-preparation ticket
+must review **all** unreleased changes, including Tutorial, metadata and package.
 
 - SE-028: add the presentation-only after-Step content action for an authorized
   in-progress Runner. See [its contract and validation](validation/se-028-runner-step-content-hook.md).

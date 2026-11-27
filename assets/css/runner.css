@@ -81,6 +81,7 @@ body.se-runner {
 .se-runner #se-runner-status:not(:empty), .se-runner .se-runner__error { padding: 1rem; border: 1px solid var(--se-notice-border); border-radius: var(--se-control-radius); background: var(--se-background); overflow-wrap: anywhere; }
 .se-runner .se-runner__completion { padding-block: 1rem; }
 .se-runner .se-runner__content { overflow-wrap: anywhere; display: flow-root; }
+.se-runner .se-runner__guest { overflow-wrap: anywhere; }
 .se-runner .se-runner__content > :first-child { margin-top: 0; }
 /* Content hierarchy is separate from the Sprint/Step titles. Preset classes and
  * inline Gutenberg typography/spacing still take precedence over these defaults. */

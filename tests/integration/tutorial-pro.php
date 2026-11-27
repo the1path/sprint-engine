@@ -27,8 +27,13 @@ $manager = new EntitlementManager( array( $provider ) );
 $policy = new AccessPolicy( $manager );
 $policy->register_hooks();
 wp_set_current_user( $member );
-if ( ! $manager->grants( $member, $tutorial ) || ! $policy->allows( true, $member, $tutorial ) || ( new AccessManager() )->can_access( $member, $tutorial ) ) { throw new RuntimeException( 'Core marker must veto an actual Pro entitlement grant.' ); }
-echo "PASS: Actual Pro policy grants an entitled subscriber; Core's final tutorial marker still denies access.\n";
+if ( ! $manager->grants( $member, $tutorial ) || ( new AccessManager() )->can_access( $member, $tutorial ) ) { throw new RuntimeException( 'Actual Pro entitlement must never expose the administrator tutorial.' ); }
+echo "PASS: Actual Pro entitlement provider grants; tutorial access remains denied (Pro may also independently veto).\n";
+$force = static fn() => true;
+add_filter( 'sprint_engine/user_can_access_sprint', $force, PHP_INT_MAX );
+if ( ( new AccessManager() )->can_access( $member, $tutorial ) ) { throw new RuntimeException( 'Core marker must remain final after an explicit integration grant.' ); }
+remove_filter( 'sprint_engine/user_can_access_sprint', $force, PHP_INT_MAX );
+echo "PASS: Core's final tutorial marker vetoes an explicit integration grant with actual Pro loaded.\n";
 $context = ( new Runner() )->resolve( get_post_field( 'post_name', $tutorial ) );
 if ( 403 !== $context['status'] || isset( $context['step'], $context['progress'], $context['title'] ) ) { throw new RuntimeException( 'Pro tutorial Runner disclosure.' ); }
 $dashboard = ( new Dashboard() )->resolve();
