@@ -14,53 +14,42 @@ historical package evidence and the WordPress.org SVN manifest.
 
 ## Author a linear Sprint
 
-### Participant account journey discovery (SE-031)
+### Participant Accounts and native registration (SE-031, unreleased)
 
-The [SE-031 discovery report](discovery/se-031-participant-registration.md) records
-current Runner/account boundaries, WordPress and WooCommerce source findings,
-security tradeoffs and proposed implementation tickets. It recommends a branded
-access screen with native/existing account handoffs first; embedded password signup
-and immediate login require a separate security spike and owner decision. This is
-discovery only: participant modes, settings, notices, forms and classification hooks
-were discovery proposals at that point. SE-031.2 below implements the first narrow
-settings/presentation slice; account creation remains deferred. Feature freeze
-otherwise remains.
+The merged [discovery](discovery/se-031-participant-registration.md) and
+[security spike](discovery/se-031-1-registration-spike.md) underlie SE-031.2/3.
+Sprints → Settings → Participant Accounts offers built-in, existing-provider and
+invitation modes. Unset retains native redirect/public-gate behaviour. Built-in
+needs a deliberate operator security confirmation plus objective HTTPS, native
+registration/Subscriber, single-site and atomic-store checks. Old pending
+preferences cannot silently enable accounts or native-form closure.
 
-The subsequent [SE-031.1 disposable registration spike](discovery/se-031-1-registration-spike.md)
-demonstrated chosen-password WP registration, fresh-request authentication, native
-recovery and a completed actual MFA journey, with current/floor and focused Pro/
-WooCommerce compatibility checks. It recommends a small explicitly enabled flow
-only on supported, secured single-site stacks. Native signup endpoint protection,
-hosting/security-provider acceptance and implementation review remain gates. This
-is experimental evidence, not a shipped registration feature or release approval.
+Eligible known-open guests receive required first name, last name, email and
+password in the existing branded Runner. Native validation/insertion and
+`wp_signon()` preserve native policy. A fresh authenticated canonical request
+rechecks actual access before Ready; account creation never creates an attempt or
+starts the Sprint. Existing members use native/provider sign-in and reset.
+Unknown/restricted/tutorial/unavailable content never promises signup. Old Pro
+without a classifier remains neutral and needs no coordinated update.
 
-### Participant Accounts and guest screens (SE-031.2, unreleased)
+The optional checkbox closes only the resolved native register action while
+explicitly confirmed valid built-in configuration is in force. Deactivation,
+mode changes and structural invalidation revoke live confirmation and restore
+native WP policy; transient rate/lock/capacity failures do not open an abuse
+bypass. See the [current accounts/lifecycle/extension contract](participant-accounts.md),
+[operator guide](participant-registration-security.md) and
+[SE-031.3 validation](validation/se-031-3-native-registration.md). The historical
+[SE-031.2 validation](validation/se-031-2-participant-access.md) records that
+settings-only slice before account creation was authorised.
 
-**Sprints → Settings → Participant Accounts** now saves explicit built-in (pending),
-existing-provider or invitation-only preferences. Unset preserves the existing
-native redirect/public gate. Scoped administrator notices report unset, invalid
-and implementation-pending states without blocking Tutorial. Valid configured
-ordinary guest routes use the existing branded Runner shell, native sign-in/reset
-and strictly validated same-site provider links. Only explicitly known-open policy
-can advertise a working external registration destination; member authority stays
-unchanged. Existing Pro without a classifier gets neutral sign-in and needs no update.
-
-There is no Core account form/endpoint, new authentication handler or active native
-registration interception. The native-form checkbox saves a visibly dormant
-preference; native GET/POST registration remains available under WP policy until
-SE-031.3 supplies a working replacement. The owner now requires first **and** last
-names in that future form, replacing the spike's optional-names recommendation.
-See [administrator/participant guidance, option lifecycle and integration contract](participant-accounts.md),
-the [archived issue](discovery/se-031-2-issue.md), and
-[validation/remaining gates](validation/se-031-2-participant-access.md).
-
-Provider return hints encode the canonical Runner URL as a query value, following
-native WordPress login behaviour; decoding `redirect_to` once retains the exact
-stored percent-encoded slug and home subdirectory. Existing provider parameters
-and the direct original-Sprint fallback are preserved. The pre-existing broader
-Pro History retention/table-definition failure remains an **outstanding SE-031.4
-release acceptance investigation**, including its unchanged-main reproduction;
-it is not a passing full History regression. No Pro assertion is suppressed.
+Provider hints still encode the canonical URL as one query value, preserving
+percent-encoded international slugs, subdirectory homes and existing queries.
+Member/progress/REST authority, public hooks, version/schema/routes and Pro source
+remain unchanged. Settings tabs are deferred. The existing Pro History
+retention/table-definition failure remains an **outstanding SE-031.4 release
+acceptance investigation**, including unchanged-baseline reproduction; its
+assertion is not suppressed. Core 0.4.0 release preparation is a separate gate
+after adapter, full acceptance and owner approval. Feature freeze otherwise remains.
 
 ### Optional Tutorial Sprint (SE-030, unreleased)
 
@@ -836,6 +825,40 @@ The ZIP container hash can change with timestamps or compression. Generated ZIPs
 dependencies and disposable test installations are ignored and must not be committed.
 
 ## Verification
+
+SE-031.3 adds conditional native participant registration and optional narrow
+native-form closure in development source. See [the current accounts contract](participant-accounts.md),
+[operator security guide](participant-registration-security.md),
+[archived issue](discovery/se-031-3-issue.md) and
+[executed validation](validation/se-031-3-native-registration.md).
+Registration classes separate request/browser validation, native insertion,
+objective/confirmed policy, bounded atomic state and expiry. Runner resolution
+remains read-only; registration processing occurs only at the existing actual
+request preparation boundary. No Pro edits, version/schema/rewrite/dependency
+changes, automatic Start or settings tabs are part of this implementation.
+
+Owner-requested **Settings page tabs remain a deferred UX improvement**. Current
+mode-specific progressive enhancement uses native disclosures without JavaScript
+and retains inactive values. Core **0.4.0** release preparation remains a separately
+authorised ticket after the Pro classifier adapter and SE-031.4 full security,
+hosting, commerce, regression and owner acceptance. The unchanged Pro History
+retention/table-definition baseline failure is an **outstanding SE-031.4 release
+acceptance investigation**; do not suppress its assertion or treat baseline
+reproduction as acceptance.
+
+The additional `composer test:registration` suites need a correctly configured
+disposable HTTPS native-mysqli site and `proc_open` for independent database
+workers. They include transaction preservation, callback transactions and deletion
+of live replay state between health and mutex acquisition. The database suite
+creates/drops one guarded disposable InnoDB probe table and requires visibility of
+its own same-user connection in `information_schema.PROCESSLIST`; it never needs
+production credentials. The separate `participant-registration-storage.php` test
+requires disposable DB-administrator grants and `SE_TEST_DB_ADMIN=yes` to prove
+actual restricted-grant denial. See [database follow-up evidence](validation/se-031-3-database-compatibility.md).
+These tests are separate from the general regression
+command, like tutorial lifecycle tests. The committed browser test and guarded
+fixtures are documented in SE-031.3 validation. Neither tests nor fixture flags
+belong in the runtime package or an ordinary site.
 
 ```sh
 composer install

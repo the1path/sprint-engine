@@ -1,0 +1,175 @@
+{
+  "review": "SE-031.3 PR #31 database compatibility and replay-state race",
+  "date": "2026-11-28",
+  "status": "Unreleased; draft and owner review required",
+  "reviewed_commit": "0367803c13733aa0c1f10e2084c64a4416b81567",
+  "source": {
+    "state_store_sha256": "c81e4c00b092bd2707def4a51d32f58b44cd6287b53b38e753be8b0fa1c40c35",
+    "database_test_sha256": "bc4e225878d22917837aaeb47650263b08fcd3f2f7b6e719615114a9ecfadc60"
+  },
+  "mysql_provisioning": {
+    "actual_server": "MySQL Community Server 8.0.45 / InnoDB / native mysqli",
+    "official_archive": "https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.45-winx64.zip",
+    "archive_sha256": "3de8effe49cd427942ade672d5f8b3517751e1df52a915b038790a9e093cb150",
+    "isolated_loopback_single_writer": true,
+    "previous_probe_reproduced": {
+      "sql": "SELECT @@in_transaction",
+      "error": 1193,
+      "sqlstate": "HY000"
+    }
+  },
+  "executed": {
+    "mysql": {
+      "wordpress": "7.1.5",
+      "php": "8.3.36",
+      "security": 267,
+      "restricted_grants": 4,
+      "database_regressions": 48,
+      "access_returns": 289,
+      "browser": {
+        "checks": 98,
+        "outcome": "PASS"
+      },
+      "boundaries": {
+        "checks": 11,
+        "outcome": "PASS"
+      },
+      "pro": {
+        "checks": 18,
+        "outcome": "PASS"
+      },
+      "commerce": {
+        "checks": 13,
+        "outcome": "PASS"
+      },
+      "accessibility": {
+        "checks": 6,
+        "outcome": "PASS"
+      },
+      "repeated_connection_kills": {
+        "checks": 2,
+        "passed": true
+      }
+    },
+    "mariadb_current": {
+      "database": "10.11.11",
+      "wordpress": "7.1.5",
+      "php": "8.3.36",
+      "security": 267,
+      "restricted_grants": 4,
+      "database_regressions": 48,
+      "access_returns": 289,
+      "browser": {
+        "checks": 98,
+        "outcome": "PASS"
+      },
+      "boundaries": {
+        "checks": 11,
+        "outcome": "PASS"
+      },
+      "pro": 18,
+      "commerce": 13,
+      "accessibility": 6
+    },
+    "mariadb_floor": {
+      "database": "10.11.11",
+      "wordpress": "6.0",
+      "php": "8.0.30",
+      "security": 267,
+      "restricted_grants": 4,
+      "database_regressions": 48,
+      "access_returns": 289,
+      "browser": {
+        "checks": 98,
+        "outcome": "PASS"
+      },
+      "boundaries": {
+        "checks": 11,
+        "outcome": "PASS"
+      }
+    }
+  },
+  "database_regression_labels": [
+    "Autocommit probe succeeds and preserves native mysqli error-report mode 0",
+    "Reject empty/read-only/snapshot transaction before any table work: START TRANSACTION",
+    "Health preserves caller transaction and savepoints",
+    "Reject empty/read-only/snapshot transaction before any table work: START TRANSACTION READ ONLY",
+    "Health preserves caller transaction and savepoints",
+    "Reject empty/read-only/snapshot transaction before any table work: START TRANSACTION WITH CONSISTENT SNAPSHOT",
+    "Health preserves caller transaction and savepoints",
+    "Autocommit probe succeeds and preserves native mysqli error-report mode 1",
+    "Reject empty/read-only/snapshot transaction before any table work: START TRANSACTION",
+    "Health preserves caller transaction and savepoints",
+    "Reject empty/read-only/snapshot transaction before any table work: START TRANSACTION READ ONLY",
+    "Health preserves caller transaction and savepoints",
+    "Reject empty/read-only/snapshot transaction before any table work: START TRANSACTION WITH CONSISTENT SNAPSHOT",
+    "Health preserves caller transaction and savepoints",
+    "Autocommit probe succeeds and preserves native mysqli error-report mode 3",
+    "Reject empty/read-only/snapshot transaction before any table work: START TRANSACTION",
+    "Health preserves caller transaction and savepoints",
+    "Reject empty/read-only/snapshot transaction before any table work: START TRANSACTION READ ONLY",
+    "Health preserves caller transaction and savepoints",
+    "Reject empty/read-only/snapshot transaction before any table work: START TRANSACTION WITH CONSISTENT SNAPSHOT",
+    "Health preserves caller transaction and savepoints",
+    "Autocommit-off is rejected without changing caller session",
+    "Reject active write transaction",
+    "Probe neither rolls back nor commits caller write",
+    "Transaction introduced inside mutex prevents state write",
+    "Rejected write leaves committed replay state unchanged",
+    "Owned guard leaves callback transaction open for caller cleanup",
+    "Failure releases captured connection mutex and restores retry policy",
+    "Native callback transaction cannot insert/authenticate account: registration_errors",
+    "Registration never commits/rolls back callback work",
+    "Committed reservation survives callback rollback; replay remains consumed",
+    "Native callback transaction cannot insert/authenticate account: wp_pre_insert_user_data",
+    "Registration never commits/rolls back callback work",
+    "Committed reservation survives callback rollback; replay remains consumed",
+    "Consume signed form before live-state deletion",
+    "Independent worker deleted state only after health and while parent waited for mutex",
+    "Missing state after mutex wait fails closed for registration",
+    "Missing live row stays missing and revokes confirmation without empty-store recreation",
+    "Consumed form cannot create another account across deletion race",
+    "Explicit recovery creates a fresh generation that rejects the old consumed form",
+    "Consume signed form before live-state deletion",
+    "Independent worker deleted state only after health and while parent waited for mutex",
+    "Missing state after mutex wait fails closed for setup",
+    "Missing live row stays missing and revokes confirmation without empty-store recreation",
+    "Consumed form cannot create another account across deletion race",
+    "Explicit recovery creates a fresh generation that rejects the old consumed form",
+    "Ordinary operation cannot initialize an unconfirmed absent store",
+    "Explicit setup remains able to initialize a fresh unconfirmed store"
+  ],
+  "unchanged_pro": {
+    "source_sha": "6cef901a29460ca8fbd6fbd37b31dd5998cd9363",
+    "runtime_files_per_copy": 162,
+    "copies_compared": 2,
+    "byte_mismatches": 0,
+    "source_modified": false,
+    "history": {
+      "status": "FAIL",
+      "passes_before_failure": 26,
+      "assertion": "PRO-004 install/initialize leaves every existing response/Core row and table definition unchanged.",
+      "disposition": "Outstanding SE-031.4 release acceptance investigation; no assertion suppressed"
+    }
+  },
+  "static": {
+    "phpcs": "PASS",
+    "changed_php_syntax": [
+      "8.0.30",
+      "8.3.36"
+    ],
+    "browser_javascript_syntax": "PASS",
+    "javascript_tests": 39,
+    "release_metadata": "PASS",
+    "asset_assertions": 12,
+    "exact_runtime_package_files": 90,
+    "diff_check": "PASS"
+  },
+  "not_run": [
+    "Other database versions including MySQL 8.4 and WP 6.0 on MySQL",
+    "Database drop-ins, persistent/pooling/multiplexed/multiwriter or proxy topology",
+    "Production hosting TLS/CDN/cache/mail/cron and sustained signup load/DDoS",
+    "Other security providers/MFA/approval/verification/CAPTCHA/SSO",
+    "Previously documented complete accessibility/commerce/Pro release acceptance limits"
+  ]
+}

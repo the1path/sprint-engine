@@ -6,6 +6,7 @@ if ( ! $root || 'yes' !== getenv( 'SE_TEST_DISPOSABLE' ) ) {
 	exit( 1 );
 }
 require $root . '/wp-load.php';
+require_once ABSPATH . 'wp-admin/includes/post.php'; // WP 6.0 screen setup uses the native block-editor eligibility helper.
 require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
 require_once ABSPATH . 'wp-admin/includes/screen.php';
 

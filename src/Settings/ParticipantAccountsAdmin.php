@@ -16,6 +16,19 @@ final class ParticipantAccountsAdmin {
 	public function register_hooks() {
 		add_action( 'admin_init', array( $this, 'register' ) );
 		add_action( 'admin_notices', array( $this, 'notice' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
+	}
+
+	/**
+	 * Progressive enhancement only; native disclosures remain usable without JS.
+	 *
+	 * @param string $hook Current admin page hook.
+	 */
+	public function enqueue( $hook ) {
+		if ( current_user_can( 'manage_options' ) && str_ends_with( $hook, '_page_sprint-engine-settings' ) ) {
+			$asset = 'assets/js/participant-settings.js';
+			wp_enqueue_script( 'sprint-engine-participant-settings', plugins_url( $asset, dirname( __DIR__, 2 ) . '/sprint-engine.php' ), array(), \ThePath\SprintEngine\Assets::version( $asset ), true );
+		}
 	}
 
 	/** Seed only safe unset storage, with no activation or upgrade policy change. */
@@ -53,65 +66,71 @@ final class ParticipantAccountsAdmin {
 		}
 	}
 
-	/** One no-JS Settings API form; all conditional guidance stays readable. */
+	/** Concise mode-specific settings, with native disclosures as the no-JS fallback. */
 	public static function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 		$config = ParticipantAccounts::get();
 		$modes  = array(
-			'built_in'   => __( 'Sprint Engine registration (recommended; pending implementation)', 'sprint-engine' ),
+			'built_in'   => __( 'Sprint Engine registration (recommended)', 'sprint-engine' ),
 			'external'   => __( 'Use an existing registration system', 'sprint-engine' ),
 			'invitation' => __( 'Invitation only — no public registration', 'sprint-engine' ),
 		);
 		?>
 		<section id="sprint-engine-participants" aria-labelledby="sprint-engine-participants-title">
 			<h2 id="sprint-engine-participants-title"><?php esc_html_e( 'Participant Accounts', 'sprint-engine' ); ?></h2>
-			<p><?php esc_html_e( 'Choose how new participants get an account. Existing participants keep their accounts and sign in as usual.', 'sprint-engine' ); ?></p>
-			<?php if ( ParticipantAccounts::status() ) : ?>
-				<p><strong><?php echo esc_html( ParticipantAccounts::status() ); ?></strong></p>
-			<?php endif; ?>
+			<p><?php esc_html_e( 'Choose how new participants get an account. Existing accounts and sign-in stay available.', 'sprint-engine' ); ?></p>
 			<form action="options.php" method="post" id="sprint-engine-participants-form">
 				<?php settings_fields( 'sprint_engine_participants' ); ?>
-				<fieldset>
-					<legend class="screen-reader-text"><?php esc_html_e( 'Participant account mode', 'sprint-engine' ); ?></legend>
-					<?php foreach ( $modes as $mode => $label ) : ?>
-						<p><label><input type="radio" name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[mode]" value="<?php echo esc_attr( $mode ); ?>" <?php checked( $config['mode'], $mode ); ?> required> <?php echo esc_html( $label ); ?></label></p>
-					<?php endforeach; ?>
+				<fieldset><legend class="screen-reader-text"><?php esc_html_e( 'Participant account mode', 'sprint-engine' ); ?></legend>
+				<?php foreach ( $modes as $mode => $label ) : ?>
+					<p><label><input type="radio" name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[mode]" value="<?php echo esc_attr( $mode ); ?>" <?php checked( $config['mode'], $mode ); ?> required> <?php echo esc_html( $label ); ?></label></p>
+				<?php endforeach; ?>
 				</fieldset>
-				<p><?php esc_html_e( 'Invitation only removes Sprint Engine’s account creation offers. It does not close registration elsewhere on your website.', 'sprint-engine' ); ?></p>
-				<h3><?php esc_html_e( 'Existing registration system', 'sprint-engine' ); ?></h3>
-				<p><?php esc_html_e( 'Enter full same-site HTTPS URLs. A registration destination is required for this mode; login is optional. Published, passwordless WordPress pages and account paths with query actions are supported.', 'sprint-engine' ); ?></p>
-				<table class="form-table" role="presentation">
+				<noscript><p><?php esc_html_e( 'Choose a mode and open its settings below before saving.', 'sprint-engine' ); ?></p></noscript>
+				<details data-participant-mode="built_in" <?php echo 'built_in' === $config['mode'] ? 'open' : ''; ?>>
+					<summary><?php esc_html_e( 'Sprint Engine registration setup', 'sprint-engine' ); ?></summary>
+					<?php $issues = \ThePath\SprintEngine\Registration\Policy::prerequisites(); ?>
+					<?php
+					if ( $issues ) :
+						?>
+						<ul>
+						<?php
+						foreach ( $issues as $issue ) :
+							?>
+						<li><?php echo esc_html( $issue ); ?></li><?php endforeach; ?></ul>
+						<?php
+					else :
+						?>
+						<p><?php esc_html_e( 'WordPress registration, Subscriber, HTTPS and secure storage checks pass.', 'sprint-engine' ); ?></p><?php endif; ?>
+					<p><a href="<?php echo esc_url( admin_url( 'options-general.php' ) ); ?>"><?php esc_html_e( 'Review Settings → General', 'sprint-engine' ); ?></a></p>
+					<input type="hidden" name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[confirmation]" value="0">
+					<p><label><input type="checkbox" name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[confirmation]" value="1" <?php checked( \ThePath\SprintEngine\Registration\Policy::confirmed() ); ?>> <?php esc_html_e( 'I have checked the security guide and confirm this site is ready for public participant accounts.', 'sprint-engine' ); ?></label></p>
+					<p><?php esc_html_e( 'Confirm HTTPS, protection for every signup route, compatible native-password policies, mail delivery, cache bypass and login protection. This is your confirmation, not an automatic security certification. If your tools require their own approval, verification or account form, use the existing-system mode.', 'sprint-engine' ); ?> <a href="https://github.com/the1path/sprint-engine/blob/main/docs/participant-registration-security.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Security setup guide', 'sprint-engine' ); ?></a></p>
+					<input type="hidden" name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[disable_native]" value="0">
+					<p><label><input type="checkbox" data-disable-native name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[disable_native]" value="1" <?php checked( false !== $config['disable_native'] ); ?>> <?php esc_html_e( 'Disable the standard WordPress registration form (recommended)', 'sprint-engine' ); ?></label></p>
+					<p><?php esc_html_e( 'Closes only the standard WordPress form while confirmed built-in registration is operational. Other registration forms remain independent. Invalid setup or deactivation restores native WordPress policy; protect the reopened route. Providers using that native endpoint are also affected.', 'sprint-engine' ); ?></p>
+					<p data-native-warning <?php echo false !== $config['disable_native'] ? 'hidden' : ''; ?>><strong><?php esc_html_e( 'Standard WordPress signup remains accessible under site policy and is outside Sprint Engine’s form-specific abuse controls.', 'sprint-engine' ); ?></strong></p>
+				</details>
+				<details data-participant-mode="external" <?php echo 'external' === $config['mode'] ? 'open' : ''; ?>>
+					<summary><?php esc_html_e( 'Existing registration system destinations', 'sprint-engine' ); ?></summary>
+					<table class="form-table" role="presentation">
 					<?php
 					foreach ( array(
 						'registration_url' => __( 'Registration destination', 'sprint-engine' ),
 						'login_url'        => __( 'Login destination (optional)', 'sprint-engine' ),
 					) as $key => $label ) :
 						?>
-						<tr><th scope="row"><label for="sprint-engine-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label></th><td><input type="url" class="regular-text" id="sprint-engine-<?php echo esc_attr( $key ); ?>" name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $config[ $key ] ); ?>" maxlength="2048" aria-describedby="sprint-engine-provider-help"></td></tr>
+						<tr><th scope="row"><label for="sprint-engine-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label></th><td><input type="url" class="regular-text" id="sprint-engine-<?php echo esc_attr( $key ); ?>" name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $config[ $key ] ); ?>" maxlength="2048"></td></tr>
 					<?php endforeach; ?>
-				</table>
-				<p id="sprint-engine-provider-help"><?php esc_html_e( 'Your provider owns registration, sign-in and security policies. Configure it to honour the redirect_to hint after authentication, then test signup, sign-in and recovery back to the original Sprint. Providers may ignore this hint; participants can return using their original Sprint link. No automatic return across email or devices is guaranteed.', 'sprint-engine' ); ?></p>
-				<details <?php echo 'built_in' === $config['mode'] ? 'open' : ''; ?>>
-				<summary><strong><?php esc_html_e( 'Sprint Engine registration preferences and security requirements (pending)', 'sprint-engine' ); ?></strong></summary>
-				<p><strong><?php esc_html_e( 'Pending implementation — no built-in account form or native-registration protection is active in this version.', 'sprint-engine' ); ?></strong></p>
-				<input type="hidden" name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[disable_native]" value="0">
-				<p><label><input type="checkbox" name="<?php echo esc_attr( ParticipantAccounts::OPTION ); ?>[disable_native]" value="1" <?php checked( false !== $config['disable_native'] ); ?>> <?php esc_html_e( 'Disable the standard WordPress registration form (recommended)', 'sprint-engine' ); ?></label></p>
-				<p><?php esc_html_e( 'This preference takes effect only after built-in registration is operational and its saved policy is valid. It is dormant now. Other modes, invalid setup or deactivation leave native registration available under WordPress policy. External forms using the native registration endpoint would also be affected when it is closed.', 'sprint-engine' ); ?></p>
-				<p><?php esc_html_e( 'Built-in signup will require single-site WordPress registration permission, the standard Subscriber default role, a supported native-password security stack and environment acceptance. Sprint Engine never changes these global settings or creates a role.', 'sprint-engine' ); ?></p>
-				<ul>
-					<?php foreach ( ParticipantAccounts::native_policy_problems() as $problem ) : ?>
-						<li><?php echo esc_html( $problem ); ?></li>
-					<?php endforeach; ?>
-				</ul>
-				<p><a href="<?php echo esc_url( admin_url( 'options-general.php' ) ); ?>"><?php esc_html_e( 'Review Settings → General', 'sprint-engine' ); ?></a></p>
-				<p><?php esc_html_e( 'Before enabling built-in signup, protect all remaining public registration endpoints, including native and independent provider forms, and confirm HTTPS, login abuse protection, cache bypass, mail delivery and security-provider policies. Disabling one form does not close every account creation route or eliminate native account races. UI-dependent approval, verification, CAPTCHA, passwordless or SSO policies should use their existing provider. Plugin-name detection cannot establish compatibility.', 'sprint-engine' ); ?></p>
-				<p><?php esc_html_e( 'The planned form will require first name, last name, email and a chosen password, with a generated hidden username. Names will use standard WordPress profile fields and are not marketing consent. Existing-account email sign-in and password recovery remain native/provider journeys; the initial native signup notification is administrator-only. No email verification or delayed checkpoint is planned.', 'sprint-engine' ); ?></p>
+					</table>
+					<p><?php esc_html_e( 'Use full same-site HTTPS URLs. Your provider owns registration and security. Configure its redirect_to return, then test signup, sign-in and recovery back to the original Sprint. Native login is used when login is empty or invalid; automatic return across email/devices is not guaranteed.', 'sprint-engine' ); ?></p>
 				</details>
-				<?php if ( false === $config['disable_native'] ) : ?>
-					<p class="notice notice-warning inline"><strong><?php esc_html_e( 'Native registration remains accessible and is not protected by Sprint Engine’s form-specific abuse controls.', 'sprint-engine' ); ?></strong></p>
-				<?php endif; ?>
+				<details data-participant-mode="invitation" <?php echo 'invitation' === $config['mode'] ? 'open' : ''; ?>>
+					<summary><?php esc_html_e( 'Invitation-only access', 'sprint-engine' ); ?></summary>
+					<p><?php esc_html_e( 'Participants sign in with an existing account or contact you for an invitation. This removes Sprint Engine’s signup offers; it does not close registration elsewhere on the site.', 'sprint-engine' ); ?></p>
+				</details>
 				<?php submit_button( __( 'Save participant settings', 'sprint-engine' ) ); ?>
 			</form>
 		</section>

@@ -31,6 +31,13 @@ final class Plugin {
 		( new \ThePath\SprintEngine\Content\StepListAdmin() )->register_hooks();
 		( new \ThePath\SprintEngine\Settings\SettingsPage() )->register_hooks();
 		( new \ThePath\SprintEngine\Settings\ParticipantAccountsAdmin() )->register_hooks();
+		add_action( 'wp_loaded', array( \ThePath\SprintEngine\Registration\AccountService::class, 'register_guard' ), PHP_INT_MAX );
+		add_action( 'login_form_register', array( \ThePath\SprintEngine\Registration\NativeForm::class, 'block' ), 0 );
+		add_action( 'updated_option', array( \ThePath\SprintEngine\Registration\Policy::class, 'invalidate' ) );
+		add_action( 'added_option', array( \ThePath\SprintEngine\Registration\Policy::class, 'invalidate' ) );
+		add_action( 'deleted_option', array( \ThePath\SprintEngine\Registration\Policy::class, 'invalidate' ) );
+		add_action( 'init', array( \ThePath\SprintEngine\Registration\Maintenance::class, 'schedule' ), 20 );
+		add_action( \ThePath\SprintEngine\Registration\Maintenance::HOOK, array( \ThePath\SprintEngine\Registration\Maintenance::class, 'purge' ) );
 		( new \ThePath\SprintEngine\Tutorial\Onboarding() )->register_hooks();
 		( new Routes() )->register_hooks();
 		( new \ThePath\SprintEngine\Dashboard\Routes() )->register_hooks();
@@ -72,6 +79,7 @@ final class Plugin {
 
 	/** Remove in-memory registrations only. All stored content/progress is retained. */
 	public static function deactivate() {
+		\ThePath\SprintEngine\Registration\Maintenance::deactivate();
 		unregister_post_type( 'sprint_engine_sprint' );
 		unregister_post_type( 'sprint_engine_step' );
 		Routes::unregister();

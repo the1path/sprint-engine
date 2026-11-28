@@ -855,6 +855,16 @@ phpunit.xml.dist automated tests
 
 # Architecture Decisions Locked by v0.1
 
+Subsequent authorised boundary: [SE-031.2/3 Participant Accounts](../participant-accounts.md)
+adds generic guest presentation and conditional native WordPress registration at
+the existing canonical Runner. It does not make private Sprint content/progress
+public or change AccessManager authority. Accounts use native users/profile
+fields and wp_signon, with explicit setup/security confirmation; no account REST
+endpoint, identity table, new rewrite or progress write until Start. Unknown,
+restricted, unavailable and tutorial Sprints do not advertise signup. Existing
+Pro remains compatible without a coordinated release; its classifier adapter,
+SE-031.4 acceptance and Core 0.4.0 release preparation require separate approval.
+
 | **Decision**                | **Reason**                                                                                                   |
 |-----------------------------|--------------------------------------------------------------------------------------------------------------|
 | Standalone WordPress plugin | Keeps plugin logic independent of site themes and allows standalone distribution.             |

@@ -15,6 +15,10 @@
   "scripts": {
     "check": "phpcs",
     "test:tutorial": "php tests/integration/tutorial.php",
+    "test:registration": [
+      "php tests/integration/participant-registration.php",
+      "php tests/integration/participant-registration-database.php"
+    ],
     "test": [
       "php tests/release.php",
       "php tests/integration/assets.php",

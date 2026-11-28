@@ -45,7 +45,7 @@ final class GuestAccess {
 			'login_url'    => $login,
 			'signup_url'   => $signup,
 			'recovery_url' => wp_lostpassword_url( $canonical ),
-			'original_url' => $delegated ? $canonical : '',
+			'original_url' => $delegated || 'built_in' === $config['mode'] ? $canonical : '',
 			'privacy_url'  => get_privacy_policy_url(),
 		);
 	}
