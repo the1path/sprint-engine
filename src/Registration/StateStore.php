@@ -63,7 +63,7 @@ final class StateStore {
 			$db     = $wpdb->dbh;
 			$probe  = self::lock_name() . '-' . bin2hex( random_bytes( 4 ) );
 			$probes = array( $probe, $probe . 'b' );
-			$r      = mysqli_query( $db, $wpdb->prepare( 'SELECT GET_LOCK(%s, 0) AS acquired, CONNECTION_ID() AS owner, @@autocommit AS automatic, @@in_transaction AS transaction_open', $probe ) );
+			$r      = mysqli_query( $db, $wpdb->prepare( 'SELECT GET_LOCK(%s, 0) AS acquired, CONNECTION_ID() AS owner, @@autocommit AS automatic', $probe ) );
 			if ( false === $r ) {
 				return in_array( mysqli_errno( $db ), array( 1193, 1235, 1305 ), true ) ? 'unsupported' : 'unavailable';
 			}
@@ -83,7 +83,7 @@ final class StateStore {
 			if ( $r ) {
 				mysqli_free_result( $r );
 			}
-			if ( 1 !== $second || ! $owned || '1' !== (string) $row['automatic'] || '0' !== (string) $row['transaction_open'] ) {
+			if ( 1 !== $second || ! $owned || '1' !== (string) $row['automatic'] || ! self::outside_transaction( $db ) ) {
 				return 'unsupported';
 			}
 			$r = mysqli_query( $db, $wpdb->prepare( "SELECT LEFT(option_value, %d) FROM $wpdb->options WHERE option_name = %s", self::MAX_BYTES + 1, self::OPTION ) );
@@ -125,7 +125,8 @@ final class StateStore {
 			static function ( $store, $state ) {
 				$store->write( Budget::purge( $state, time() ) );
 				return true;
-			}
+			},
+			true
 		);
 	}
 
@@ -135,10 +136,11 @@ final class StateStore {
 	 * for this critical section. Restore it before notification/authentication.
 	 *
 	 * @param callable $operation Operation accepting this store and decoded state.
+	 * @param bool     $initialize Permit initial creation only during unconfirmed setup.
 	 * @throws \RuntimeException Internally contained and converted to a safe error.
 	 * @return mixed
 	 */
-	public function run( $operation ) {
+	public function run( $operation, $initialize = false ) {
 		global $wpdb;
 		if ( self::$active || 'ready' !== $this->health() ) {
 			return self::error();
@@ -158,10 +160,22 @@ final class StateStore {
 			}
 			$this->owner = (int) $row[1];
 			$this->assert_owned();
-			$this->query( $database->prepare( "INSERT IGNORE INTO $database->options (option_name, option_value, autoload) VALUES (%s, %s, 'no')", self::OPTION, '{"version":1,"entries":[]}' ) );
 			$r     = $this->query( $database->prepare( "SELECT LEFT(option_value, %d) FROM $database->options WHERE option_name = %s", self::MAX_BYTES + 1, self::OPTION ) );
 			$value = mysqli_fetch_row( $r );
 			mysqli_free_result( $r );
+			if ( null === $value ) {
+				// The row may disappear after health() while this connection waits.
+				// Never reset live replay history under the same confirmation generation.
+				Policy::refresh();
+				if ( ! $initialize || '' !== \ThePath\SprintEngine\Settings\ParticipantAccounts::get()['confirmation'] ) {
+					Policy::revoke();
+					throw new \RuntimeException( 'Missing live temporary state.' );
+				}
+				$this->query( $database->prepare( "INSERT INTO $database->options (option_name, option_value, autoload) VALUES (%s, %s, 'no')", self::OPTION, '{"version":1,"entries":[]}' ) );
+				$r     = $this->query( $database->prepare( "SELECT LEFT(option_value, %d) FROM $database->options WHERE option_name = %s", self::MAX_BYTES + 1, self::OPTION ) );
+				$value = mysqli_fetch_row( $r );
+				mysqli_free_result( $r );
+			}
 			$state = $value ? self::decode( $value[0] ) : false;
 			if ( false === $state ) {
 				throw new \RuntimeException( 'Invalid temporary state.' );
@@ -172,7 +186,9 @@ final class StateStore {
 		} finally {
 			try {
 				if ( $this->owner ) {
-					$result = $this->query( $database->prepare( 'SELECT RELEASE_LOCK(%s)', self::lock_name() ) );
+					// Cleanup only: release on the captured handle even if a callback
+					// opened a transaction. RELEASE_LOCK cannot release another owner's lock.
+					$result = $this->query( $database->prepare( 'SELECT RELEASE_LOCK(%s)', self::lock_name() ), false );
 					mysqli_free_result( $result );
 				}
 			} catch ( \Throwable $exception ) { // Connection loss already releases its server-owned lock.
@@ -196,14 +212,36 @@ final class StateStore {
 		if ( ! $this->connection || $wpdb->dbh !== $this->connection || 0 !== $wpdb->reconnect_retries ) {
 			throw new \RuntimeException( 'Registration connection changed.' );
 		}
-		$r   = mysqli_query( $this->connection, $wpdb->prepare( 'SELECT CONNECTION_ID(), IS_USED_LOCK(%s), @@autocommit, @@in_transaction', self::lock_name() ) );
+		$r   = mysqli_query( $this->connection, $wpdb->prepare( 'SELECT CONNECTION_ID(), IS_USED_LOCK(%s), @@autocommit', self::lock_name() ) );
 		$row = $r ? mysqli_fetch_row( $r ) : null;
 		if ( $r ) {
 			mysqli_free_result( $r );
 		}
-		if ( ! $row || $this->owner !== (int) $row[0] || $this->owner !== (int) $row[1] || '1' !== (string) $row[2] || '0' !== (string) $row[3] ) {
+		if ( ! $row || $this->owner !== (int) $row[0] || $this->owner !== (int) $row[1] || '1' !== (string) $row[2] || ! self::outside_transaction( $this->connection ) ) {
 			throw new \RuntimeException( 'Registration lock lost.' );
 		}
+	}
+
+	/**
+	 * A fresh savepoint survives only inside a transaction, on both MySQL/MariaDB.
+	 * Releasing it never commits/rolls back caller work or changes session settings.
+	 * Require the exact missing-savepoint result; every other failure is unsafe.
+	 *
+	 * @param \mysqli $db Original native connection.
+	 * @return bool
+	 */
+	private static function outside_transaction( $db ) {
+		$probe = 'sprint_registration_' . bin2hex( random_bytes( 16 ) );
+		if ( true !== mysqli_query( $db, 'SAVEPOINT ' . $probe ) ) {
+			return false;
+		}
+		try {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Error 1305 is the expected healthy result, including MYSQLI_REPORT_ERROR mode.
+			$released = @mysqli_query( $db, 'RELEASE SAVEPOINT ' . $probe );
+		} catch ( \mysqli_sql_exception $exception ) {
+			return 1305 === $exception->getCode() && '42000' === mysqli_sqlstate( $db );
+		}
+		return false === $released && 1305 === mysqli_errno( $db ) && '42000' === mysqli_sqlstate( $db );
 	}
 
 	/**

@@ -31,6 +31,8 @@ guidance and validation evidence.
   prerequisites, native closure consequences, fallback and reconfirmation.
 - [SE-031.3 validation](validation/se-031-3-native-registration.md): native account,
   HTTPS, security, browser, compatibility and regression evidence; release gates.
+- [SE-031.3 database follow-up](validation/se-031-3-database-compatibility.md):
+  MySQL/MariaDB transaction preservation and replay-state deletion race evidence.
 - [Contributing](../CONTRIBUTING.md) and [security reporting](../SECURITY.md).
 
 ## Implementation and validation records

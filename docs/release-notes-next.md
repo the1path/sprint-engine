@@ -21,6 +21,10 @@ See [accounts/lifecycle contracts](participant-accounts.md),
 [SE-031.3 validation](validation/se-031-3-native-registration.md).
 Canonical return encoding preserves international percent-encoded slugs,
 subdirectory homes and existing provider queries. Settings tabs remain deferred.
+PR #31's database follow-up replaces the MariaDB-only transaction variable with
+a MySQL/MariaDB savepoint probe and rejects replay-state deletion during the mutex
+wait. It retains original-connection ownership and fail-closed storage contracts;
+see [executed database evidence](validation/se-031-3-database-compatibility.md).
 
 The existing Pro History retention/table-definition assertion failure remains an
 **outstanding SE-031.4 release acceptance investigation**. It is also reproduced

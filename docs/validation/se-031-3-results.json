@@ -408,7 +408,7 @@
     "package_exact_runtime_files": 90
   },
   "not_run": [
-    "Actual MySQL or other database variants/drop-ins/persistent or multiplexed/multiwriter topology",
+    "Other database versions/drop-ins/persistent or multiplexed/multiwriter topology; executed MySQL 8.0.45 recorded in database follow-up",
     "Production TLS/proxy/CDN/cache/mail and sustained signup load/DDoS",
     "Full multisite network installation; built-in unsupported",
     "Other provider/MFA/approval/verification/CAPTCHA/SSO combinations",
@@ -417,5 +417,12 @@
     "Complete protected-resource HTTP/CDN/export and Journey UI acceptance",
     "Physical devices/assistive technology/actual password managers/complete translations/forced colours/real browser 400% zoom",
     "Full Pro History release acceptance pending the unchanged failure investigation"
-  ]
+  ],
+  "database_follow_up": {
+    "report": "se-031-3-database-compatibility.md",
+    "results": "se-031-3-database-results.json",
+    "date": "2026-11-28",
+    "actual_mysql": "8.0.45",
+    "mariadb_regression": "10.11.11 current and exact floor retained"
+  }
 }

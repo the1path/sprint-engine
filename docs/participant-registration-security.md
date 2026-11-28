@@ -10,7 +10,12 @@ Sprint Engine cannot certify or replace that system. See the full
    WordPress correctly recognising it behind your trusted TLS proxy. Test native
    login, secure cookies and canonical returns. Built-in signup refuses HTTP;
    there is no bypass switch. Native mysqli, owned multiple database named locks,
-   autocommit and a stable nonpersistent connection must pass readiness checks.
+   autocommit, no active transaction, SQL savepoint support and a stable
+   nonpersistent connection must pass readiness checks. The savepoint probe
+   deliberately receives missing-savepoint error 1305 / SQLSTATE 42000 in healthy
+   autocommit mode; database statement/error monitoring may record it. Core contains
+   that expected result; other errors fail closed. Do not remove transaction checks
+   or force a commit to make readiness pass.
    Database drop-ins, transaction/pool/proxy arrangements and untested engines
    require host acceptance or external registration.
 2. **Check WordPress.** In Settings → General, deliberately permit registration
@@ -47,8 +52,12 @@ Sprint Engine cannot certify or replace that system. See the full
 
 If policy, roles, URLs or storage become structurally invalid, Core refuses its
 form and revokes confirmation. Repair and save confirmation again. A fresh
-confirmation invalidates old forms, including after temporary state cleanup. Changing mode
-or deactivating Core also revokes it; reactivation alone does not enable signup.
+confirmation invalidates old forms, including after temporary state cleanup. A
+missing live row, including deletion while a request waits for the signup mutex,
+is not recreated by that request. Investigate deletion/restore/cleanup jobs before
+repairing and explicitly reconfirming; never restore an empty row under a live
+confirmation. Changing mode or deactivating Core also revokes it; reactivation
+alone does not enable signup.
 Native signup then follows WordPress's global policy, so protect the reopened
 route. Temporary rate/lock/capacity/outage failures keep an already-valid native
 gate closed. A plain HTTP request is refused without erasing consent site-wide

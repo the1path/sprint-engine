@@ -145,14 +145,23 @@ and proxies share a budget. Core ignores forwarded IP headers. This limits
 form-driven writes, not all signup routes, login guessing or DDoS.
 
 Explicit confirmation first proves bounded state creation/write/read-back under
-the mutex. Missing live state is structural invalidation, never a silent reset.
+the mutex. Missing live state is structural invalidation, never a silent reset,
+including deletion after readiness while a request waits for the mutex. Only
+explicit unconfirmed setup can create the row; registration/purge cannot. Recovery
+requires a fresh operator confirmation generation, invalidating old forms.
 Direct writes clear positive, negative and autoload option caches.
 StateStore requires native `wpdb`/mysqli, nonpersistent connections, autocommit,
 no active transaction and demonstrated multiple named-lock ownership. It uses
 fresh direct reads on the original handle and a per-site mutex (one-second wait).
 Native wpdb reconnect/retry is disabled inside reservation/validation/insertion,
 ownership is checked before writes and final native insertion, and policy is
-restored in `finally`. No transaction spans arbitrary callbacks. Release occurs
+restored in `finally`. A random savepoint/release probe detects active transactions
+on MySQL and MariaDB without committing, rolling back or changing session settings.
+Only the exact missing-savepoint error (1305 / 42000) proves no transaction; all
+other outcomes refuse operation. `@@autocommit` is checked separately because
+explicit transactions can leave it enabled. No transaction spans arbitrary callbacks.
+Cleanup releases only the captured connection's named lock even if a callback
+opened a transaction; Core leaves that transaction to its caller. Release occurs
 before Core's notification/auth. Unsupported drop-ins/pools/engines fail closed;
 a health probe is not host certification. See tested and untested stacks in
 validation. Other uncoordinated creators can still race; WP email has no global

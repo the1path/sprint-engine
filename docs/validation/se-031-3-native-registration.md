@@ -8,6 +8,9 @@ Branch `codex/se-031-3-native-registration`, base
 `2215c9cab2c3cf9aaa885a49ced73dd1f6226529` (merged PR #29 verified on origin/main).
 Core metadata **0.3.0**, schema **2**, WP floor **6.0**, PHP floor **8.0** unchanged.
 No Pro source, deployment, merge, release or runtime dependency changes.
+The subsequent [PR #31 database compatibility review](se-031-3-database-compatibility.md)
+supersedes the initial MariaDB-only database evidence and records actual MySQL
+execution, transaction preservation and the health-to-mutex missing-state fix.
 
 Read with the merged [SE-031 discovery](../discovery/se-031-participant-registration.md),
 [SE-031.1 spike](../discovery/se-031-1-registration-spike.md),
@@ -296,8 +299,8 @@ They contain synthetic fixture data only. Floor images and long-label reflow are
 also retained alongside them. Visual review verified the existing Runner layout,
 readable fields/actions, no clipped controls and no horizontal overflow.
 
-**NOT RUN / not certified:** actual MySQL (no executable/instance available),
-other engines/drop-ins, persistent/multiplexed/multiwriter databases, production
+**NOT RUN / not certified:** other database versions/engines/drop-ins,
+persistent/multiplexed/multiwriter databases, production
 TLS/proxy/CDN/cache/mail, sustained signup load/DDoS, a full multisite installation,
 other native/provider MFA/approval/verification/CAPTCHA/SSO combinations, maintained
 6.0.x/PHP 8.6 variants, licensed commerce or live gateways, every native Woo block
@@ -305,11 +308,13 @@ checkout UI/theme, actual password-manager software, physical phones/screen read
 complete translations, forced-colour modes and real browser 400% zoom. The 320px
 viewport and 200% CSS zoom checks are not a claim of that last test.
 
-Atomic-store support is proven here only on the stated single-writer MariaDB
-stack. Its transaction-state probe must succeed; engines lacking it stay disabled
+Initial validation used only the stated single-writer MariaDB stack; the
+[database follow-up](se-031-3-database-compatibility.md) adds executed MySQL 8.0.45
+evidence and retained MariaDB current/floor regression. The portable savepoint
+transaction-state probe must succeed; engines lacking it stay disabled
 with setup guidance. A successful lock probe cannot certify a transparent DB proxy
 or multiwriter topology. **Do not enable built-in on an unproven stack or weaken
-the guard.** MySQL/host compatibility requires separate proof before acceptance;
+the guard.** Other versions and actual hosting still require proof before acceptance;
 use existing-provider mode where unsupported. Arbitrary trusted PHP can exit,
 change data or run its own external side effects. Native/other uncoordinated
 creators can still race WP's non-unique email column. These are not global

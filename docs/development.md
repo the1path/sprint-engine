@@ -846,8 +846,16 @@ retention/table-definition baseline failure is an **outstanding SE-031.4 release
 acceptance investigation**; do not suppress its assertion or treat baseline
 reproduction as acceptance.
 
-The additional `composer test:registration` suite needs a correctly configured
-disposable HTTPS native-mysqli site. It is separate from the general regression
+The additional `composer test:registration` suites need a correctly configured
+disposable HTTPS native-mysqli site and `proc_open` for independent database
+workers. They include transaction preservation, callback transactions and deletion
+of live replay state between health and mutex acquisition. The database suite
+creates/drops one guarded disposable InnoDB probe table and requires visibility of
+its own same-user connection in `information_schema.PROCESSLIST`; it never needs
+production credentials. The separate `participant-registration-storage.php` test
+requires disposable DB-administrator grants and `SE_TEST_DB_ADMIN=yes` to prove
+actual restricted-grant denial. See [database follow-up evidence](validation/se-031-3-database-compatibility.md).
+These tests are separate from the general regression
 command, like tutorial lifecycle tests. The committed browser test and guarded
 fixtures are documented in SE-031.3 validation. Neither tests nor fixture flags
 belong in the runtime package or an ordinary site.
