@@ -33,6 +33,8 @@ guidance and validation evidence.
   HTTPS, security, browser, compatibility and regression evidence; release gates.
 - [SE-031.3 database follow-up](validation/se-031-3-database-compatibility.md):
   MySQL/MariaDB transaction preservation and replay-state deletion race evidence.
+- [SE-031.3.1 registration polish](validation/se-031-3-1-registration-polish.md):
+  new-account readable logins, optional password visibility and owner retest evidence.
 - [Contributing](../CONTRIBUTING.md) and [security reporting](../SECURITY.md).
 
 ## Implementation and validation records

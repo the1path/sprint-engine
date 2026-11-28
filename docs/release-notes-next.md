@@ -25,6 +25,10 @@ PR #31's database follow-up replaces the MariaDB-only transaction variable with
 a MySQL/MariaDB savepoint probe and rejects replay-state deletion during the mutex
 wait. It retains original-connection ownership and fail-closed storage contracts;
 see [executed database evidence](validation/se-031-3-database-compatibility.md).
+SE-031.3.1 adds readable generated logins for new native participants, responsive
+name fields, optional password visibility and clearer explicit administrator
+confirmation. See [polish validation](validation/se-031-3-1-registration-polish.md).
+No existing username migration or account/authentication policy change is included.
 
 The existing Pro History retention/table-definition assertion failure remains an
 **outstanding SE-031.4 release acceptance investigation**. It is also reproduced

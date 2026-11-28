@@ -58,7 +58,27 @@ at most 4,096 bytes, valid UTF-8, no ASCII controls or leading/trailing native-t
 whitespace. Credentials are never silently truncated or altered. Password-manager
 autocomplete and paste remain native; the form works without JavaScript.
 
-Core generates a random hidden username, stores names in native WP fields and
+Core generates a hidden, readable login from names for new accounts only: native
+accent removal with a fixed locale, strict username sanitization and lowercase
+ASCII name components separated by dots, such as `jane.smith`, `jane.smith.2`.
+Punctuation becomes separators where retained by native sanitization; unusable
+components are omitted. The whole candidate is capped at 60 ASCII characters,
+trimming its base to leave room for a numeric suffix. At most 20 readable candidates
+are checked under the owned mutex against the actual users-column collation.
+Names without usable components or exhausted readable candidates use
+`participant_` plus 12 cryptographically random hex digits (48 bits), with at most
+three collision attempts. This randomness avoids collisions; usernames are not
+authentication secrets. Native validation/reserved-name policy denial stops the
+attempt, without retrying different names to evade it. Generation never uses
+email or its local part. Existing accounts are never renamed or migrated.
+
+**Privacy:** a readable login can become WordPress's public author slug. It derives
+from the participant's supplied name and is not a secret or private identifier.
+Email remains the normal sign-in identifier; no username field or extra task is
+presented to the participant. WordPress/site author-archive exposure remains the
+operator's responsibility.
+
+Core stores names in native WP fields and
 creates a fixed Subscriber through `wp_insert_user()`. It honours
 `user_registration_email`, `register_post`, `registration_errors` and native
 insertion hooks, rechecks policy/final identity/uniqueness under its mutex and
@@ -66,6 +86,17 @@ verifies the resulting role/capabilities and credential. No browser ID, role,
 metadata, Sprint selector or return target is accepted. Native admin-only
 `wp_send_new_user_notifications( $id, 'admin' )` runs once after successful
 insertion and lock release; Core sends no participant setup/welcome email.
+
+The registration form places names side by side at suitable desktop widths and
+stacks them on narrow screens, retaining labels, DOM order and autocomplete.
+Only a rendered registration form receives the small password-visibility script.
+Its native action button updates between Show password and Hide password, with
+matching accessible names and `aria-controls`; the field's actual type supplies
+visibility state. It does not claim an expanded panel or use a changing-label
+pressed toggle. It never reads, copies, stores or sends the password; visibility
+resets on submission/page exit. Without JavaScript the button stays hidden and
+the ordinary password field/form remains usable. Paste and password managers
+retain the native field. Server errors never reflect a password.
 
 Authentication uses **only `wp_signon()`** and native policy/cookies. An opaque
 browser receipt records the expected identity, grants no access and requires a

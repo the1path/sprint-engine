@@ -17,6 +17,7 @@
     "test:tutorial": "php tests/integration/tutorial.php",
     "test:registration": [
       "php tests/integration/participant-registration.php",
+      "php tests/integration/participant-registration-usernames.php",
       "php tests/integration/participant-registration-database.php"
     ],
     "test": [

@@ -18,6 +18,10 @@ Sprint Engine cannot certify or replace that system. See the full
    or force a commit to make readiness pass.
    Database drop-ins, transaction/pool/proxy arrangements and untested engines
    require host acceptance or external registration.
+   Verify candidate ZIP activation as well: exact WordPress 6.0 with MySQL 8.0.45
+   currently refuses fresh table verification in the unchanged installer. See the
+   [polish validation](validation/se-031-3-1-registration-polish.md) and resolve this
+   separate host/release gate without weakening installer checks.
 2. **Check WordPress.** In Settings → General, deliberately permit registration
    and choose standard Subscriber. Do not grant Subscriber extra permissions.
    Core never changes those settings. Built-in is single-site only.
@@ -32,6 +36,9 @@ Sprint Engine cannot certify or replace that system. See the full
    verify a mailbox, establish consent or send a welcome/setup email. Test real
    mail separately before enabling public accounts. Protect recovery and allow
    for squatting/incorrect email addresses.
+   New generated logins derive from names, never email, and can appear in native
+   WordPress public author URLs. They are not secrets. Review author-archive
+   exposure under your own privacy policy; existing identities are not renamed.
 5. **Exclude application pages from shared caches.** Runner forms, POST/errors,
    native login/MFA and authenticated pages must honour private/no-store/noindex.
    Never cache or log form bodies/cookies/passwords. Test guest/member separation
@@ -39,6 +46,9 @@ Sprint Engine cannot certify or replace that system. See the full
    expired temporary hashes is required; quiet sites can delay physical purge.
 6. **Save explicitly.** Choose Sprint Engine registration in Sprints → Settings,
    review the checks and tick the security confirmation only after these tests.
+   The highlighted confirmation group is presentation only; saving still requires
+   the same deliberate checkbox and successful prerequisites. It never confirms
+   automatically.
    Keep the suggested native-form closure checked unless another integration
    requires it. Unchecked leaves native signup outside Core's limiter. Closure
    affects only the standard resolved WP register action; its Register link

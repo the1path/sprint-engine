@@ -1,6 +1,6 @@
 <?php
 /**
- * Native browser form: no participant JavaScript or password reflection.
+ * Native browser form with optional password visibility; no password reflection.
  *
  * @package SprintEngine
  */
@@ -15,7 +15,7 @@ $sprint_engine_fields = array(
 );
 ?>
 <?php if ( $sprint_engine_form['errors'] ) : ?>
-	<div class="se-runner__error" tabindex="-1" autofocus aria-label="<?php esc_attr_e( 'Check your details', 'sprint-engine' ); ?>">
+	<div class="se-runner__error se-runner__registration-errors" tabindex="-1" autofocus aria-label="<?php esc_attr_e( 'Check your details', 'sprint-engine' ); ?>">
 		<ul><?php foreach ( $sprint_engine_form['errors'] as $sprint_engine_field => $sprint_engine_error ) : ?>
 			<li><a href="#se-registration-<?php echo esc_attr( $sprint_engine_field ); ?>"><?php echo esc_html( $sprint_engine_error ); ?></a></li>
 		<?php endforeach; ?></ul>
@@ -25,8 +25,16 @@ $sprint_engine_fields = array(
 	<input type="hidden" name="sprint_engine_action" value="sprint_engine_register">
 	<input type="hidden" name="sprint_engine_registration_token" value="<?php echo esc_attr( $sprint_engine_form['token'] ); ?>">
 	<?php foreach ( $sprint_engine_fields as $sprint_engine_field => $sprint_engine_properties ) : ?>
+		<?php
+		if ( 'first_name' === $sprint_engine_field ) :
+			?>
+			<div class="se-runner__registration-names"><?php endif; ?>
 		<p>
 			<label for="se-registration-<?php echo esc_attr( $sprint_engine_field ); ?>"><?php echo esc_html( $sprint_engine_properties[0] ); ?></label>
+			<?php
+			if ( 'password' === $sprint_engine_field ) :
+				?>
+				<span class="se-runner__password"><?php endif; ?>
 			<input id="se-registration-<?php echo esc_attr( $sprint_engine_field ); ?>" name="<?php echo esc_attr( $sprint_engine_field ); ?>" type="<?php echo esc_attr( $sprint_engine_properties[1] ); ?>" autocomplete="<?php echo esc_attr( $sprint_engine_properties[2] ); ?>" required
 			<?php
 			if ( 'password' !== $sprint_engine_field ) :
@@ -40,6 +48,10 @@ $sprint_engine_fields = array(
 elseif ( 'password' === $sprint_engine_field ) :
 	?>
 				aria-describedby="se-registration-password-help"<?php endif; ?>>
+			<?php if ( 'password' === $sprint_engine_field ) : ?>
+				<button type="button" class="se-runner__button se-runner__button--secondary se-runner__password-toggle" data-password-toggle data-show-label="<?php esc_attr_e( 'Show password', 'sprint-engine' ); ?>" data-hide-label="<?php esc_attr_e( 'Hide password', 'sprint-engine' ); ?>" aria-controls="se-registration-password" hidden><?php esc_html_e( 'Show password', 'sprint-engine' ); ?></button>
+				</span>
+			<?php endif; ?>
 			<?php
 			if ( 'password' === $sprint_engine_field ) :
 				?>
@@ -49,6 +61,10 @@ elseif ( 'password' === $sprint_engine_field ) :
 				?>
 				<span id="se-registration-<?php echo esc_attr( $sprint_engine_field ); ?>-error"><?php echo esc_html( $sprint_engine_form['errors'][ $sprint_engine_field ] ); ?></span><?php endif; ?>
 		</p>
+		<?php
+		if ( 'last_name' === $sprint_engine_field ) :
+			?>
+			</div><?php endif; ?>
 	<?php endforeach; ?>
 	<button type="submit" class="se-runner__button se-runner__button--primary"><?php esc_html_e( 'Create account', 'sprint-engine' ); ?></button>
 </form>

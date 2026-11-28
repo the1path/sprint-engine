@@ -43,6 +43,9 @@ final class AccountService {
 		if ( $update || $id || ! is_array( $data ) || ( $data['user_login'] ?? '' ) !== $guard['login'] || ( $data['user_email'] ?? '' ) !== $guard['email'] || ! wp_check_password( $guard['password'], $data['user_pass'] ?? '' ) || ! $guard['eligible']() ) {
 			throw new \RuntimeException( 'Native registration data or policy changed.' );
 		}
+		if ( self::identity_exists( $guard['store'], $guard['login'], $guard['email'] ) ) {
+			throw new \RuntimeException( 'Native registration identity is no longer available.' );
+		}
 		return $data;
 	}
 
@@ -77,19 +80,18 @@ final class AccountService {
 				if ( ! $eligible() ) {
 					return self::denied();
 				}
-				$email         = apply_filters( 'user_registration_email', $values['email'] );
-				$login         = 'participant_' . bin2hex( random_bytes( 16 ) );
+				$email = apply_filters( 'user_registration_email', $values['email'] );
+				$login = Username::generate( $store, $values['first_name'], $values['last_name'] );
+				if ( is_wp_error( $login ) ) {
+					return $login;
+				}
 				$native_errors = new \WP_Error();
 				do_action( 'register_post', $login, $email, $native_errors );
 				$native_errors = apply_filters( 'registration_errors', $native_errors, $login, $email );
 				if ( ! ( $native_errors instanceof \WP_Error ) || $native_errors->has_errors() || ! is_string( $email ) || sanitize_email( $email ) !== $email || strlen( $email ) > 100 || ! is_email( $email ) || ! validate_username( $login ) || ! $eligible() ) {
 					return self::denied();
 				}
-				global $wpdb;
-				$r      = $store->query( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_email = %s OR user_login = %s LIMIT 2", $email, $login ) );
-				$exists = mysqli_num_rows( $r ) > 0; // phpcs:ignore WordPress.DB.RestrictedFunctions -- Result from the original locked native connection, with automatic retry disabled.
-				mysqli_free_result( $r ); // phpcs:ignore WordPress.DB.RestrictedFunctions -- Release that result without a wpdb retry path.
-				if ( $exists ) {
+				if ( self::identity_exists( $store, $login, $email ) ) {
 					return new \WP_Error( 'registration_existing', __( 'Use Sign in or password recovery if you already have an account. Otherwise, check your email address or contact the site administrator.', 'sprint-engine' ), array( 'status' => 409 ) );
 				}
 				self::$inserting = array(
@@ -128,6 +130,24 @@ final class AccountService {
 				return $id;
 			}
 		);
+	}
+
+	/**
+	 * Recheck the exact identity after native callbacks, on the owned connection.
+	 *
+	 * @param StateStore $store Owned store.
+	 * @param string     $login Expected login.
+	 * @param string     $email Expected email.
+	 * @return bool
+	 */
+	private static function identity_exists( $store, $login, $email ) {
+		global $wpdb;
+		// phpcs:disable WordPress.DB.RestrictedFunctions -- Prepared SQL/results use the original locked native connection without wpdb retry or object caches.
+		$result = $store->query( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_email = %s OR user_login = %s LIMIT 2", $email, $login ) );
+		$exists = mysqli_num_rows( $result ) > 0;
+		mysqli_free_result( $result );
+		// phpcs:enable WordPress.DB.RestrictedFunctions
+		return $exists;
 	}
 
 	/**

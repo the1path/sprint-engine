@@ -12,7 +12,7 @@ $sprint_engine_guest = $sprint_engine_context['guest'];
 	<p class="se-runner__error" role="alert"><?php echo esc_html( $sprint_engine_guest['notice'] ); ?></p>
 <?php endif; ?>
 <?php if ( isset( $sprint_engine_guest['form'] ) ) : ?>
-	<p class="se-runner__intro"><?php esc_html_e( 'A few details, then you can take it one Step at a time.', 'sprint-engine' ); ?></p>
+	<p class="se-runner__intro"><?php esc_html_e( 'Create an account to get started, save your progress and return whenever you’re ready.', 'sprint-engine' ); ?></p>
 	<?php require __DIR__ . '/registration-form.php'; ?>
 	<p><?php esc_html_e( 'Already have an account?', 'sprint-engine' ); ?> <a href="<?php echo esc_url( $sprint_engine_guest['login_url'] ); ?>"><?php esc_html_e( 'Sign in', 'sprint-engine' ); ?></a></p>
 <?php else : ?>

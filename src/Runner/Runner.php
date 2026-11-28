@@ -253,6 +253,10 @@ final class Runner {
 		if ( null !== Routes::slug() ) {
 			Presentation::enqueue_style();
 			WebsiteNavigation::enqueue_style();
+			if ( isset( $this->context['guest']['form'] ) ) {
+				$asset = 'assets/js/registration.js';
+				wp_enqueue_script( 'sprint-engine-registration', plugins_url( $asset, dirname( __DIR__, 2 ) . '/sprint-engine.php' ), array(), Assets::version( $asset ), true );
+			}
 			if ( is_user_logged_in() && null !== $this->context && in_array( $this->context['state'], array( 'not_started', 'in_progress', 'completed' ), true ) ) {
 				$start   = 'not_started' === $this->context['state'];
 				$restart = 'completed' === $this->context['state'];

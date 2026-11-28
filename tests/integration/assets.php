@@ -24,7 +24,7 @@ try {
     check_asset( Assets::version( $relative ) === SPRINT_ENGINE_VERSION . '-' . hash( 'sha256', 'other' ), 'Timestamp-only changes preserve cacheability' );
     check_asset( Assets::version( 'missing-asset.css' ) === SPRINT_ENGINE_VERSION, 'Missing file falls back safely' );
     check_asset( Assets::version( 'assets' ) === SPRINT_ENGINE_VERSION, 'Directory falls back safely' );
-    foreach ( array( 'css/runner.css', 'js/runner.js', 'css/dashboard.css', 'js/dashboard.js', 'css/structure-admin.css', 'js/structure-admin.js', 'js/runner-admin.js' ) as $asset ) {
+    foreach ( array( 'css/runner.css', 'js/runner.js', 'js/registration.js', 'css/dashboard.css', 'js/dashboard.js', 'css/structure-admin.css', 'js/structure-admin.js', 'js/runner-admin.js' ) as $asset ) {
         check_asset( Assets::version( 'assets/' . $asset ) === SPRINT_ENGINE_VERSION . '-' . hash_file( 'sha256', dirname( __DIR__, 2 ) . '/assets/' . $asset ), 'Runtime fingerprint: ' . $asset );
     }
 } finally { unlink( $file ); }

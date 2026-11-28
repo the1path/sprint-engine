@@ -1,0 +1,202 @@
+{
+  "ticket": "SE-031.3.1 / #32",
+  "date": "2026-11-28",
+  "base": "236d2b356d7ee83bf699157e55ceef0c37bf8fc5",
+  "branch": "codex/se-031-3-1-registration-polish",
+  "status": "Unreleased; draft and owner review required",
+  "owner_staging": {
+    "source": "Owner report in issue #32",
+    "reported_passes": [
+      "Open Sprint signup",
+      "Native identity/authentication",
+      "Direct return",
+      "Explicit start/resume",
+      "Existing sign-in",
+      "Restricted denial",
+      "Native closure"
+    ],
+    "woo_registration_form_visible": true,
+    "exact_installed_archive_verified": false,
+    "independent_owner_woo_account_checkout_submission_verified": false
+  },
+  "lanes": {
+    "current": {
+      "wordpress": "7.1.5",
+      "php": "8.3.36",
+      "database": "MariaDB 10.11.11",
+      "security": 267,
+      "restricted_grants": 4,
+      "database_transactions_race": 48,
+      "usernames": 33,
+      "access_returns": 289,
+      "https_browser": 98,
+      "polish_browser": 22,
+      "boundaries": 11,
+      "accessibility": 6,
+      "runner": 305,
+      "older_pro": 18,
+      "woocommerce": 15,
+      "current_adapter": 3
+    },
+    "floor": {
+      "wordpress": "6.0",
+      "php": "8.0.30",
+      "database": "MariaDB 10.11.11",
+      "security": 267,
+      "restricted_grants": 4,
+      "database_transactions_race": 48,
+      "usernames": 33,
+      "access_returns": 289,
+      "https_browser": 98,
+      "polish_browser": 22,
+      "boundaries": 11,
+      "accessibility": 6,
+      "runner": 305
+    },
+    "mysql": {
+      "wordpress": "7.1.5",
+      "php": "8.3.36",
+      "database": "MySQL 8.0.45",
+      "security": 267,
+      "restricted_grants": 4,
+      "database_transactions_race": 48,
+      "usernames": 33,
+      "access_returns": 289,
+      "https_browser": 98,
+      "polish_browser": 22,
+      "boundaries": 11,
+      "accessibility": 6,
+      "older_pro": 18,
+      "woocommerce": 15,
+      "current_adapter": 3
+    }
+  },
+  "username_regressions": [
+    "Deterministic native name transliteration/punctuation and usable components",
+    "Deterministic native name transliteration/punctuation and usable components",
+    "Deterministic native name transliteration/punctuation and usable components",
+    "Deterministic native name transliteration/punctuation and usable components",
+    "Deterministic native name transliteration/punctuation and usable components",
+    "Deterministic native name transliteration/punctuation and usable components",
+    "Transliteration is independent of active site locale",
+    "Unusable name components use bounded compact random login, never email",
+    "Unusable name components use bounded compact random login, never email",
+    "Unusable name components use bounded compact random login, never email",
+    "All-non-Latin native account keeps exact profile with compact random login",
+    "Random-fallback native account signs in normally by email",
+    "Fresh actual collation check sees uppercase native user despite misleading user cache",
+    "Distinct email with same names receives expected readable suffix .2",
+    "Native profile values remain exact",
+    "Email remains native sign-in identifier for readable username",
+    "Native recovery works for readable username",
+    "Distinct email with same names receives expected readable suffix .3",
+    "Native profile values remain exact",
+    "Email remains native sign-in identifier for readable username",
+    "Native recovery works for readable username",
+    "Existing ordinary native identity is not renamed/updated",
+    "Diacritic collision follows actual users-column collation",
+    "Suffix truncation keeps login within native 60-character boundary",
+    "Twenty occupied readable candidates fall back to cryptographic random suffix",
+    "Actual native collisions on each random candidate stop after three attempts",
+    "Native validation denial stops once, without suffix/fallback or insertion",
+    "Username policy denial retains committed replay reservation",
+    "Native reserved logins are rejected case-insensitively without trying alternatives",
+    "Unexpected native login rewrite is rejected before insertion",
+    "Native registration policy fires once and is never retried/bypassed",
+    "Final authoritative identity guard rejects collision introduced by late native callback",
+    "All pre-existing users and native profile metadata remain byte-for-byte unchanged"
+  ],
+  "polish_browser_regressions": [
+    "Independent workers serialize same-name distinct-email logins into unique readable candidates",
+    "Concurrent readable usernames preserve exact separate native profiles and safe roles",
+    "Same-name registration creates no attempt or Step progress",
+    "Only eligible form receives visibility script, without member write configuration",
+    "Unrelated/unknown page receives no registration script",
+    "Approved neutral introductory copy is rendered",
+    "Desktop name fields share a row in natural DOM order",
+    "Password visibility action participates in native keyboard focus order",
+    "Space shows exact password locally and updates accessible action label",
+    "Showing password preserves focus and makes no request",
+    "Enter hides password and restores accessible action label",
+    "Create account and existing-account sign-in have modest breathing room",
+    "Responsive name/password controls reflow at 390px LTR zoom 1",
+    "Responsive name/password controls reflow at 320px LTR zoom 1",
+    "Responsive name/password controls reflow at 1280px RTL zoom 1",
+    "Responsive name/password controls reflow at 320px RTL zoom 2 with long labels",
+    "Error recovery preserves safe names and resets password value/visibility without reflection",
+    "Native error summary retains autofocus after layout/visibility enhancement",
+    "Corrected enhanced form returns exactly to canonical Ready without automatic Start",
+    "No-JS form retains ordinary password field with no unusable visibility action",
+    "Prominent native confirmation group remains explicitly unchecked, described and unconfirmed",
+    "No-JS administrator sees the same explicit unconfirmed security group"
+  ],
+  "pro": {
+    "older_source": "6cef901a29460ca8fbd6fbd37b31dd5998cd9363",
+    "current_source": "826f2c87acac5d374c3cc061e5d9f6d3319045e8",
+    "runtime_files_compared_per_copy": 162,
+    "copies": 3,
+    "git_blob_mismatches": 0,
+    "source_changes": false
+  },
+  "fresh_zip_installs": {
+    "floor-maria": {
+      "foundation": 46,
+      "participant-registration": 267,
+      "participant-registration-database": 48,
+      "participant-registration-usernames": 33
+    },
+    "current-mysql": {
+      "foundation": 46,
+      "participant-registration": 267,
+      "participant-registration-database": 48,
+      "participant-registration-usernames": 33
+    }
+  },
+  "package": {
+    "runtime_files": 92,
+    "excluded_development_files": true,
+    "source_bytes_verified": true,
+    "final_rebuild": "After candidate commit; SHA/path/modification time recorded in PR handoff; no ZIP committed"
+  },
+  "static": {
+    "phpcs": "PASS",
+    "php_floor_current_lint": "PASS",
+    "javascript_syntax": "PASS",
+    "javascript_tests": 43,
+    "asset_checks": 13,
+    "release_metadata": "PASS",
+    "diff_check": "PASS"
+  },
+  "outstanding": [
+    {
+      "gate": "SE-031.4 Pro History",
+      "status": "FAIL reproduced unchanged",
+      "passes_before_failure": 26,
+      "assertion": "PRO-004 install/initialize leaves every existing response/Core row and table definition unchanged."
+    },
+    {
+      "gate": "SE-031.4 floor Journey autosave",
+      "status": "FAIL reproduced unchanged",
+      "assertion": "Native content autosave cannot change Journey composition."
+    },
+    {
+      "gate": "SE-031.4 fresh WordPress 6.0 / MySQL 8.0.45 activation",
+      "status": "FAIL on candidate and independent unchanged main runtime",
+      "reason": "WP 6.0 dbDelta repeatedly proposes bigint integer display-width changes; existing installer dry-run verification refuses activation",
+      "installer_or_schema_modified": false
+    }
+  ],
+  "runtime_source": {
+    "username_sha256": "4e8b7fe993f17f8ffe752c85e2e855292cdb21bed7b9cc69ff193426c145b844",
+    "account_service_sha256": "226b9a06cafedf56ddf14af705851034a23ca8abc045221cf15c7dad57754faf",
+    "registration_script_sha256": "55d0e2a409ec6ce07551e6d65671b47f083a3aa9247c7d02b5a000babdebd66d"
+  },
+  "not_rerun": [
+    "Unrelated general Core/Pro suites outside listed affected regression",
+    "Production hosting/CDN/TLS/mail/cron and sustained load",
+    "Other databases/drop-ins/pools/proxies/multiwriter and security providers",
+    "Live/licensed payments and every checkout UI/theme",
+    "Physical assistive devices, real password-manager products, complete translations and actual browser 400% zoom",
+    "Complete protected-resource/History/Journey and release acceptance"
+  ]
+}

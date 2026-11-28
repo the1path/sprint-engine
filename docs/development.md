@@ -24,6 +24,15 @@ needs a deliberate operator security confirmation plus objective HTTPS, native
 registration/Subscriber, single-site and atomic-store checks. Old pending
 preferences cannot silently enable accounts or native-form closure.
 
+SE-031.3.1 polishes only new-account login generation and registration/confirmation
+presentation. Readable name-derived logins retain native validation and bounded,
+uncached collision checks under the existing mutex, including a final identity
+check before insertion. Existing identities and all transaction/replay/authentication
+contracts remain. Responsive names, optional local-only password visibility and
+explicit confirmation grouping preserve no-JS flows. See the
+[issue archive](discovery/se-031-3-1-issue.md) and
+[validation/owner retest record](validation/se-031-3-1-registration-polish.md).
+
 Eligible known-open guests receive required first name, last name, email and
 password in the existing branded Runner. Native validation/insertion and
 `wp_signon()` preserve native policy. A fresh authenticated canonical request
