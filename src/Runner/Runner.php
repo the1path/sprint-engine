@@ -95,7 +95,7 @@ final class Runner {
 					'state'  => 'guest',
 					'status' => 200,
 				);
-				$context['title'] = __( 'Your next step starts here', 'sprint-engine' );
+				$context['title'] = __( 'Sign in to continue', 'sprint-engine' );
 				$context['guest'] = GuestAccess::context( $sprint, $this->access->participant_access_kind( $sprint->ID ) );
 				return $context;
 			}
@@ -183,7 +183,9 @@ final class Runner {
 		remove_action( 'template_redirect', 'wp_old_slug_redirect' );
 		remove_action( 'wp_head', '_wp_render_title_tag', 1 );
 		show_admin_bar( false );
-		$this->context = $this->resolve( $slug );
+		$registration  = new \ThePath\SprintEngine\Registration\Controller( $this->access );
+		$this->context = $registration->before_resolve( $slug ) ?? $this->resolve( $slug );
+		$this->context = $registration->prepare( $slug, $this->context );
 		if ( 'login' === $this->context['state'] ) {
 			wp_safe_redirect( $this->context['login_url'], 302, 'Sprint Engine' );
 			exit;

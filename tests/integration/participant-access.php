@@ -69,7 +69,7 @@ participant_check(''===Accounts::status(),'Invitation-only resolves setup');
 participant_save(participant_config('built_in','','','0'));
 participant_check(false===Accounts::get()['disable_native'],'Returning to built-in does not re-check opted-out preference');
 ob_start();Admin::render();$html=ob_get_clean();
-participant_check(str_contains($html,'not protected')&&str_contains($html,'dormant now')&&str_contains($html,'options-general.php'),'Dormancy and unchecked warning remain visible with direct General link');
+participant_check(str_contains($html,'outside Sprint Engine')&&str_contains($html,'security guide')&&str_contains($html,'options-general.php'),'Unconfirmed setup and unchecked warning remain visible with direct General link');
 $flag=get_option('users_can_register');$role=get_option('default_role');
 update_option('users_can_register',0);update_option('default_role','administrator');
 participant_check(2===count(Accounts::native_policy_problems()),'Flag and unsafe default role both diagnosed');

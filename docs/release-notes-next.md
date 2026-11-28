@@ -1,37 +1,34 @@
-# Planned Core patch release notes
+# Planned Core release notes
 
-Draft material for the separately authorised Core **0.3.1** release. This document
-does not bump the plugin version, source Stable tag or schema, and does not
-authorise packaging for publication, merging, deployment or WordPress.org upload.
-Current published metadata remains **0.3.0**, schema **2**.
+Draft material for separately authorised Core **0.4.0** release preparation after
+SE-031.4 and owner acceptance. This does not bump plugin version, Stable tag or
+schema, or authorise merging, deployment, publication or release. Current
+published metadata remains **0.3.0**, schema **2**. Feature freeze otherwise remains.
 
-SE-031 is [completed discovery](discovery/se-031-participant-registration.md),
-not an implemented feature or an addition to this patch's release scope. Account
-forms and authentication changes require separate approval;
-the feature freeze otherwise remains in effect.
+SE-031 and SE-031.1 are merged [discovery](discovery/se-031-participant-registration.md)
+and [security spike](discovery/se-031-1-registration-spike.md) evidence.
+SE-031.2/3 are authorised **unreleased** source changes: Participant Accounts
+settings, generic branded guest screens, safe provider returns, presentation
+classification, conditional native WordPress registration and optional narrow
+standard-form closure. Old pending preferences require explicit new security
+confirmation; no automatic account creation, entitlement, attempt or Start.
+Existing Pro without a classifier remains neutral sign-in. No Pro source changes
+or coordinated release are required for existing member functionality.
 
-SE-031.1's [disposable security/feasibility evidence](discovery/se-031-1-registration-spike.md)
-is also documentation only. Its conditional recommendation does not add account
-registration to this release scope; implementation, complete regression, owner
-staging acceptance and separate release preparation remain required.
+See [accounts/lifecycle contracts](participant-accounts.md),
+[operator security guide](participant-registration-security.md),
+[SE-031.2 validation](validation/se-031-2-participant-access.md) and
+[SE-031.3 validation](validation/se-031-3-native-registration.md).
+Canonical return encoding preserves international percent-encoded slugs,
+subdirectory homes and existing provider queries. Settings tabs remain deferred.
 
-SE-031.2 is now an authorised, **unreleased** source slice: Participant Accounts
-settings, scoped setup notices, generic branded guest screens, validated existing-
-provider links and additive presentation classification. Built-in preference and
-native-form checkbox are explicitly pending/dormant; native GET/POST account
-creation is not intercepted. No new Core account/authentication endpoint exists.
-See [guidance/contract](participant-accounts.md) and
-[validation](validation/se-031-2-participant-access.md). This does not approve
-including the registration journey in a release. After approved SE-031.3 and
-SE-031.4 regression/owner staging acceptance, a separate release-preparation ticket
-must review **all** unreleased changes, including Tutorial, metadata and package.
-
-SE-031.2's PR #29 review corrects provider return-value encoding to preserve exact
-canonical Sprint URLs, including percent-encoded international slugs. The existing
-Pro History retention/table-definition assertion failure, also reproduced on the
-unchanged baseline, remains an **outstanding SE-031.4 release acceptance
-investigation**. Baseline reproduction does not satisfy that gate; retain its
-failing assertion and obtain investigation/retest evidence before release acceptance.
+The existing Pro History retention/table-definition assertion failure remains an
+**outstanding SE-031.4 release acceptance investigation**. It is also reproduced
+on unchanged baseline; this does not satisfy the gate. Keep the assertion and
+obtain investigation/retest evidence before acceptance. A separately approved Pro
+classifier adapter, complete host/security/commerce/regression and owner staging
+acceptance precede release preparation. Review all unreleased Tutorial and other
+source changes, metadata and package together.
 
 - SE-028: add the presentation-only after-Step content action for an authorized
   in-progress Runner. See [its contract and validation](validation/se-028-runner-step-content-hook.md).

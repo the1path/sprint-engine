@@ -2,7 +2,7 @@
 
 Core **0.3.0** is the published WordPress.org release. See the
 [historical candidate validation](validation/se-026-1-release-0.3.0.md).
-SE-028, SE-029, SE-030 and SE-031.2 are unreleased source changes and require separate publication
+SE-028, SE-029, SE-030, SE-031.2 and SE-031.3 are unreleased source changes and require separate publication
 authorisation. The root [README](../README.md)
 introduces the product and installation. This directory preserves technical
 guidance and validation evidence.
@@ -22,11 +22,15 @@ guidance and validation evidence.
   implementation or release authorisation. Includes the archived issue specification.
 - [SE-031.1 registration security spike](discovery/se-031-1-registration-spike.md):
   disposable current/floor account, security, MFA, Pro and real WooCommerce evidence;
-  conditional direction approved for SE-031.2; account creation remains deferred.
-- [Participant Accounts](participant-accounts.md): unreleased SE-031.2 settings,
+  evidence underlying the conditional SE-031.3 production architecture.
+- [Participant Accounts](participant-accounts.md): unreleased SE-031.2/3 settings,
   administrator/participant guidance, option lifecycle and guest classification contract.
 - [SE-031.2 validation](validation/se-031-2-participant-access.md): actual settings,
   current/floor browser/native dispatch and Pro/commerce evidence; remaining gates.
+- [Registration security setup](participant-registration-security.md): concise operator
+  prerequisites, native closure consequences, fallback and reconfirmation.
+- [SE-031.3 validation](validation/se-031-3-native-registration.md): native account,
+  HTTPS, security, browser, compatibility and regression evidence; release gates.
 - [Contributing](../CONTRIBUTING.md) and [security reporting](../SECURITY.md).
 
 ## Implementation and validation records

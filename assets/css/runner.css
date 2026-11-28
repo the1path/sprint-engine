@@ -82,6 +82,10 @@ body.se-runner {
 .se-runner .se-runner__completion { padding-block: 1rem; }
 .se-runner .se-runner__content { overflow-wrap: anywhere; display: flow-root; }
 .se-runner .se-runner__guest { overflow-wrap: anywhere; }
+.se-runner .se-runner__registration label { display: block; margin-block-end: .35rem; font-weight: 600; }
+.se-runner .se-runner__registration input:not([type="hidden"]) { box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; padding: .65rem .8rem; border: 1px solid var(--se-muted); border-radius: var(--se-control-radius); color: var(--se-text); background: var(--se-surface); font: inherit; }
+.se-runner .se-runner__registration small, .se-runner .se-runner__registration [id$="-error"] { display: block; margin-block-start: .35rem; }
+.se-runner .se-runner__registration [aria-invalid="true"] { border-width: 2px; border-style: dashed; }
 .se-runner .se-runner__content > :first-child { margin-top: 0; }
 /* Content hierarchy is separate from the Sprint/Step titles. Preset classes and
  * inline Gutenberg typography/spacing still take precedence over these defaults. */

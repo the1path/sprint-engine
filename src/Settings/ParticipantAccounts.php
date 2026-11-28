@@ -9,7 +9,7 @@ namespace ThePath\SprintEngine\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
-/** One independent, non-autoloaded option. Built-in registration is pending. */
+/** One independent, non-autoloaded option; old pending preferences remain disabled. */
 final class ParticipantAccounts {
 
 	const OPTION = 'sprint_engine_participant_accounts';
@@ -25,6 +25,7 @@ final class ParticipantAccounts {
 			'registration_url' => '',
 			'login_url'        => '',
 			'disable_native'   => null,
+			'confirmation'     => '',
 		);
 	}
 
@@ -35,6 +36,9 @@ final class ParticipantAccounts {
 	 */
 	public static function get() {
 		$value = get_option( self::OPTION, self::defaults() );
+		if ( is_array( $value ) && ! array_key_exists( 'confirmation', $value ) ) {
+			$value['confirmation'] = ''; // SE-031.2 never confirmed live account creation.
+		}
 		return self::valid_shape( $value ) ? $value : self::defaults();
 	}
 
@@ -45,7 +49,32 @@ final class ParticipantAccounts {
 	 * @return array
 	 */
 	public static function sanitize( $input ) {
-		$previous     = self::get();
+		$previous = self::get();
+		if ( is_array( $input ) && ! array_key_exists( 'confirmation', $input ) ) {
+			$input['confirmation'] = '';
+		}
+		if ( is_array( $input ) && isset( $input['confirmation'] ) && in_array( $input['confirmation'], array( '0', '1' ), true ) ) {
+			$requested             = '1' === $input['confirmation'];
+			$input['confirmation'] = '';
+			if ( $requested && 'built_in' === ( $input['mode'] ?? '' ) ) {
+				if ( \ThePath\SprintEngine\Registration\Policy::prerequisites() ) {
+					add_settings_error( self::OPTION, 'sprint_engine_confirmation', __( 'Complete the built-in setup checks before confirming live account creation. Previous settings were kept.', 'sprint-engine' ) );
+					return self::get(); // Structural checks may have revoked a previously live confirmation.
+				}
+				if ( ! ( new \ThePath\SprintEngine\Registration\StateStore() )->initialize() ) {
+					add_settings_error( self::OPTION, 'sprint_engine_confirmation_store', __( 'Secure account storage could not be prepared. Previous participant settings were kept; ask the host to check database access.', 'sprint-engine' ) );
+					return self::get();
+				}
+				$input['confirmation'] = \ThePath\SprintEngine\Registration\Policy::confirmation();
+				if ( '' === $input['confirmation'] ) {
+					add_settings_error( self::OPTION, 'sprint_engine_confirmation_entropy', __( 'Secure confirmation is unavailable. Previous participant settings were kept; ask the host to check secure randomness.', 'sprint-engine' ) );
+					return $previous;
+				}
+			}
+		}
+		if ( is_array( $input ) && 'built_in' !== ( $input['mode'] ?? '' ) ) {
+			$input['confirmation'] = '';
+		}
 		$choice_valid = is_array( $input ) && array_key_exists( 'disable_native', $input ) && in_array( $input['disable_native'], array( '0', '1', false, true, null ), true );
 		if ( is_array( $input ) && array_key_exists( 'disable_native', $input ) ) {
 			if ( in_array( $input['disable_native'], array( '0', '1' ), true ) ) {
@@ -80,6 +109,7 @@ final class ParticipantAccounts {
 		return in_array( $value['mode'], array( '', 'built_in', 'external', 'invitation' ), true ) &&
 			is_string( $value['registration_url'] ) && strlen( $value['registration_url'] ) <= 2048 &&
 			is_string( $value['login_url'] ) && strlen( $value['login_url'] ) <= 2048 &&
+			is_string( $value['confirmation'] ) && ( '' === $value['confirmation'] || 1 === preg_match( '/^[a-f0-9]{128}$/D', $value['confirmation'] ) ) &&
 			( is_bool( $value['disable_native'] ) || ( null === $value['disable_native'] && 'built_in' !== $value['mode'] ) );
 	}
 
@@ -186,7 +216,7 @@ final class ParticipantAccounts {
 	}
 
 	/**
-	 * Persistent setup status; implementation pending is distinct.
+	 * Persistent setup status; unconfirmed choices never imply operation.
 	 *
 	 * @return string
 	 */
@@ -196,7 +226,11 @@ final class ParticipantAccounts {
 			return __( 'Choose how participants get an account. Existing sign-in and access rules remain available.', 'sprint-engine' );
 		}
 		if ( 'built_in' === $config['mode'] ) {
-			return __( 'Preference saved: Sprint Engine registration is pending implementation and is not operational. Sign-in and standard WordPress registration remain available under site policy.', 'sprint-engine' ) . ' ' . implode( ' ', self::native_policy_problems() );
+			if ( ! \ThePath\SprintEngine\Registration\Policy::confirmed() ) {
+				return __( 'Built-in account creation is not operational. Review the setup checks and explicitly confirm that the site is ready.', 'sprint-engine' );
+			}
+			$issues = \ThePath\SprintEngine\Registration\Policy::prerequisites();
+			return $issues ? __( 'Built-in account creation is unavailable. Review participant setup; native registration follows the documented failure policy.', 'sprint-engine' ) : '';
 		}
 		if ( 'external' === $config['mode'] ) {
 			if ( '' === self::destination( $config['registration_url'] ) ) {
